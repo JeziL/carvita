@@ -1,6 +1,7 @@
+import 'package:flutter/material.dart';
+
 import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/data/models/vehicle.dart';
-import 'package:flutter/material.dart';
 
 class VehicleSummaryCard extends StatelessWidget {
   final Vehicle vehicle;

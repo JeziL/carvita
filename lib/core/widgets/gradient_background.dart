@@ -1,5 +1,6 @@
-import 'package:carvita/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
+
+import 'package:carvita/core/constants/app_colors.dart';
 
 class GradientBackground extends StatelessWidget {
   final Widget child;
@@ -8,9 +9,7 @@ class GradientBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        gradient: AppColors.primaryGradient,
-      ),
+      decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
       child: child,
     );
   }

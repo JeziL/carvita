@@ -1,5 +1,6 @@
-import 'package:carvita/data/models/predicted_maintenance.dart';
 import 'package:equatable/equatable.dart';
+
+import 'package:carvita/data/models/predicted_maintenance.dart';
 
 abstract class UpcomingMaintenanceState extends Equatable {
   const UpcomingMaintenanceState();

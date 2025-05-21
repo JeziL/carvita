@@ -1,4 +1,11 @@
 // import 'dart:collection';
+
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
+
 import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/widgets/gradient_background.dart';
 import 'package:carvita/data/models/maintenance_plan_item.dart';
@@ -8,16 +15,13 @@ import 'package:carvita/data/repositories/vehicle_repository.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/presentation/manager/locale_provider.dart';
 import 'package:carvita/presentation/manager/maintenance_plan/maintenance_plan_cubit.dart';
-import 'package:carvita/presentation/manager/maintenance_plan/maintenance_plan_state.dart'
-    as plan_state;
 import 'package:carvita/presentation/manager/service_log/service_log_cubit.dart';
 import 'package:carvita/presentation/manager/service_log/service_log_state.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_cubit.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
+
+import 'package:carvita/presentation/manager/maintenance_plan/maintenance_plan_state.dart'
+    as plan_state;
 
 class LogMaintenanceScreen extends StatefulWidget {
   final int vehicleId;
@@ -606,7 +610,9 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
                     ),
                   ),
                   child: Text(
-                    AppLocalizations.of(context)!.addEditButtonText(_isEditing ? 'edit' : 'add'),
+                    AppLocalizations.of(
+                      context,
+                    )!.addEditButtonText(_isEditing ? 'edit' : 'add'),
                     style: const TextStyle(color: AppColors.primaryBlue),
                   ),
                 ),

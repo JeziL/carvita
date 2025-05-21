@@ -1,27 +1,31 @@
-import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
-enum DueReminderThresholdValue {
-  week,
-  month,
-  halfYear
-}
+import 'package:carvita/i18n/generated/app_localizations.dart';
+
+enum DueReminderThresholdValue { week, month, halfYear }
 
 extension DueReminderThresholdDetails on DueReminderThresholdValue {
   int get days {
     switch (this) {
-      case DueReminderThresholdValue.week: return 7;
-      case DueReminderThresholdValue.month: return 30;
-      case DueReminderThresholdValue.halfYear: return 182;
+      case DueReminderThresholdValue.week:
+        return 7;
+      case DueReminderThresholdValue.month:
+        return 30;
+      case DueReminderThresholdValue.halfYear:
+        return 182;
     }
   }
 
   String displayString(BuildContext context) {
     switch (this) {
-      case DueReminderThresholdValue.week: return AppLocalizations.of(context)!.thresholdWeek;
-      case DueReminderThresholdValue.month: return AppLocalizations.of(context)!.thresholdMonth;
-      case DueReminderThresholdValue.halfYear: return AppLocalizations.of(context)!.thresholdHalfYear;
+      case DueReminderThresholdValue.week:
+        return AppLocalizations.of(context)!.thresholdWeek;
+      case DueReminderThresholdValue.month:
+        return AppLocalizations.of(context)!.thresholdMonth;
+      case DueReminderThresholdValue.halfYear:
+        return AppLocalizations.of(context)!.thresholdHalfYear;
     }
   }
 
@@ -52,7 +56,9 @@ class PreferencesService {
     return prefs.getInt(_defaultVehicleIdKey);
   }
 
-  Future<void> setDueReminderThreshold(DueReminderThresholdValue threshold) async {
+  Future<void> setDueReminderThreshold(
+    DueReminderThresholdValue threshold,
+  ) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_dueReminderThresholdKey, threshold.keyString);
   }

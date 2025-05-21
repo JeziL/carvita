@@ -1,5 +1,6 @@
-import 'package:carvita/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
+
+import 'package:carvita/core/constants/app_colors.dart';
 
 class InfoGridItem extends StatelessWidget {
   final String label;

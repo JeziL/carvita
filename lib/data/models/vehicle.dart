@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+
 import 'package:equatable/equatable.dart';
 
 class Vehicle extends Equatable {
@@ -91,16 +92,16 @@ class Vehicle extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        name,
-        mileage,
-        boughtDate,
-        image,
-        model,
-        plateNumber,
-        vin,
-        engineNumber,
-      ];
+    id,
+    name,
+    mileage,
+    boughtDate,
+    image,
+    model,
+    plateNumber,
+    vin,
+    engineNumber,
+  ];
 
   @override
   String toString() {

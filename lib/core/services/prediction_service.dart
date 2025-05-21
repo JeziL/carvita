@@ -1,10 +1,12 @@
+import 'package:flutter/material.dart';
+
+import 'package:collection/collection.dart';
+
+import 'package:carvita/core/utils/mileage_estimator.dart';
 import 'package:carvita/data/models/maintenance_plan_item.dart';
 import 'package:carvita/data/models/predicted_maintenance.dart';
 import 'package:carvita/data/models/service_log_entry.dart';
 import 'package:carvita/data/models/vehicle.dart';
-import 'package:carvita/core/utils/mileage_estimator.dart';
-import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
 
 class PredictionService {
   /// Calculate the next service date for an item.
@@ -198,7 +200,8 @@ class PredictionService {
       if (prediction != null &&
           !prediction.predictedDueDate.isAfter(
             endDate,
-          ) /* && prediction.predictedDueDate.isAfter(now.subtract(const Duration(days: 180)))*/ ) { // maybe omit items that are too old?
+          ) /* && prediction.predictedDueDate.isAfter(now.subtract(const Duration(days: 180)))*/ ) {
+        // maybe omit items that are too old?
         predictions.add(prediction);
       }
     }

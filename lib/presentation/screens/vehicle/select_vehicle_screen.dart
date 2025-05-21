@@ -1,13 +1,15 @@
+import 'package:flutter/material.dart';
+
+import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/widgets/gradient_background.dart';
 import 'package:carvita/data/models/vehicle.dart';
+import 'package:carvita/data/repositories/maintenance_repository.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/presentation/manager/maintenance_plan/maintenance_plan_cubit.dart';
 import 'package:carvita/presentation/manager/service_log/service_log_cubit.dart';
 import 'package:carvita/presentation/screens/maintenance/log_maintenance_screen.dart';
-import 'package:carvita/data/repositories/maintenance_repository.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 class SelectVehicleScreen extends StatelessWidget {
   final List<Vehicle> vehicles;

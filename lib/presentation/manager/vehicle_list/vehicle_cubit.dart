@@ -1,16 +1,19 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'package:carvita/core/services/preferences_service.dart';
 import 'package:carvita/data/models/vehicle.dart';
 import 'package:carvita/data/repositories/vehicle_repository.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'vehicle_state.dart';
 
 class VehicleCubit extends Cubit<VehicleState> {
   final VehicleRepository _vehicleRepository;
   final PreferencesService _preferencesService;
 
-  VehicleCubit(this._vehicleRepository, {PreferencesService? preferencesService})
-      : _preferencesService = preferencesService ?? PreferencesService(),
-        super(VehicleInitial());
+  VehicleCubit(
+    this._vehicleRepository, {
+    PreferencesService? preferencesService,
+  }) : _preferencesService = preferencesService ?? PreferencesService(),
+       super(VehicleInitial());
 
   Future<void> fetchVehicles() async {
     emit(VehicleLoading());

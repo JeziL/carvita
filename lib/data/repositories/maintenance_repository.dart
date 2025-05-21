@@ -6,7 +6,7 @@ class MaintenanceRepository {
   final DatabaseHelper _dbHelper;
 
   MaintenanceRepository({DatabaseHelper? dbHelper})
-      : _dbHelper = dbHelper ?? DatabaseHelper();
+    : _dbHelper = dbHelper ?? DatabaseHelper();
 
   // --- Maintenance Plan Methods ---
   Future<List<MaintenancePlanItem>> getPlanItems(int vehicleId) async {
@@ -30,11 +30,17 @@ class MaintenanceRepository {
     return await _dbHelper.getServiceLogsWithItemsForVehicle(vehicleId);
   }
 
-  Future<ServiceLogWithItems?> addServiceLog(ServiceLogEntry logEntry, List<PerformedItemInput> performedItems) async {
+  Future<ServiceLogWithItems?> addServiceLog(
+    ServiceLogEntry logEntry,
+    List<PerformedItemInput> performedItems,
+  ) async {
     return await _dbHelper.insertServiceLog(logEntry, performedItems);
   }
 
-  Future<bool> updateServiceLog(ServiceLogEntry logEntry, List<PerformedItemInput> performedItems) async {
+  Future<bool> updateServiceLog(
+    ServiceLogEntry logEntry,
+    List<PerformedItemInput> performedItems,
+  ) async {
     final count = await _dbHelper.updateServiceLog(logEntry, performedItems);
     return count > 0;
   }

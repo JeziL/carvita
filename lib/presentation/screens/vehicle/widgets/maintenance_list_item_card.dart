@@ -1,8 +1,10 @@
+import 'package:flutter/material.dart';
+
+import 'package:intl/intl.dart';
+
 import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/data/models/predicted_maintenance.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 class MaintenanceListItemCard extends StatelessWidget {
   final String title;

@@ -1,6 +1,11 @@
+import 'package:flutter/material.dart';
+
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'package:carvita/core/constants/app_routes.dart';
+import 'package:carvita/data/models/maintenance_plan_item.dart';
 import 'package:carvita/data/models/service_log_entry.dart';
 import 'package:carvita/data/models/vehicle.dart';
-import 'package:carvita/data/models/maintenance_plan_item.dart';
 import 'package:carvita/presentation/manager/maintenance_plan/maintenance_plan_cubit.dart';
 import 'package:carvita/presentation/manager/service_log/service_log_cubit.dart';
 import 'package:carvita/presentation/screens/dashboard/dashboard_screen.dart';
@@ -10,11 +15,8 @@ import 'package:carvita/presentation/screens/maintenance/upcoming_maintenance_li
 import 'package:carvita/presentation/screens/settings/privacy_screen.dart';
 import 'package:carvita/presentation/screens/settings/settings_screen.dart';
 import 'package:carvita/presentation/screens/vehicle/add_edit_vehicle_screen.dart';
-import 'package:carvita/presentation/screens/vehicle/vehicle_list_screen.dart';
 import 'package:carvita/presentation/screens/vehicle/vehicle_details_screen.dart';
-import 'package:carvita/core/constants/app_routes.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:carvita/presentation/screens/vehicle/vehicle_list_screen.dart';
 
 class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {

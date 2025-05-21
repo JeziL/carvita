@@ -1,5 +1,6 @@
-import 'package:carvita/data/models/vehicle.dart';
 import 'package:equatable/equatable.dart';
+
+import 'package:carvita/data/models/vehicle.dart';
 
 abstract class VehicleState extends Equatable {
   const VehicleState();

@@ -1,3 +1,8 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/widgets/gradient_background.dart';
 import 'package:carvita/data/models/maintenance_plan_item.dart';
@@ -5,9 +10,6 @@ import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/presentation/manager/maintenance_plan/maintenance_plan_cubit.dart';
 import 'package:carvita/presentation/manager/maintenance_plan/maintenance_plan_state.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 class AddEditMaintenancePlanItemScreen extends StatefulWidget {
   final int vehicleId;
@@ -347,8 +349,10 @@ class _AddEditMaintenancePlanItemScreenState
                   controller: _notesController,
                   style: const TextStyle(color: AppColors.textWhite),
                   decoration: InputDecoration(
-                    labelText: "${AppLocalizations.of(context)!.notes} (${AppLocalizations.of(context)!.optionalEntry})",
-                    hintText: AppLocalizations.of(context)!.noteMaintenanceItemHint,
+                    labelText:
+                        "${AppLocalizations.of(context)!.notes} (${AppLocalizations.of(context)!.optionalEntry})",
+                    hintText:
+                        AppLocalizations.of(context)!.noteMaintenanceItemHint,
                   ),
                   maxLines: 3,
                   minLines: 1,
@@ -368,7 +372,9 @@ class _AddEditMaintenancePlanItemScreenState
                     ),
                   ),
                   child: Text(
-                    AppLocalizations.of(context)!.addEditButtonText(_isEditing ? 'edit' : 'add'),
+                    AppLocalizations.of(
+                      context,
+                    )!.addEditButtonText(_isEditing ? 'edit' : 'add'),
                     style: const TextStyle(color: AppColors.primaryBlue),
                   ),
                 ),

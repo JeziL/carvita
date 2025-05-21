@@ -1,5 +1,6 @@
-import 'package:carvita/data/models/maintenance_plan_item.dart';
 import 'package:equatable/equatable.dart';
+
+import 'package:carvita/data/models/maintenance_plan_item.dart';
 
 abstract class MaintenancePlanState extends Equatable {
   const MaintenancePlanState();
@@ -33,6 +34,6 @@ class MaintenancePlanError extends MaintenancePlanState {
 class MaintenancePlanOperationSuccess extends MaintenancePlanState {
   final String message;
   const MaintenancePlanOperationSuccess(this.message);
-   @override
+  @override
   List<Object> get props => [message];
 }

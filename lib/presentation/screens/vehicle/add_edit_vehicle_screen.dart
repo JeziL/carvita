@@ -1,13 +1,16 @@
 import 'dart:typed_data';
+
+import 'package:flutter/material.dart';
+
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
+
 import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/widgets/gradient_background.dart';
 import 'package:carvita/data/models/vehicle.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_cubit.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
 
 class AddEditVehicleScreen extends StatefulWidget {
   final Vehicle? vehicle;
@@ -246,9 +249,7 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
         padding: const EdgeInsets.only(bottom: 18.0),
         child: TextFormField(
           controller: controller,
-          style: const TextStyle(
-            color: AppColors.textWhite,
-          ),
+          style: const TextStyle(color: AppColors.textWhite),
           decoration: InputDecoration(
             labelText: label,
             hintText: hint,
@@ -317,9 +318,7 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
                     child:
                         _selectedImageBytes != null
                             ? ClipRRect(
-                              borderRadius: BorderRadius.circular(
-                                9,
-                              ),
+                              borderRadius: BorderRadius.circular(9),
                               child: Image.memory(
                                 _selectedImageBytes!,
                                 fit: BoxFit.cover,
@@ -431,7 +430,9 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
                     ),
                   ),
                   child: Text(
-                    AppLocalizations.of(context)!.addEditButtonText(_isEditing ? 'edit' : 'add'),
+                    AppLocalizations.of(
+                      context,
+                    )!.addEditButtonText(_isEditing ? 'edit' : 'add'),
                     style: const TextStyle(color: AppColors.primaryBlue),
                   ),
                 ),

@@ -1,3 +1,10 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import 'package:collection/collection.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
+
 import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/constants/app_routes.dart';
 import 'package:carvita/core/widgets/gradient_background.dart';
@@ -8,16 +15,12 @@ import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/presentation/manager/maintenance_plan/maintenance_plan_cubit.dart';
 import 'package:carvita/presentation/manager/service_log/service_log_cubit.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_cubit.dart';
-import 'package:carvita/presentation/manager/vehicle_list/vehicle_state.dart'
-    as vehicle_list_state_import;
 import 'package:carvita/presentation/screens/vehicle/tabs/maintenance_plan_tab.dart';
 import 'package:carvita/presentation/screens/vehicle/tabs/overview_tab.dart';
 import 'package:carvita/presentation/screens/vehicle/tabs/service_history_tab.dart';
-import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
+
+import 'package:carvita/presentation/manager/vehicle_list/vehicle_state.dart'
+    as vehicle_list_state_import;
 
 class VehicleDetailsScreen extends StatefulWidget {
   final int vehicleId;

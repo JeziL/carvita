@@ -23,7 +23,8 @@ class MaintenancePlanItem extends Equatable {
     this.isActive = true,
   });
 
-  bool get hasFirstInterval => firstIntervalTimeMonths != null || firstIntervalMileage != null;
+  bool get hasFirstInterval =>
+      firstIntervalTimeMonths != null || firstIntervalMileage != null;
 
   Map<String, dynamic> toMap() {
     return {
@@ -73,28 +74,39 @@ class MaintenancePlanItem extends Equatable {
       id: id ?? this.id,
       vehicleId: vehicleId ?? this.vehicleId,
       itemName: itemName ?? this.itemName,
-      intervalTimeMonths: setIntervalTimeMonthsToNull ? null : (intervalTimeMonths ?? this.intervalTimeMonths),
-      intervalMileage: setIntervalMileageToNull ? null : (intervalMileage ?? this.intervalMileage),
-      firstIntervalTimeMonths: setFirstIntervalTimeMonthsToNull ? null : (firstIntervalTimeMonths ?? this.firstIntervalTimeMonths),
-      firstIntervalMileage: setFirstIntervalMileageToNull ? null : (firstIntervalMileage ?? this.firstIntervalMileage),
+      intervalTimeMonths:
+          setIntervalTimeMonthsToNull
+              ? null
+              : (intervalTimeMonths ?? this.intervalTimeMonths),
+      intervalMileage:
+          setIntervalMileageToNull
+              ? null
+              : (intervalMileage ?? this.intervalMileage),
+      firstIntervalTimeMonths:
+          setFirstIntervalTimeMonthsToNull
+              ? null
+              : (firstIntervalTimeMonths ?? this.firstIntervalTimeMonths),
+      firstIntervalMileage:
+          setFirstIntervalMileageToNull
+              ? null
+              : (firstIntervalMileage ?? this.firstIntervalMileage),
       notes: setNotesToNull ? null : (notes ?? this.notes),
       isActive: isActive ?? this.isActive,
     );
   }
 
-
   @override
   List<Object?> get props => [
-        id,
-        vehicleId,
-        itemName,
-        intervalTimeMonths,
-        intervalMileage,
-        firstIntervalTimeMonths,
-        firstIntervalMileage,
-        notes,
-        isActive,
-      ];
+    id,
+    vehicleId,
+    itemName,
+    intervalTimeMonths,
+    intervalMileage,
+    firstIntervalTimeMonths,
+    firstIntervalMileage,
+    notes,
+    isActive,
+  ];
 
   @override
   String toString() {

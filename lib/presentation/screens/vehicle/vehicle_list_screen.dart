@@ -1,3 +1,7 @@
+import 'package:flutter/material.dart';
+
+import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/constants/app_routes.dart';
 import 'package:carvita/data/models/vehicle.dart';
@@ -5,8 +9,6 @@ import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_cubit.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_state.dart';
 import 'package:carvita/presentation/screens/common_widgets/main_bottom_navigation_bar.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 class VehicleListScreen extends StatefulWidget {
   const VehicleListScreen({super.key});

@@ -1,8 +1,10 @@
+import 'package:flutter/material.dart';
+
+import 'package:equatable/equatable.dart';
+
 import 'package:carvita/data/models/maintenance_plan_item.dart';
 import 'package:carvita/data/models/vehicle.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
-import 'package:equatable/equatable.dart';
-import 'package:flutter/material.dart';
 
 enum PredictionBasis { time, mileage, timeAndMileageCombined, unknown }
 

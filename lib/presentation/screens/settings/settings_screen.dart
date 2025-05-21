@@ -1,30 +1,34 @@
 import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import 'package:collection/collection.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:sqflite/sqflite.dart';
+
+import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/constants/app_routes.dart';
 import 'package:carvita/core/services/notification_service.dart';
-import 'package:carvita/i18n/generated/app_localizations.dart';
-import 'package:carvita/main.dart';
-import 'package:carvita/presentation/manager/locale_provider.dart';
-import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
-import 'package:path/path.dart' as path;
-import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/services/preferences_service.dart';
 import 'package:carvita/core/widgets/gradient_background.dart';
 import 'package:carvita/data/models/vehicle.dart';
 import 'package:carvita/data/repositories/vehicle_repository.dart';
 import 'package:carvita/data/sources/local/database_helper.dart';
+import 'package:carvita/i18n/generated/app_localizations.dart';
+import 'package:carvita/main.dart';
+import 'package:carvita/presentation/manager/locale_provider.dart';
+import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_cubit.dart';
+import 'package:carvita/presentation/screens/common_widgets/main_bottom_navigation_bar.dart';
+
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_state.dart'
     as vehicle_list_state_import;
-import 'package:carvita/presentation/screens/common_widgets/main_bottom_navigation_bar.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:collection/collection.dart';
-import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:sqflite/sqflite.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -95,8 +99,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     BuildContext context,
     List<Vehicle> vehicles,
   ) async {
-    int? newSelectedId =
-        _currentDefaultVehicleId;
+    int? newSelectedId = _currentDefaultVehicleId;
 
     final result = await showDialog<int?>(
       context: context,
@@ -161,9 +164,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     style: TextStyle(color: AppColors.urgentReminderText),
                   ),
                   onPressed: () {
-                    Navigator.of(
-                      dialogContext,
-                    ).pop(null);
+                    Navigator.of(dialogContext).pop(null);
                   },
                 ),
                 TextButton(
@@ -172,9 +173,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     style: TextStyle(color: AppColors.primaryBlue),
                   ),
                   onPressed: () {
-                    Navigator.of(dialogContext).pop(
-                      _currentDefaultVehicleId,
-                    );
+                    Navigator.of(dialogContext).pop(_currentDefaultVehicleId);
                   },
                 ),
               ],
@@ -573,10 +572,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.only(
-                top: 10.0,
-                bottom: 0.0,
-              ),
+              padding: const EdgeInsets.only(top: 10.0, bottom: 0.0),
               child: Text(
                 title.toUpperCase(),
                 style: TextStyle(
@@ -602,8 +598,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }) {
     return ListTile(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      contentPadding:
-          EdgeInsets.zero,
+      contentPadding: EdgeInsets.zero,
       leading: Icon(icon, color: AppColors.primaryBlue, size: 22),
       title: Text(
         label,
@@ -706,10 +701,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final vehicleState =
-        context
-            .watch<VehicleCubit>()
-            .state;
+    final vehicleState = context.watch<VehicleCubit>().state;
     final localeProvider = context.watch<LocaleProvider>();
 
     return GradientBackground(
@@ -788,9 +780,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: AppLocalizations.of(context)!.dashboardTitle,
               children: [
                 _buildSettingItem(
-                  icon:
-                      Icons
-                          .star_border_purple500_outlined,
+                  icon: Icons.star_border_purple500_outlined,
                   label: AppLocalizations.of(context)!.defaultVehicle,
                   value:
                       _currentDefaultVehicleId == null
@@ -821,9 +811,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           backgroundColor: AppColors.primaryBlue,
                         ),
                       );
-                      context
-                          .read<VehicleCubit>()
-                          .fetchVehicles();
+                      context.read<VehicleCubit>().fetchVehicles();
                     }
                   },
                 ),

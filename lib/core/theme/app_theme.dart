@@ -1,5 +1,6 @@
-import 'package:carvita/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
+
+import 'package:carvita/core/constants/app_colors.dart';
 
 class AppTheme {
   static final ThemeData lightTheme = ThemeData(
@@ -19,9 +20,7 @@ class AppTheme {
     cardTheme: CardTheme(
       elevation: 4,
       color: AppColors.cardBackground,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16.0),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
     ),
     floatingActionButtonTheme: const FloatingActionButtonThemeData(
@@ -35,34 +34,47 @@ class AppTheme {
       selectionHandleColor: AppColors.secondaryBlue,
     ),
     inputDecorationTheme: InputDecorationTheme(
-        hintStyle: TextStyle(color: AppColors.textWhite.withValues(alpha: 0.7)),
-        labelStyle: TextStyle(color: AppColors.textWhite.withValues(alpha: 0.9)),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10.0),
-          borderSide: BorderSide(color: AppColors.textWhite.withValues(alpha: 0.3)),
+      hintStyle: TextStyle(color: AppColors.textWhite.withValues(alpha: 0.7)),
+      labelStyle: TextStyle(color: AppColors.textWhite.withValues(alpha: 0.9)),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10.0),
+        borderSide: BorderSide(
+          color: AppColors.textWhite.withValues(alpha: 0.3),
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10.0),
-          borderSide: BorderSide(color: AppColors.textWhite.withValues(alpha: 0.3)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10.0),
+        borderSide: BorderSide(
+          color: AppColors.textWhite.withValues(alpha: 0.3),
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10.0),
-          borderSide: const BorderSide(color: AppColors.textWhite),
-        ),
-        filled: true,
-        fillColor: AppColors.textWhite.withValues(alpha: 0.15),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 13, vertical: 13),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10.0),
+        borderSide: const BorderSide(color: AppColors.textWhite),
+      ),
+      filled: true,
+      fillColor: AppColors.textWhite.withValues(alpha: 0.15),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 13, vertical: 13),
     ),
     textTheme: const TextTheme(
       bodyLarge: TextStyle(color: AppColors.textBlack),
       bodyMedium: TextStyle(color: AppColors.textBlack),
       titleLarge: TextStyle(color: AppColors.textWhite),
-      headlineSmall: TextStyle(color: AppColors.textWhite, fontSize: 28, fontWeight: FontWeight.w500),
-      headlineMedium: TextStyle(color: AppColors.textWhite, fontSize: 22, fontWeight: FontWeight.w500),
-      titleMedium: TextStyle(color: AppColors.textWhite, fontSize: 18, fontWeight: FontWeight.w500),
-    ).apply(
-      bodyColor: AppColors.textBlack,
-      displayColor: AppColors.textWhite,
-    ),
+      headlineSmall: TextStyle(
+        color: AppColors.textWhite,
+        fontSize: 28,
+        fontWeight: FontWeight.w500,
+      ),
+      headlineMedium: TextStyle(
+        color: AppColors.textWhite,
+        fontSize: 22,
+        fontWeight: FontWeight.w500,
+      ),
+      titleMedium: TextStyle(
+        color: AppColors.textWhite,
+        fontSize: 18,
+        fontWeight: FontWeight.w500,
+      ),
+    ).apply(bodyColor: AppColors.textBlack, displayColor: AppColors.textWhite),
   );
 }

@@ -1,3 +1,8 @@
+import 'package:flutter/material.dart';
+
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
+
 import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/constants/app_routes.dart';
 import 'package:carvita/data/models/predicted_maintenance.dart';
@@ -5,13 +10,11 @@ import 'package:carvita/data/models/vehicle.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_state.dart';
+import 'package:carvita/presentation/screens/common_widgets/main_bottom_navigation_bar.dart';
+
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_cubit.dart'; // For vehicle filter
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_state.dart'
     as vehicle_list_state_import;
-import 'package:carvita/presentation/screens/common_widgets/main_bottom_navigation_bar.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
 
 class UpcomingMaintenanceListScreen extends StatefulWidget {
   const UpcomingMaintenanceListScreen({super.key});
@@ -115,8 +118,7 @@ class _UpcomingMaintenanceListScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor:
-          AppColors.white,
+      backgroundColor: AppColors.white,
       appBar: AppBar(
         title: Text(
           AppLocalizations.of(context)!.upcomingMaintenance,

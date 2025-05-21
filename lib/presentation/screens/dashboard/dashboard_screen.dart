@@ -1,3 +1,9 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import 'package:collection/collection.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/constants/app_routes.dart';
 import 'package:carvita/core/services/preferences_service.dart';
@@ -13,17 +19,14 @@ import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maint
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_state.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_cubit.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_state.dart';
-import 'package:carvita/presentation/manager/vehicle_list/vehicle_state.dart'
-    as vehicle_list_state_import;
-import 'package:carvita/presentation/screens/maintenance/log_maintenance_screen.dart';
-import 'package:carvita/presentation/screens/vehicle/select_vehicle_screen.dart';
-import 'package:collection/collection.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:carvita/presentation/screens/common_widgets/main_bottom_navigation_bar.dart';
 import 'package:carvita/presentation/screens/dashboard/widgets/quick_action_button.dart';
 import 'package:carvita/presentation/screens/dashboard/widgets/vehicle_summary_card.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:carvita/presentation/screens/maintenance/log_maintenance_screen.dart';
+import 'package:carvita/presentation/screens/vehicle/select_vehicle_screen.dart';
+
+import 'package:carvita/presentation/manager/vehicle_list/vehicle_state.dart'
+    as vehicle_list_state_import;
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -41,8 +44,7 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   void _handleGlobalLogMaintenance(BuildContext context) async {
     final PreferencesService preferencesService = PreferencesService();
-    final vehicleState =
-        context.read<VehicleCubit>().state;
+    final vehicleState = context.read<VehicleCubit>().state;
 
     if (vehicleState is vehicle_list_state_import.VehicleLoaded) {
       final vehicles = vehicleState.vehicles;

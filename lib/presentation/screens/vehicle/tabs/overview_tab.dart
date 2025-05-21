@@ -1,3 +1,8 @@
+import 'package:flutter/material.dart';
+
+import 'package:collection/collection.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/constants/app_routes.dart';
 import 'package:carvita/data/models/predicted_maintenance.dart';
@@ -7,9 +12,6 @@ import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maint
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_state.dart';
 import 'package:carvita/presentation/screens/vehicle/widgets/info_grid_item.dart';
 import 'package:carvita/presentation/screens/vehicle/widgets/maintenance_list_item_card.dart';
-import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 class OverviewTab extends StatelessWidget {
   final Vehicle vehicle;

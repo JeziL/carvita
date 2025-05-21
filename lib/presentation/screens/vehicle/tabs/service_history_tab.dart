@@ -1,3 +1,8 @@
+import 'package:flutter/material.dart';
+
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
+
 import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/constants/app_routes.dart';
 import 'package:carvita/data/models/service_log_entry.dart';
@@ -6,9 +11,6 @@ import 'package:carvita/presentation/manager/maintenance_plan/maintenance_plan_c
 import 'package:carvita/presentation/manager/service_log/service_log_cubit.dart';
 import 'package:carvita/presentation/manager/service_log/service_log_state.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
 
 class ServiceHistoryTab extends StatefulWidget {
   final int vehicleId;
@@ -279,8 +281,7 @@ class _ServiceHistoryTabState extends State<ServiceHistoryTab> {
                                       arguments: {
                                         'vehicleId': widget.vehicleId,
                                         'vehicleName': widget.vehicleName,
-                                        'logToEdit':
-                                            logWithItems,
+                                        'logToEdit': logWithItems,
                                         'serviceLogCubit': serviceLogCubit,
                                         'maintenancePlanCubit':
                                             maintenancePlanCubit,
