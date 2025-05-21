@@ -1,0 +1,747 @@
+{
+  "@@locale": "en",
+  "appName": "CarVita",
+  "@appName": {
+    "description": "The name of the application"
+  },
+  "dashboardTitle": "Dashboard",
+  "@dashboardTitle": {
+    "description": "The title of the dashboard screen"
+  },
+  "addVehicle": "Add Vehicle",
+  "@addVehicle": {
+    "description": "The label for the quick button to add a new vehicle"
+  },
+  "logMaintenance": "Log Maintenance",
+  "@logMaintenance": {
+    "description": "The label for the quick button to log a maintenance event"
+  },
+  "urgentReminders": "Reminders",
+  "@urgentReminders": {
+    "description": "The label for the due reminders section on the dashboard"
+  },
+  "itemsDueSoon": "{count, plural, =0{no maintenance} =1{1 maintenance} other{{count} maintenance}} due soon",
+  "@itemsDueSoon": {
+    "description": "The title for the due reminders section on the dashboard",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "daysLater": "{count, plural, =0{Today} =1{Tomorrow} other{{count} days later}}",
+  "@daysLater": {
+    "description": "The label for the due date of a maintenance event",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "daysOverdue": "{count, plural, =1{1 day} other{{count} days}} overdue",
+  "@daysOverdue": {
+    "description": "The label for the overdue date of a maintenance event",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "kmLater": "{count, plural, =0{0 km} =1{1 km} other{{count} km}} later",
+  "@kmLater": {
+    "description": "The label for the due distance of a maintenance event",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nextMaintenanceShort": "Next",
+  "@nextMaintenanceShort": {
+    "description": "The label for the next maintenance event on vehicle summary card on the dashboard"
+  },
+  "nextMaintenance": "Next maintenance",
+  "@nextMaintenance": {
+    "description": "The label for the next maintenance section on vehicle details screen"
+  },
+  "noNextMaintenance": "No upcoming maintenance",
+  "@noNextMaintenance": {
+    "description": "The label for the next maintenance event on vehicle summary card on the dashboard when there is no upcoming maintenance"
+  },
+  "myVehicles": "Vehicles",
+  "@myVehicles": {
+    "description": "The label for the vehicles section on the dashboard"
+  },
+  "navDashboard": "Dashboard",
+  "@navDashboard": {
+    "description": "The label for the dashboard tab in the bottom navigation bar"
+  },
+  "navVehicles": "Vehicles",
+  "@navVehicles": {
+    "description": "The label for the vehicles tab in the bottom navigation bar"
+  },
+  "navMaintenanceList": "Maintenance",
+  "@navMaintenanceList": {
+    "description": "The label for the maintenance list tab in the bottom navigation bar"
+  },
+  "navSettings": "Settings",
+  "@navSettings": {
+    "description": "The label for the settings tab in the bottom navigation bar"
+  },
+  "reminderThresholdSetting": "Reminder threshold",
+  "@reminderThresholdSetting": {
+    "description": "The label for the reminder threshold setting in the settings screen"
+  },
+  "thresholdWeek": "Within 1 week",
+  "@thresholdWeek": {
+    "description": "The label for the week reminder threshold in the settings"
+  },
+  "thresholdMonth": "Within 1 month",
+  "@thresholdMonth": {
+    "description": "The label for the month reminder threshold in the settings"
+  },
+  "thresholdHalfYear": "Within 6 months",
+  "@thresholdHalfYear": {
+    "description": "The label for the half-year reminder threshold in the settings"
+  },
+  "notificationLeadTimeLabel": "Notification preference",
+  "@notificationLeadTimeLabel": {
+    "description": "The label for the notification lead time setting in the settings screen"
+  },
+  "notificationLeadTime": "{count, plural, =1{1 day} other{{count} days}} in advance",
+  "@notificationLeadTime": {
+    "description": "The options for the notification lead time setting in the settings screen",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationPrefix": "Maintenance Reminder",
+  "@notificationPrefix": {
+    "description": "The prefix for the notification title"
+  },
+  "notificationBody": "{maintenanceItem} is due on {dueDate}.",
+  "@notificationBody": {
+    "description": "The body of the notification",
+    "placeholders": {
+      "maintenanceItem": {
+        "type": "String"
+      },
+      "dueDate": {
+        "type": "DateTime",
+        "format": "yMMMd"
+      }
+    }
+  },
+  "errNoVehicleToLog": "Please add a vehicle before logging maintenance.",
+  "@errNoVehicleToLog": {
+    "description": "Error message when trying to log maintenance without a vehicle"
+  },
+  "noUpcomingMaintenance": "No upcoming maintenance.",
+  "@noUpcomingMaintenance": {
+    "description": "The label for the empty state of the urgent reminder list on the dashboard"
+  },
+  "viewAll": "View all",
+  "@viewAll": {
+    "description": "The label for the button to view all urgent maintenance items if there's too many"
+  },
+  "noVehicles": "You haven't added any vehicles yet.",
+  "@noVehicles": {
+    "description": "The label for the empty state of the vehicles list on the dashboard"
+  },
+  "regularInterval": "Regular interval",
+  "@regularInterval": {
+    "description": "The label for the regular interval when adding maintenance items"
+  },
+  "initialInterval": "Initial interval",
+  "@initialInterval": {
+    "description": "The label for the initial interval when adding maintenance items"
+  },
+  "optionalEntry": "optional",
+  "@optionalEntry": {
+    "description": "The indicator for optional entries in forms"
+  },
+  "invalidRegularInterval": "Regular interval: Please enter a valid time or mileage interval (must be greater than 0).",
+  "@invalidRegularInterval": {
+    "description": "Error message when the regular interval is invalid"
+  },
+  "invalidOptionalEntry": "{optionalEntry}: Must be a positive integer if entered.",
+  "@invalidOptionalEntry": {
+    "description": "Error message when the optional entry is invalid",
+    "placeholders": {
+      "optionalEntry": {
+        "type": "String"
+      }
+    }
+  },
+  "hintComesFirst": "Whichever comes first applies",
+  "@hintComesFirst": {
+    "description": "The hint for the time and mileage interval in the form"
+  },
+  "addEditMaintenanceItem": "{opType, select, add{Add} edit{Edit} other{}} maintenance item",
+  "@addEditMaintenanceItem": {
+    "description": "The title for the add/edit maintenance item screen",
+    "placeholders": {
+      "opType": {
+        "type": "String"
+      }
+    }
+  },
+  "addEditMaintenanceItemForVeh": "{opType, select, add{Add} edit{Edit} other{}} maintenance plan item for {vehicle}",
+  "@addEditMaintenanceItemForVeh": {
+    "description": "The subtitle for the add/edit maintenance item screen",
+    "placeholders": {
+      "opType": {
+        "type": "String"
+      },
+      "vehicle": {
+        "type": "String"
+      }
+    }
+  },
+  "itemName": "Item name",
+  "@itemName": {
+    "description": "The label for the item name field in the add/edit maintenance item screen"
+  },
+  "itemNameHint": "e.g. Replace oil filter",
+  "@itemNameHint": {
+    "description": "The hint for the item name field in the add/edit maintenance item screen"
+  },
+  "invalidEmptyEntry": "{entry}: cannot be empty",
+  "@invalidEmptyEntry": {
+    "description": "Error message when a requird entry is empty",
+    "placeholders": {
+      "entry": {
+        "type": "String"
+      }
+    }
+  },
+  "timeHint": "time (month)",
+  "@timeHint": {
+    "description": "The hint for the time interval field in the add/edit maintenance item screen"
+  },
+  "mileageHint": "mileage (km)",
+  "@mileageHint": {
+    "description": "The hint for the mileage interval field in the add/edit maintenance item screen"
+  },
+  "firstTimeHint": "first time (month)",
+  "@firstTimeHint": {
+    "description": "The hint for the first time interval field in the add/edit maintenance item screen"
+  },
+  "firstMileageHint": "first mileage (km)",
+  "@firstMileageHint": {
+    "description": "The hint for the first mileage interval field in the add/edit maintenance item screen"
+  },
+  "notes": "Notes",
+  "@notes": {
+    "description": "The label for the notes field in forms"
+  },
+  "noteMaintenanceItemHint": "e.g. Use specific part model, or special notes",
+  "@noteMaintenanceItemHint": {
+    "description": "The hint for the notes field in the add/edit maintenance item screen"
+  },
+  "addEditButtonText": "{opType, select, add{Add} edit{Save changes} other{}}",
+  "@addEditButtonText": {
+    "description": "Button text for add/edit forms",
+    "placeholders": {
+      "opType": {
+        "type": "String"
+      }
+    }
+  },
+  "maintenanceDate": "Maintenance date",
+  "@maintenanceDate": {
+    "description": "The label for the maintenance date field in the log maintenance screen"
+  },
+  "maintenanceItems": "Maintenance items",
+  "@maintenanceItems": {
+    "description": "The label for the maintenance items field in the log maintenance screen"
+  },
+  "updateMileageTitle": "Update mileage?",
+  "@updateMileageTitle": {
+    "description": "The title for the dialog to update mileage when logging maintenance"
+  },
+  "updateMileageBody": "The mileage you entered ({newValue}km) is higher than the current recorded mileage ({oldValue}km) for {vehicleName}.\n\nDo you want to update the vehicle's current mileage to {newValue}km?",
+  "@updateMileageBody": {
+    "description": "The body for the dialog to update mileage when logging maintenance",
+    "placeholders": {
+      "newValue": {
+        "type": "String"
+      },
+      "oldValue": {
+        "type": "String"
+      },
+      "vehicleName": {
+        "type": "String"
+      }
+    }
+  },
+  "no": "No",
+  "@no": {
+    "description": "The label for the negative button in dialogs"
+  },
+  "yes": "Yes",
+  "@yes": {
+    "description": "The label for the positive button in dialogs"
+  },
+  "chooseFromPlan": "Choose from maintenance plan",
+  "@chooseFromPlan": {
+    "description": "The label to choose from the vehicle's maintenance plan when logging maintenance"
+  },
+  "customItemAdded": "Custom items added",
+  "@customItemAdded": {
+    "description": "The label for the custom item added when logging maintenance"
+  },
+  "customItemAddHint": "Enter custom maintenance item name",
+  "@customItemAddHint": {
+    "description": "The hint for the custom item name field when logging maintenance"
+  },
+  "addEditMaintenanceLog": "{opType, select, add{Log maintenance} edit{Edit maintenance log} other{}}",
+  "@addEditMaintenanceLog": {
+    "description": "The title for the add/edit maintenance log screen",
+    "placeholders": {
+      "opType": {
+        "type": "String"
+      }
+    }
+  },
+  "addEditMaintenanceLogForVeh": "{opType, select, add{Log maintenance} edit{Edit maintenance log} other{}} for {vehicle}",
+  "@addEditMaintenanceLogForVeh": {
+    "description": "The subtitle for the add/edit maintenance log screen",
+    "placeholders": {
+      "opType": {
+        "type": "String"
+      },
+      "vehicle": {
+        "type": "String"
+      }
+    }
+  },
+  "mileageAtService": "Mileage at service",
+  "@mileageAtService": {
+    "description": "The label for the mileage at service field in the log maintenance screen"
+  },
+  "cost": "Cost",
+  "@cost": {
+    "description": "The label for the cost field in the log maintenance screen"
+  },
+  "notesMLogHint": "e.g. Replaced with XX brand parts, location",
+  "@notesMLogHint": {
+    "description": "The hint for the notes field in the log maintenance screen"
+  },
+  "allVehicles": "All vehicles",
+  "@allVehicles": {
+    "description": "The label for the all vehicles filter in the maintenance list screen"
+  },
+  "upcomingMaintenance": "Upcoming maintenance",
+  "@upcomingMaintenance": {
+    "description": "The title for the maintenance list screen"
+  },
+  "filterByVehicle": "Filter by vehicle",
+  "@filterByVehicle": {
+    "description": "The tooltip for the filter by vehicle button in the maintenance list screen"
+  },
+  "nextYear": "Next 1 year",
+  "@nextYear": {
+    "description": "The filter label for the next 1 year in the maintenance list screen"
+  },
+  "thisWeek": "This week",
+  "@thisWeek": {
+    "description": "The filter label for this week in the maintenance list screen"
+  },
+  "thisMonth": "This month",
+  "@thisMonth": {
+    "description": "The filter label for this month in the maintenance list screen"
+  },
+  "maintenanceListEmpty": "No upcoming maintenance items.",
+  "@maintenanceListEmpty": {
+    "description": "The label for the empty state of the maintenance list screen"
+  },
+  "maintenanceListEmptyAfterFilter": "No maintenance items match the current filters.",
+  "@maintenanceListEmptyAfterFilter": {
+    "description": "The label for the empty state of the maintenance list screen after filtering"
+  },
+  "status": "Status",
+  "@status": {
+    "description": "The label for the status prefix in the maintenance list screen"
+  },
+  "estimated": "Estimated",
+  "@estimated": {
+    "description": "The label for the estimated prefix in the maintenance list screen"
+  },
+  "loading": "Loading...",
+  "@loading": {
+    "description": "The label for the loading state"
+  },
+  "privacyPolicy": "Privacy Policy",
+  "@privacyPolicy": {
+    "description": "The title for the privacy policy screen"
+  },
+  "privacyHeadline": "Your data is stored entirely on your local device",
+  "@privacyHeadline": {
+    "description": "The headline for the privacy policy screen"
+  },
+  "privacyLocalStorage": "None of your data is uploaded to the cloud — in fact, the app does not even have Internet access",
+  "@privacyLocalStorage": {
+    "description": "The description for the local storage section of the privacy policy screen"
+  },
+  "privacyControl": "You have full control over your data. Exporting, backing up, and deleting it is entirely up to you",
+  "@privacyControl": {
+    "description": "The description for the data control section of the privacy policy screen"
+  },
+  "notSet": "Not set",
+  "@notSet": {
+    "description": "The label for the not set state of default vehicle"
+  },
+  "defaultVehicle": "Default vehicle",
+  "@defaultVehicle": {
+    "description": "The title for the choose default vehicle entry in the settings screen"
+  },
+  "chooseDefaultVehicle": "Choose default vehicle",
+  "@chooseDefaultVehicle": {
+    "description": "The title for the choose default vehicle dialog in the settings screen"
+  },
+  "clearDefault": "Clear",
+  "@clearDefault": {
+    "description": "The label for the clear button when choosing a default vehicle"
+  },
+  "cancel": "Cancel",
+  "@cancel": {
+    "description": "The label for the cancel button in dialogs"
+  },
+  "chooseThreshold": "Choose threshold",
+  "@chooseThreshold": {
+    "description": "The title for the choose reminder threshold dialog in the settings screen"
+  },
+  "chooseDisplayItemCount": "Choose items count",
+  "@chooseDisplayItemCount": {
+    "description": "The title for the choose display item count dialog in the settings screen"
+  },
+  "itemCount": "{count, plural, =1{1 item} other{{count} items}}",
+  "@itemCount": {
+    "description": "The label for the item count in the choose display item count dialog",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "exportPrepare": "Preparing export...",
+  "@exportPrepare": {
+    "description": "The label for the preparing export state"
+  },
+  "errDBNotFound": "Database not found",
+  "@errDBNotFound": {
+    "description": "Error message when the database is not found"
+  },
+  "exportSuccess": "Export successful",
+  "@exportSuccess": {
+    "description": "The label for the successful export state"
+  },
+  "exportCancelled": "Export cancelled",
+  "@exportCancelled": {
+    "description": "The label for the cancelled export state"
+  },
+  "restoreData": "Restore data",
+  "@restoreData": {
+    "description": "The label for the restore data entry in the settings screen"
+  },
+  "restoreWarningTitle": "Warning: Restore data",
+  "@restoreWarningTitle": {
+    "description": "The title for the restore warning dialog"
+  },
+  "restoreWarningBody": "This will overwrite all current app data with the selected file and cannot be undone.\n\nIt is strongly recommended that you export your current data as a backup before proceeding.\n\nAre you sure you want to continue?",
+  "@restoreWarningBody": {
+    "description": "The body for the restore warning dialog"
+  },
+  "chooseDBFile": "Choose database file...",
+  "@chooseDBFile": {
+    "description": "The title for the choose database file dialog"
+  },
+  "restoreSuccessTitle": "Restore successful",
+  "@restoreSuccessTitle": {
+    "description": "The title for the successful restore state"
+  },
+  "restoreSuccessBody": "Data has been successfully restored!\n\nTo ensure all changes take effect, please restart the app.",
+  "@restoreSuccessBody": {
+    "description": "The body for the successful restore state"
+  },
+  "exitButton": "Exit",
+  "@exitButton": {
+    "description": "The label for the exit button in the successful restore state"
+  },
+  "importCancelled": "Import cancelled",
+  "@importCancelled": {
+    "description": "The label for the cancelled import state"
+  },
+  "chooseLeadTime": "Choose notification time",
+  "@chooseLeadTime": {
+    "description": "The title for the choose lead time dialog in the settings screen"
+  },
+  "notification": "Notification",
+  "@notification": {
+    "description": "The label for the notification section in the settings screen"
+  },
+  "notificationEnabled": "Enabled",
+  "@notificationEnabled": {
+    "description": "The label for the of notification switch"
+  },
+  "errNotificationPermission": "Please enable notifications in your system settings.",
+  "@errNotificationPermission": {
+    "description": "Error message when the notification permission is not granted"
+  },
+  "reminderDisplayItemCount": "Number of reminder items",
+  "@reminderDisplayItemCount": {
+    "description": "The label for the display items count setting in the settings screen"
+  },
+  "data": "Data",
+  "@data": {
+    "description": "The label for the data section in the settings screen"
+  },
+  "exportData": "Export data",
+  "@exportData": {
+    "description": "The label for the export data entry in the settings screen"
+  },
+  "about": "About",
+  "@about": {
+    "description": "The label for the about section in the settings screen"
+  },
+  "appVersionEntry": "App version",
+  "@appVersionEntry": {
+    "description": "The label for the app version entry in the about section"
+  },
+  "confirmDelete": "Confirm delete",
+  "@confirmDelete": {
+    "description": "The title for the confirm delete dialog"
+  },
+  "deleteConfirmMPlan": "Are you sure you want to delete the maintenance plan item \"{itemName}\"?",
+  "@deleteConfirmMPlan": {
+    "description": "The body for the confirm delete dialog of maintenance plan items",
+    "placeholders": {
+      "itemName": {
+        "type": "String"
+      }
+    }
+  },
+  "delete": "Delete",
+  "@delete": {
+    "description": "The label for the delete button in dialogs"
+  },
+  "edit": "Edit",
+  "@edit": {
+    "description": "The label for the edit button in dialogs"
+  },
+  "everyNMileage": "Every {count, plural, =1{1 km} other{{count} km}}",
+  "@everyNMileage": {
+    "description": "The label for the every N mileage interval in the maintenance plan item screen",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "everyNMonth": "Every {count, plural, =1{1 month} other{{count} months}}",
+  "@everyNMonth": {
+    "description": "The label for the every N month interval in the maintenance plan item screen",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nMileage": "{count, plural, =1{1 km} other{{count} km}}",
+  "@nMileage": {
+    "description": "The label for the N mileage first interval in the maintenance plan item screen",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nMonth": "{count, plural, =1{1 month} other{{count} months}}",
+  "@nMonth": {
+    "description": "The label for the N month first interval in the maintenance plan item screen",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maintenancePlanShort": "Plan",
+  "@maintenancePlanShort": {
+    "description": "The tab label for the maintenance plan screen"
+  },
+  "maintenancePlan": "Maintenance plan",
+  "@maintenancePlan": {
+    "description": "The title for the maintenance plan screen"
+  },
+  "addMPlan": "Add",
+  "@addMPlan": {
+    "description": "The label for the add maintenance plan button"
+  },
+  "emptyMPlan": "No maintenance manual items yet.\nTap \"{addBtnLabel}\" in the top right to get started!",
+  "@emptyMPlan": {
+    "description": "The label for the empty state of the maintenance plan screen",
+    "placeholders": {
+      "addBtnLabel": {
+        "type": "String"
+      }
+    }
+  },
+  "vehicleInfo": "Vehicle info",
+  "@vehicleInfo": {
+    "description": "The title for the vehicle info section on vehicle screen"
+  },
+  "mileageLabelWithUnit": "Mileage{unit}",
+  "@mileageLabelWithUnit": {
+    "description": "The label for the mileage",
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "plateNumber": "Plate number",
+  "@plateNumber": {
+    "description": "The label for the plate number field in the vehicle info screen"
+  },
+  "vin": "VIN",
+  "@vin": {
+    "description": "The label for the VIN field in the vehicle info screen"
+  },
+  "engineNumber": "Engine number",
+  "@engineNumber": {
+    "description": "The label for the engine number field in the vehicle info screen"
+  },
+  "deleteConfirmMLog": "Are you sure you want to delete the maintenance log on {logDate}?",
+  "@deleteConfirmMLog": {
+    "description": "The body for the confirm delete dialog of maintenance logs",
+    "placeholders": {
+      "logDate": {
+        "type": "DateTime",
+        "format": "yMMMd"
+      }
+    }
+  },
+  "maintenanceLogShort": "History",
+  "@maintenanceLogShort": {
+    "description": "The tab label for the maintenance log screen"
+  },
+  "maintenanceLog": "Service history",
+  "@maintenanceLog": {
+    "description": "The title for the maintenance log screen"
+  },
+  "addMLog": "Log",
+  "@addMLog": {
+    "description": "The label for the add maintenance log button"
+  },
+  "emptyMLog": "No service history yet.\nTap \"{addBtnLabel}\" in the top right to get started!",
+  "@emptyMLog": {
+    "description": "The label for the empty state of the maintenance log screen",
+    "placeholders": {
+      "addBtnLabel": {
+        "type": "String"
+      }
+    }
+  },
+  "serviceItemLabel": "Items",
+  "@serviceItemLabel": {
+    "description": "The label for the service item field in the maintenance log card"
+  },
+  "seperator": ", ",
+  "@seperator": {
+    "description": "The separator for the service items in the maintenance log card"
+  },
+  "costWithSign": "Cost: {cost}",
+  "@costWithSign": {
+    "description": "The label for the cost with sign",
+    "placeholders": {
+      "cost": {
+        "type": "double",
+        "format": "simpleCurrency",
+        "optionalParameters": {
+          "decimalDigits": 2
+        }
+      }
+    }
+  },
+  "chooseFromGallery": "Choose from gallery",
+  "@chooseFromGallery": {
+    "description": "The label for the choose from gallery button"
+  },
+  "takePhoto": "Take photo",
+  "@takePhoto": {
+    "description": "The label for the take photo button"
+  },
+  "removePhoto": "Remove photo",
+  "@removePhoto": {
+    "description": "The label for the remove photo button"
+  },
+  "addEditVehicle": "{opType, select, add{Add new vehicle} edit{Edit vehicle info} other{}}",
+  "@addEditVehicle": {
+    "description": "The title for the add/edit vehicle screen",
+    "placeholders": {
+      "opType": {
+        "type": "String"
+      }
+    }
+  },
+  "uploadVehicleImage": "Upload vehicle image",
+  "@uploadVehicleImage": {
+    "description": "The label for the upload vehicle image button"
+  },
+  "vehicleNickname": "Vehicle nickname",
+  "@vehicleNickname": {
+    "description": "The label for the vehicle nickname field in the vehicle info screen"
+  },
+  "vehicleNicknameHint": "e.g. My Tesla",
+  "@vehicleNicknameHint": {
+    "description": "The hint for the vehicle nickname field in the vehicle info screen"
+  },
+  "boughtDate": "Purchase date",
+  "@boughtDate": {
+    "description": "The label for the purchase date field in the vehicle info screen"
+  },
+  "vehicleModel": "Model",
+  "@vehicleModel": {
+    "description": "The label for the vehicle model field in the vehicle info screen"
+  },
+  "vehicleModelHint": "e.g. Tesla Model 3",
+  "@vehicleModelHint": {
+    "description": "The hint for the vehicle model field in the vehicle info screen"
+  },
+  "vinHint": "Vehicle Identification Number",
+  "@vinHint": {
+    "description": "The hint for the VIN field in the vehicle info screen"
+  },
+  "chooseVehicle": "Choose vehicle",
+  "@chooseVehicle": {
+    "description": "The title for the choose vehicle screen when logging maintenance without a default vehicle"
+  },
+  "unknownModel": "Unknown model",
+  "@unknownModel": {
+    "description": "The label for the unknown model in the vehicle info"
+  },
+  "overview": "Overview",
+  "@overview": {
+    "description": "The label for the overview tab in the vehicle info screen"
+  },
+  "errVehDeleted": "This vehicle may have been deleted.",
+  "@errVehDeleted": {
+    "description": "Error message when the vehicle has been deleted"
+  },
+  "deleteConfirmVeh": "Are you sure you want to delete the vehicle \"{itemName}\"?",
+  "@deleteConfirmVeh": {
+    "description": "The body for the confirm delete dialog of vehicles",
+    "placeholders": {
+      "itemName": {
+        "type": "String"
+      }
+    }
+  },
+  "emptyVehicle": "No vehicle yet.\nTap the bottom right button to get started!",
+  "@emptyVehicle": {
+    "description": "The label for the empty state of the vehicle list screen"
+  }
+}
