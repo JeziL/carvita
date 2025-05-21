@@ -2,7 +2,7 @@ import 'package:carvita/data/models/service_log_entry.dart';
 
 class MileageEstimator {
   static const double defaultMonthlyMileage =
-      1666.6667; // default: 10000km in half year
+      1666.6667; // default: 20000(km/mi) in a year
   static const double defaultDailyMileage = defaultMonthlyMileage / 30.4375;
 
   // Calculate average daily mileage based on service logs

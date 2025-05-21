@@ -6,6 +6,7 @@ import 'package:carvita/i18n/generated/app_localizations.dart';
 class LocaleProvider extends ChangeNotifier {
   final PreferencesService _preferencesService;
   Locale? _appLocale;
+  String _mileageUnit = 'km';
 
   LocaleProvider(this._preferencesService) {
     _loadLocale();
@@ -13,8 +14,11 @@ class LocaleProvider extends ChangeNotifier {
 
   Locale? get appLocale => _appLocale;
 
+  String get mileageUnit => _mileageUnit;
+
   Future<void> _loadLocale() async {
     _appLocale = await _preferencesService.getAppLocale();
+    _mileageUnit = await _preferencesService.getMileageUnit();
     notifyListeners();
   }
 
@@ -23,6 +27,14 @@ class LocaleProvider extends ChangeNotifier {
 
     _appLocale = locale;
     await _preferencesService.setAppLocale(locale);
+    notifyListeners();
+  }
+
+  Future<void> setMileageUnit(String unit) async {
+    if (_mileageUnit == unit) return;
+
+    _mileageUnit = unit;
+    await _preferencesService.setMileageUnit(unit);
     notifyListeners();
   }
 

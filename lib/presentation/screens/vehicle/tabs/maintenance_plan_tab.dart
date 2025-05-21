@@ -6,6 +6,7 @@ import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/constants/app_routes.dart';
 import 'package:carvita/data/models/maintenance_plan_item.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
+import 'package:carvita/presentation/manager/locale_provider.dart';
 import 'package:carvita/presentation/manager/maintenance_plan/maintenance_plan_cubit.dart';
 import 'package:carvita/presentation/manager/maintenance_plan/maintenance_plan_state.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
@@ -79,10 +80,13 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
   }
 
   String _formatInterval(MaintenancePlanItem item) {
+    final localeProvider = context.watch<LocaleProvider>();
     List<String> parts = [];
     if (item.intervalMileage != null) {
       parts.add(
-        AppLocalizations.of(context)!.everyNMileage(item.intervalMileage!),
+        AppLocalizations.of(
+          context,
+        )!.everyNMileage(item.intervalMileage!, localeProvider.mileageUnit),
       );
     }
     if (item.intervalTimeMonths != null) {
@@ -95,10 +99,13 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
   }
 
   String _formatFirstInterval(MaintenancePlanItem item) {
+    final localeProvider = context.watch<LocaleProvider>();
     List<String> parts = [];
     if (item.firstIntervalMileage != null) {
       parts.add(
-        AppLocalizations.of(context)!.nMileage(item.firstIntervalMileage!),
+        AppLocalizations.of(
+          context,
+        )!.nMileage(item.firstIntervalMileage!, localeProvider.mileageUnit),
       );
     }
     if (item.firstIntervalTimeMonths != null) {

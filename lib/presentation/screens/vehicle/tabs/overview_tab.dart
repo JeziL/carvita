@@ -8,6 +8,7 @@ import 'package:carvita/core/constants/app_routes.dart';
 import 'package:carvita/data/models/predicted_maintenance.dart';
 import 'package:carvita/data/models/vehicle.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
+import 'package:carvita/presentation/manager/locale_provider.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_state.dart';
 import 'package:carvita/presentation/screens/vehicle/widgets/info_grid_item.dart';
@@ -20,6 +21,7 @@ class OverviewTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localeProvider = context.watch<LocaleProvider>();
     return BlocBuilder<UpcomingMaintenanceCubit, UpcomingMaintenanceState>(
       builder: (context, upcomingState) {
         List<PredictedMaintenanceInfo> allPredictions = [];
@@ -81,9 +83,10 @@ class OverviewTab extends StatelessWidget {
                     label: AppLocalizations.of(
                       context,
                     )!.mileageLabelWithUnit(""),
-                    value: AppLocalizations.of(
-                      context,
-                    )!.nMileage(vehicle.mileage.round()),
+                    value: AppLocalizations.of(context)!.nMileage(
+                      vehicle.mileage.round(),
+                      localeProvider.mileageUnit,
+                    ),
                   ),
                   InfoGridItem(
                     label: AppLocalizations.of(context)!.plateNumber,

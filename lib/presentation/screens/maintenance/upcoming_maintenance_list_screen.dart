@@ -8,6 +8,7 @@ import 'package:carvita/core/constants/app_routes.dart';
 import 'package:carvita/data/models/predicted_maintenance.dart';
 import 'package:carvita/data/models/vehicle.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
+import 'package:carvita/presentation/manager/locale_provider.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_state.dart';
 import 'package:carvita/presentation/screens/common_widgets/main_bottom_navigation_bar.dart';
@@ -117,6 +118,7 @@ class _UpcomingMaintenanceListScreenState
 
   @override
   Widget build(BuildContext context) {
+    final localeProvider = context.watch<LocaleProvider>();
     return Scaffold(
       backgroundColor: AppColors.white,
       appBar: AppBar(
@@ -286,7 +288,7 @@ class _UpcomingMaintenanceListScreenState
                           ),
                         ),
                         Text(
-                          "${AppLocalizations.of(context)!.estimated}: $dueDate ${prediction.predictedAtMileage != null ? '/ ${prediction.predictedAtMileage!.toStringAsFixed(0)} km' : ''}",
+                          "${AppLocalizations.of(context)!.estimated}: $dueDate ${prediction.predictedAtMileage != null ? '/ ${prediction.predictedAtMileage!.toStringAsFixed(0)} ${localeProvider.mileageUnit}' : ''}",
                           style: TextStyle(
                             color: AppColors.textBlack.withValues(alpha: 0.8),
                           ),

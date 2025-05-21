@@ -7,6 +7,7 @@ import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/widgets/gradient_background.dart';
 import 'package:carvita/data/models/maintenance_plan_item.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
+import 'package:carvita/presentation/manager/locale_provider.dart';
 import 'package:carvita/presentation/manager/maintenance_plan/maintenance_plan_cubit.dart';
 import 'package:carvita/presentation/manager/maintenance_plan/maintenance_plan_state.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
@@ -267,6 +268,8 @@ class _AddEditMaintenancePlanItemScreenState
 
   @override
   Widget build(BuildContext context) {
+    final localeProvider = context.watch<LocaleProvider>();
+
     return GradientBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
@@ -333,7 +336,9 @@ class _AddEditMaintenancePlanItemScreenState
                   timeController: _intervalTimeMonthsController,
                   mileageController: _intervalMileageController,
                   timeHint: AppLocalizations.of(context)!.timeHint,
-                  mileageHint: AppLocalizations.of(context)!.mileageHint,
+                  mileageHint: AppLocalizations.of(
+                    context,
+                  )!.mileageHint(localeProvider.mileageUnit),
                 ),
                 const SizedBox(height: 20),
                 _buildIntervalGroup(
@@ -342,7 +347,9 @@ class _AddEditMaintenancePlanItemScreenState
                   timeController: _firstIntervalTimeMonthsController,
                   mileageController: _firstIntervalMileageController,
                   timeHint: AppLocalizations.of(context)!.firstTimeHint,
-                  mileageHint: AppLocalizations.of(context)!.firstMileageHint,
+                  mileageHint: AppLocalizations.of(
+                    context,
+                  )!.firstMileageHint(localeProvider.mileageUnit),
                 ),
                 const SizedBox(height: 20),
                 TextFormField(

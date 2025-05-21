@@ -47,12 +47,15 @@
       }
     }
   },
-  "kmLater": "{count, plural, =0{0 km} =1{1 km} other{{count} km}} later",
-  "@kmLater": {
+  "disLater": "{count} {unit} later",
+  "@disLater": {
     "description": "The label for the due distance of a maintenance event",
     "placeholders": {
       "count": {
         "type": "int"
+      },
+      "unit":{
+        "type": "String"
       }
     }
   },
@@ -221,17 +224,27 @@
   "@timeHint": {
     "description": "The hint for the time interval field in the add/edit maintenance item screen"
   },
-  "mileageHint": "mileage (km)",
+  "mileageHint": "mileage ({unit})",
   "@mileageHint": {
-    "description": "The hint for the mileage interval field in the add/edit maintenance item screen"
+    "description": "The hint for the mileage interval field in the add/edit maintenance item screen",
+    "placeholders": {
+      "unit":{
+        "type": "String"
+      }
+    }
   },
   "firstTimeHint": "first time (month)",
   "@firstTimeHint": {
     "description": "The hint for the first time interval field in the add/edit maintenance item screen"
   },
-  "firstMileageHint": "first mileage (km)",
+  "firstMileageHint": "first mileage ({unit})",
   "@firstMileageHint": {
-    "description": "The hint for the first mileage interval field in the add/edit maintenance item screen"
+    "description": "The hint for the first mileage interval field in the add/edit maintenance item screen",
+    "placeholders": {
+      "unit":{
+        "type": "String"
+      }
+    }
   },
   "notes": "Notes",
   "@notes": {
@@ -262,7 +275,7 @@
   "@updateMileageTitle": {
     "description": "The title for the dialog to update mileage when logging maintenance"
   },
-  "updateMileageBody": "The mileage you entered ({newValue}km) is higher than the current recorded mileage ({oldValue}km) for {vehicleName}.\n\nDo you want to update the vehicle's current mileage to {newValue}km?",
+  "updateMileageBody": "The mileage you entered ({newValue} {unit}) is higher than the current recorded mileage ({oldValue} {unit}) for {vehicleName}.\n\nDo you want to update the vehicle's current mileage to {newValue} {unit}?",
   "@updateMileageBody": {
     "description": "The body for the dialog to update mileage when logging maintenance",
     "placeholders": {
@@ -273,6 +286,9 @@
         "type": "String"
       },
       "vehicleName": {
+        "type": "String"
+      },
+      "unit":{
         "type": "String"
       }
     }
@@ -532,12 +548,15 @@
   "@edit": {
     "description": "The label for the edit button in dialogs"
   },
-  "everyNMileage": "Every {count, plural, =1{1 km} other{{count} km}}",
+  "everyNMileage": "Every {count} {unit}",
   "@everyNMileage": {
     "description": "The label for the every N mileage interval in the maintenance plan item screen",
     "placeholders": {
       "count": {
         "type": "int"
+      },
+      "unit":{
+        "type": "String"
       }
     }
   },
@@ -550,12 +569,15 @@
       }
     }
   },
-  "nMileage": "{count, plural, =1{1 km} other{{count} km}}",
+  "nMileage": "{count} {unit}",
   "@nMileage": {
     "description": "The label for the N mileage first interval in the maintenance plan item screen",
     "placeholders": {
       "count": {
         "type": "int"
+      },
+      "unit":{
+        "type": "String"
       }
     }
   },
@@ -759,5 +781,22 @@
   "chooseLanguage": "Choose language",
   "@chooseLanguage": {
     "description": "The title for the language choosing dialog"
+  },
+  "chooseMileageUnit": "Choose mileage unit",
+  "@chooseMileageUnit": {
+    "description": "The title of the choosing mileage unit dialog"
+  },
+  "mileageUnitLabel": "Mileage unit",
+  "@mileageUnitLabel": {
+    "description": "The label of the mileage unit setting entry"
+  },
+  "mileageUnit": "{unit, select, km{Kilometers (km)} mi{Miles (mi)} other{}}",
+  "@mileageUnit": {
+    "description": "The option label of  the choosing mileage unit dialog",
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
   }
 }

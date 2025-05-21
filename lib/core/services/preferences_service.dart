@@ -41,6 +41,7 @@ class PreferencesService {
   static const String _appLanguageCodeKey = 'locale_language_code';
   static const String _appScriptCodeKey = 'locale_script_code';
   static const String _appCountryCodeKey = 'locale_country_code';
+  static const String _mileageUnitKey = 'mileage_unit';
 
   Future<void> setDefaultVehicleId(int? vehicleId) async {
     final prefs = await SharedPreferences.getInstance();
@@ -142,5 +143,15 @@ class PreferencesService {
       countryCode: countryCode,
       scriptCode: scriptCode,
     );
+  }
+
+  Future<void> setMileageUnit(String unit) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_mileageUnitKey, unit);
+  }
+
+  Future<String> getMileageUnit() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_mileageUnitKey) ?? 'km';
   }
 }

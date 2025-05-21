@@ -158,6 +158,7 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
   }
 
   void _submitForm() async {
+    final localeProvider = context.watch<LocaleProvider>();
     if (!_formKey.currentState!.validate()) return;
     if (_selectedServiceDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -248,6 +249,7 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
                   newMileageAtService.toStringAsFixed(0),
                   currentVehicle.mileage.toStringAsFixed(0),
                   currentVehicle.name,
+                  localeProvider.mileageUnit,
                 ),
                 style: const TextStyle(color: AppColors.textBlack),
               ),
@@ -461,6 +463,7 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final localeProvider = context.watch<LocaleProvider>();
     return GradientBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
@@ -534,7 +537,7 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
                   style: const TextStyle(color: AppColors.textWhite),
                   decoration: InputDecoration(
                     labelText:
-                        '${AppLocalizations.of(context)!.mileageAtService} (km)*',
+                        '${AppLocalizations.of(context)!.mileageAtService} (${localeProvider.mileageUnit})*',
                   ),
                   keyboardType: TextInputType.number,
                   inputFormatters: [

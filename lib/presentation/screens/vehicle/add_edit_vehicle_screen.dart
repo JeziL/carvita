@@ -10,6 +10,7 @@ import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/widgets/gradient_background.dart';
 import 'package:carvita/data/models/vehicle.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
+import 'package:carvita/presentation/manager/locale_provider.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_cubit.dart';
 
 class AddEditVehicleScreen extends StatefulWidget {
@@ -236,6 +237,7 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
   @override
   Widget build(BuildContext context) {
     final inputDecorationTheme = Theme.of(context).inputDecorationTheme;
+    final localeProvider = context.watch<LocaleProvider>();
 
     Widget formField(
       TextEditingController controller,
@@ -352,7 +354,7 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
                 ),
                 formField(
                   _mileageController,
-                  '${AppLocalizations.of(context)!.mileageLabelWithUnit(" (km)")}*',
+                  '${AppLocalizations.of(context)!.mileageLabelWithUnit(" (${localeProvider.mileageUnit})")}*',
                   null,
                   keyboardType: TextInputType.number,
                   isRequired: true,

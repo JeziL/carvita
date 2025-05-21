@@ -552,6 +552,59 @@ class _SettingsScreenState extends State<SettingsScreen> {
         .rescheduleNotificationsBasedOnNewSettings();
   }
 
+  Future<void> _showSelectMileageUnitDialog(
+    BuildContext context,
+    LocaleProvider localeProvider,
+  ) async {
+    final List<String> units = ['km', 'mi'];
+    String currentSelection = localeProvider.mileageUnit;
+
+    final String? result = await showDialog<String?>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return SimpleDialog(
+          backgroundColor: AppColors.cardBackground,
+          title: Text(
+            AppLocalizations.of(context)!.chooseMileageUnit,
+            style: TextStyle(
+              color: AppColors.textBlack,
+              fontSize: 20,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          children:
+              units.map((unit) {
+                return SimpleDialogOption(
+                  onPressed: () => Navigator.pop(dialogContext, unit),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12.0),
+                    child: Text(
+                      AppLocalizations.of(context)!.mileageUnit(unit),
+                      style: TextStyle(
+                        color:
+                            (currentSelection == unit)
+                                ? AppColors.primaryBlue
+                                : AppColors.textBlack,
+                        fontSize: 16,
+                        fontWeight:
+                            (currentSelection == unit)
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+        );
+      },
+    );
+
+    if (result != localeProvider.mileageUnit && result != null) {
+      await localeProvider.setMileageUnit(result);
+      _loadDefaultVehicleInfo();
+    }
+  }
+
   Widget _buildSettingsCard({
     required String title,
     required List<Widget> children,
@@ -840,6 +893,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   value: localeProvider.getCurrentLocaleDisplayString(context),
                   onTap:
                       () => _showSelectLanguageDialog(context, localeProvider),
+                ),
+                _buildSettingItem(
+                  icon: Icons.straighten_outlined,
+                  label: AppLocalizations.of(context)!.mileageUnitLabel,
+                  value: AppLocalizations.of(
+                    context,
+                  )!.mileageUnit(localeProvider.mileageUnit),
+                  onTap:
+                      () =>
+                          _showSelectMileageUnitDialog(context, localeProvider),
                 ),
               ],
             ),

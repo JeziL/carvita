@@ -7,6 +7,7 @@ import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/constants/app_routes.dart';
 import 'package:carvita/data/models/service_log_entry.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
+import 'package:carvita/presentation/manager/locale_provider.dart';
 import 'package:carvita/presentation/manager/maintenance_plan/maintenance_plan_cubit.dart';
 import 'package:carvita/presentation/manager/service_log/service_log_cubit.dart';
 import 'package:carvita/presentation/manager/service_log/service_log_state.dart';
@@ -86,6 +87,7 @@ class _ServiceHistoryTabState extends State<ServiceHistoryTab> {
   Widget build(BuildContext context) {
     final serviceLogCubit = BlocProvider.of<ServiceLogCubit>(context);
     final maintenancePlanCubit = BlocProvider.of<MaintenancePlanCubit>(context);
+    final localeProvider = context.watch<LocaleProvider>();
 
     return BlocConsumer<ServiceLogCubit, ServiceLogState>(
       listener: (context, state) {
@@ -211,7 +213,7 @@ class _ServiceHistoryTabState extends State<ServiceHistoryTab> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      "${DateFormat.yMMMd(Localizations.localeOf(context).toLanguageTag()).format(entry.serviceDate)} @ ${AppLocalizations.of(context)!.nMileage(entry.mileageAtService.round())}",
+                                      "${DateFormat.yMMMd(Localizations.localeOf(context).toLanguageTag()).format(entry.serviceDate)} @ ${AppLocalizations.of(context)!.nMileage(entry.mileageAtService.round(), localeProvider.mileageUnit)}",
                                       style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w500,
