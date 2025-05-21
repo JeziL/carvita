@@ -6,6 +6,7 @@ import 'package:carvita/data/models/service_log_entry.dart';
 import 'package:carvita/data/models/vehicle.dart';
 import 'package:carvita/data/repositories/vehicle_repository.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
+import 'package:carvita/presentation/manager/locale_provider.dart';
 import 'package:carvita/presentation/manager/maintenance_plan/maintenance_plan_cubit.dart';
 import 'package:carvita/presentation/manager/maintenance_plan/maintenance_plan_state.dart'
     as plan_state;
@@ -59,9 +60,12 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
     final log = widget.logToEdit?.entry;
 
     _selectedServiceDate = log?.serviceDate ?? DateTime.now();
+    final localeProvider = context.read<LocaleProvider>();
+    final String? currentLocaleTag = localeProvider.appLocale?.toLanguageTag();
     _dateController = TextEditingController(
-      text: DateFormat.yMMMd().format(_selectedServiceDate!),
+      text: DateFormat.yMMMd(currentLocaleTag).format(_selectedServiceDate!),
     );
+
     _mileageController = TextEditingController(
       text: log?.mileageAtService.toString() ?? '',
     );

@@ -146,5 +146,9 @@
   "overview": "概览",
   "errVehDeleted": "车辆可能已被删除。",
   "deleteConfirmVeh": "您确定要删除车辆 \"{itemName}\" 吗？",
-  "emptyVehicle": "您还没有添加任何车辆。\n点击右下角按钮开始添加吧！"
+  "emptyVehicle": "您还没有添加任何车辆。\n点击右下角按钮开始添加吧！",
+  "general": "通用",
+  "language": "语言",
+  "languageFollowSystem": "跟随系统",
+  "chooseLanguage": "选择语言"
 }

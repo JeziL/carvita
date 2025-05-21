@@ -34,6 +34,9 @@ class PreferencesService {
   static const String _dueReminderItemCountKey = 'due_reminder_item_count';
   static const String _notificationsEnabledKey = 'notifications_enabled';
   static const String _reminderLeadTimeDaysKey = 'reminder_lead_time_days';
+  static const String _appLanguageCodeKey = 'locale_language_code';
+  static const String _appScriptCodeKey = 'locale_script_code';
+  static const String _appCountryCodeKey = 'locale_country_code';
 
   Future<void> setDefaultVehicleId(int? vehicleId) async {
     final prefs = await SharedPreferences.getInstance();
@@ -96,5 +99,42 @@ class PreferencesService {
   Future<int> getReminderLeadTimeDays() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getInt(_reminderLeadTimeDaysKey) ?? 7;
+  }
+
+  Future<void> setAppLocale(Locale? locale) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (locale == null) {
+      // follow system
+      await prefs.remove(_appLanguageCodeKey);
+      await prefs.remove(_appScriptCodeKey);
+      await prefs.remove(_appCountryCodeKey);
+    } else {
+      await prefs.setString(_appLanguageCodeKey, locale.languageCode);
+      if (locale.scriptCode != null && locale.scriptCode!.isNotEmpty) {
+        await prefs.setString(_appScriptCodeKey, locale.scriptCode!);
+      } else {
+        await prefs.remove(_appScriptCodeKey);
+      }
+      if (locale.countryCode != null && locale.countryCode!.isNotEmpty) {
+        await prefs.setString(_appCountryCodeKey, locale.countryCode!);
+      } else {
+        await prefs.remove(_appCountryCodeKey);
+      }
+    }
+  }
+
+  Future<Locale?> getAppLocale() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? languageCode = prefs.getString(_appLanguageCodeKey);
+    if (languageCode == null) {
+      return null; // should follow system
+    }
+    final String? countryCode = prefs.getString(_appCountryCodeKey);
+    final String? scriptCode = prefs.getString(_appScriptCodeKey);
+    return Locale.fromSubtags(
+      languageCode: languageCode,
+      countryCode: countryCode,
+      scriptCode: scriptCode,
+    );
   }
 }

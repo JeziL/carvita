@@ -743,5 +743,21 @@
   "emptyVehicle": "No vehicle yet.\nTap the bottom right button to get started!",
   "@emptyVehicle": {
     "description": "The label for the empty state of the vehicle list screen"
+  },
+  "general": "General",
+  "@general": {
+    "description": "The label for the general section in the settings screen"
+  },
+  "language": "Language",
+  "@language": {
+    "description": "The label for the language setting in the settings screen"
+  },
+  "languageFollowSystem": "System",
+  "@languageFollowSystem": {
+    "description": "The value for language setting when following system locale"
+  },
+  "chooseLanguage": "Choose language",
+  "@chooseLanguage": {
+    "description": "The title for the language choosing dialog"
   }
 }

@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:carvita/core/constants/app_routes.dart';
 import 'package:carvita/core/services/notification_service.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
+import 'package:carvita/main.dart';
+import 'package:carvita/presentation/manager/locale_provider.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
 import 'package:path/path.dart' as path;
 import 'package:carvita/core/constants/app_colors.dart';
@@ -74,9 +76,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       } else {
         await _preferencesService.setDefaultVehicleId(null);
         if (mounted) {
-          setState(
-            () => _defaultVehicleName = AppLocalizations.of(context)!.notSet,
-          );
+          setState(() {
+            _defaultVehicleName = AppLocalizations.of(context)!.notSet;
+            _currentDefaultVehicleId = null;
+          });
         }
       }
     } else {
@@ -628,12 +631,86 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  Future<void> _showSelectLanguageDialog(
+    BuildContext context,
+    LocaleProvider localeProvider,
+  ) async {
+    final List<Map<String, dynamic>> supportedLanguages = [
+      {
+        'locale': null,
+        'name': LocaleProvider.getLocaleDisplayString(null, context),
+      },
+      ...appSupportedLocales.map(
+        (l) => {
+          'locale': l,
+          'name': LocaleProvider.getLocaleDisplayString(l, context),
+        },
+      ),
+    ];
+
+    Locale? currentSelection = localeProvider.appLocale;
+
+    final Locale? result = await showDialog<Locale?>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return SimpleDialog(
+          backgroundColor: AppColors.cardBackground,
+          title: Text(
+            AppLocalizations.of(context)!.chooseLanguage,
+            style: TextStyle(
+              color: AppColors.textBlack,
+              fontSize: 20,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          children:
+              supportedLanguages.map((lang) {
+                Locale? langLocale = lang['locale'] as Locale?;
+                String langName = lang['name'] as String;
+                return SimpleDialogOption(
+                  onPressed: () => Navigator.pop(dialogContext, langLocale),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12.0),
+                    child: Text(
+                      langName,
+                      style: TextStyle(
+                        color:
+                            (currentSelection?.toLanguageTag() ==
+                                        langLocale?.toLanguageTag()) ||
+                                    (currentSelection == null &&
+                                        langLocale == null)
+                                ? AppColors.primaryBlue
+                                : AppColors.textBlack,
+                        fontSize: 16,
+                        fontWeight:
+                            (currentSelection?.toLanguageTag() ==
+                                        langLocale?.toLanguageTag()) ||
+                                    (currentSelection == null &&
+                                        langLocale == null)
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+        );
+      },
+    );
+
+    if (result != localeProvider.appLocale) {
+      await localeProvider.setLocale(result);
+      _loadDefaultVehicleInfo();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final vehicleState =
         context
             .watch<VehicleCubit>()
             .state;
+    final localeProvider = context.watch<LocaleProvider>();
 
     return GradientBackground(
       child: Scaffold(
@@ -715,7 +792,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       Icons
                           .star_border_purple500_outlined,
                   label: AppLocalizations.of(context)!.defaultVehicle,
-                  value: _defaultVehicleName,
+                  value:
+                      _currentDefaultVehicleId == null
+                          ? AppLocalizations.of(context)!.notSet
+                          : _defaultVehicleName,
                   onTap: () {
                     if (vehicleState
                         is vehicle_list_state_import.VehicleLoaded) {
@@ -760,6 +840,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     context,
                   )!.itemCount(_selectedReminderItemCount),
                   onTap: () => _showSelectReminderItemCountDialog(context),
+                ),
+              ],
+            ),
+            _buildSettingsCard(
+              title: AppLocalizations.of(context)!.general,
+              children: [
+                _buildSettingItem(
+                  icon: Icons.language_outlined,
+                  label: AppLocalizations.of(context)!.language,
+                  value: localeProvider.getCurrentLocaleDisplayString(context),
+                  onTap:
+                      () => _showSelectLanguageDialog(context, localeProvider),
                 ),
               ],
             ),
