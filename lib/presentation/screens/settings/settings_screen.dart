@@ -549,7 +549,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _triggerNotificationReschedule() {
     context
         .read<UpcomingMaintenanceCubit>()
-        .rescheduleNotificationsBasedOnNewSettings();
+        .rescheduleNotificationsBasedOnNewSettings(
+          AppLocalizations.of(context),
+        );
   }
 
   Future<void> _showSelectMileageUnitDialog(
@@ -749,6 +751,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (result != localeProvider.appLocale) {
       await localeProvider.setLocale(result);
       _loadDefaultVehicleInfo();
+      if (mounted) {
+        _triggerNotificationReschedule();
+      }
     }
   }
 

@@ -6,6 +6,7 @@ import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/constants/app_routes.dart';
 import 'package:carvita/data/models/vehicle.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
+import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_cubit.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_state.dart';
 import 'package:carvita/presentation/screens/common_widgets/main_bottom_navigation_bar.dart';
@@ -64,9 +65,16 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
       },
     );
 
-    if (confirmed == true && vehicle.id != null) {
-      // ignore: use_build_context_synchronously
-      context.read<VehicleCubit>().deleteVehicle(vehicle.id!);
+    if (confirmed == true && vehicle.id != null && context.mounted) {
+      final cubit = context.read<VehicleCubit>();
+      await cubit.deleteVehicle(vehicle.id!);
+      if (context.mounted &&
+          (cubit.state is VehicleOperationSuccess ||
+              cubit.state is VehicleLoaded)) {
+        context.read<UpcomingMaintenanceCubit>().loadAllUpcomingMaintenance(
+          AppLocalizations.of(context),
+        );
+      }
     }
   }
 

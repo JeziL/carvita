@@ -65,11 +65,11 @@ class CarVitaApp extends StatelessWidget {
                 maintenanceRepository,
                 predictionService,
                 databaseHelper, // or refactor link fetching
-                context.read<VehicleCubit>(),
                 notificationService,
                 preferencesService,
-                context,
-              )..loadAllUpcomingMaintenance(), // load on app start
+              )..loadAllUpcomingMaintenance(
+                AppLocalizations.of(context),
+              ), // load on app start
         ),
         ChangeNotifierProvider(
           create: (_) => LocaleProvider(preferencesService),

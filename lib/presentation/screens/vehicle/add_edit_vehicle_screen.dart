@@ -11,7 +11,9 @@ import 'package:carvita/core/widgets/gradient_background.dart';
 import 'package:carvita/data/models/vehicle.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/presentation/manager/locale_provider.dart';
+import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_cubit.dart';
+import 'package:carvita/presentation/manager/vehicle_list/vehicle_state.dart';
 
 class AddEditVehicleScreen extends StatefulWidget {
   final Vehicle? vehicle;
@@ -182,7 +184,7 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
     }
   }
 
-  void _submitForm() {
+  void _submitForm() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
@@ -225,12 +227,22 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
                 : null,
       );
 
+      final cubit = context.read<VehicleCubit>();
       if (_isEditing) {
-        context.read<VehicleCubit>().updateVehicle(vehicleData);
+        await cubit.updateVehicle(vehicleData);
       } else {
-        context.read<VehicleCubit>().addVehicle(vehicleData);
+        await cubit.addVehicle(vehicleData);
       }
-      Navigator.of(context).pop(true);
+
+      if (mounted &&
+          (cubit.state is VehicleOperationSuccess ||
+              cubit.state is VehicleLoaded)) {
+        context.read<UpcomingMaintenanceCubit>().loadAllUpcomingMaintenance(
+          AppLocalizations.of(context),
+        );
+      }
+
+      if (mounted) Navigator.of(context).pop(true);
     }
   }
 

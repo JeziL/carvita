@@ -285,7 +285,9 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
         }
       }
       if (mounted) {
-        context.read<UpcomingMaintenanceCubit>().loadAllUpcomingMaintenance();
+        context.read<UpcomingMaintenanceCubit>().loadAllUpcomingMaintenance(
+          AppLocalizations.of(context),
+        );
       }
       if (mounted) Navigator.of(context).pop();
     }

@@ -203,7 +203,9 @@ class _AddEditMaintenancePlanItemScreenState
       if (mounted &&
           (cubit.state is MaintenancePlanOperationSuccess ||
               cubit.state is MaintenancePlanLoaded)) {
-        context.read<UpcomingMaintenanceCubit>().loadAllUpcomingMaintenance();
+        context.read<UpcomingMaintenanceCubit>().loadAllUpcomingMaintenance(
+          AppLocalizations.of(context),
+        );
       }
 
       if (mounted) Navigator.of(context).pop();

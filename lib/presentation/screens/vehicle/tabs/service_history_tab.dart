@@ -78,7 +78,9 @@ class _ServiceHistoryTabState extends State<ServiceHistoryTab> {
       if (context.mounted &&
           (cubit.state is ServiceLogOperationSuccess ||
               cubit.state is ServiceLogLoaded)) {
-        context.read<UpcomingMaintenanceCubit>().loadAllUpcomingMaintenance();
+        context.read<UpcomingMaintenanceCubit>().loadAllUpcomingMaintenance(
+          AppLocalizations.of(context),
+        );
       }
     }
   }

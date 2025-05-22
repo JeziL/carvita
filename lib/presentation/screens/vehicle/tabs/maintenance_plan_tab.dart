@@ -74,7 +74,9 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
       if (context.mounted &&
           (cubit.state is MaintenancePlanOperationSuccess ||
               cubit.state is MaintenancePlanLoaded)) {
-        context.read<UpcomingMaintenanceCubit>().loadAllUpcomingMaintenance();
+        context.read<UpcomingMaintenanceCubit>().loadAllUpcomingMaintenance(
+          AppLocalizations.of(context),
+        );
       }
     }
   }
