@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/widgets/gradient_background.dart';
@@ -158,7 +159,7 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
   }
 
   void _submitForm() async {
-    final localeProvider = context.watch<LocaleProvider>();
+    final localeProvider = Provider.of<LocaleProvider>(context, listen: false);
     if (!_formKey.currentState!.validate()) return;
     if (_selectedServiceDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
