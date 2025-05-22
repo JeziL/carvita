@@ -750,7 +750,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     if (result != localeProvider.appLocale) {
       await localeProvider.setLocale(result);
-      _loadDefaultVehicleInfo();
       if (mounted) {
         _triggerNotificationReschedule();
       }
