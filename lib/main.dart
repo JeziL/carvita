@@ -28,7 +28,7 @@ final appSupportedLocales = [
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final NotificationService notificationService = NotificationService();
+  final notificationService = NotificationService();
   await notificationService.initialize();
   await notificationService.requestPermissions();
   await findSystemLocale();
@@ -40,7 +40,14 @@ class CarVitaApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final vehicleRepository = VehicleRepository();
+    final databaseHelper = DatabaseHelper();
+    final preferencesService = PreferencesService();
+    final predictionService = PredictionService();
+    final notificationService = NotificationService();
+    final vehicleRepository = VehicleRepository(dbHelper: databaseHelper);
+    final maintenanceRepository = MaintenanceRepository(
+      dbHelper: databaseHelper,
+    );
 
     return MultiBlocProvider(
       providers: [
@@ -48,24 +55,24 @@ class CarVitaApp extends StatelessWidget {
           create:
               (context) => VehicleCubit(
                 vehicleRepository,
-                preferencesService: PreferencesService(),
+                preferencesService: preferencesService,
               )..fetchVehicles(),
         ),
         BlocProvider<UpcomingMaintenanceCubit>(
           create:
               (context) => UpcomingMaintenanceCubit(
-                VehicleRepository(),
-                MaintenanceRepository(),
-                PredictionService(),
-                DatabaseHelper(), // or refactor link fetching
+                vehicleRepository,
+                maintenanceRepository,
+                predictionService,
+                databaseHelper, // or refactor link fetching
                 context.read<VehicleCubit>(),
-                NotificationService(),
-                PreferencesService(),
+                notificationService,
+                preferencesService,
                 context,
               )..loadAllUpcomingMaintenance(), // load on app start
         ),
         ChangeNotifierProvider(
-          create: (_) => LocaleProvider(PreferencesService()),
+          create: (_) => LocaleProvider(preferencesService),
         ),
       ],
       child: Consumer<LocaleProvider>(

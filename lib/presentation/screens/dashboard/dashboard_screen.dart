@@ -43,7 +43,6 @@ class _DashboardScreenState extends State<DashboardScreen>
   int _dashboardItemCount = 3;
 
   void _handleGlobalLogMaintenance(BuildContext context) async {
-    final PreferencesService preferencesService = PreferencesService();
     final vehicleState = context.read<VehicleCubit>().state;
 
     if (vehicleState is vehicle_list_state_import.VehicleLoaded) {
@@ -64,7 +63,8 @@ class _DashboardScreenState extends State<DashboardScreen>
           vehicles.first.name,
         );
       } else {
-        final defaultVehicleId = await preferencesService.getDefaultVehicleId();
+        final defaultVehicleId =
+            await _preferencesService.getDefaultVehicleId();
         if (defaultVehicleId != null) {
           final defaultVehicle = vehicleState.vehicles.firstWhereOrNull(
             (v) => v.id == defaultVehicleId,
@@ -81,7 +81,7 @@ class _DashboardScreenState extends State<DashboardScreen>
             return;
           } else {
             // Default vehicle ID was stored but vehicle no longer exists, clear it
-            await preferencesService.setDefaultVehicleId(null);
+            await _preferencesService.setDefaultVehicleId(null);
           }
         }
         if (context.mounted) {
@@ -101,6 +101,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     int vehicleId,
     String vehicleName,
   ) {
+    final maintenanceRepository = MaintenanceRepository();
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -109,15 +110,14 @@ class _DashboardScreenState extends State<DashboardScreen>
               providers: [
                 BlocProvider(
                   create:
-                      (_) => MaintenancePlanCubit(
-                        MaintenanceRepository(),
-                        vehicleId,
-                      )..fetchPlanItems(),
+                      (_) =>
+                          MaintenancePlanCubit(maintenanceRepository, vehicleId)
+                            ..fetchPlanItems(),
                 ),
                 BlocProvider(
                   create:
                       (_) =>
-                          ServiceLogCubit(MaintenanceRepository(), vehicleId)
+                          ServiceLogCubit(maintenanceRepository, vehicleId)
                             ..fetchServiceLogs(),
                 ),
               ],

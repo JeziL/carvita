@@ -21,6 +21,7 @@ class SelectVehicleScreen extends StatelessWidget {
     int vehicleId,
     String vehicleName,
   ) {
+    final maintenanceRepository = MaintenanceRepository();
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
@@ -29,15 +30,14 @@ class SelectVehicleScreen extends StatelessWidget {
               providers: [
                 BlocProvider(
                   create:
-                      (_) => MaintenancePlanCubit(
-                        MaintenanceRepository(),
-                        vehicleId,
-                      )..fetchPlanItems(),
+                      (_) =>
+                          MaintenancePlanCubit(maintenanceRepository, vehicleId)
+                            ..fetchPlanItems(),
                 ),
                 BlocProvider(
                   create:
                       (_) =>
-                          ServiceLogCubit(MaintenanceRepository(), vehicleId)
+                          ServiceLogCubit(maintenanceRepository, vehicleId)
                             ..fetchServiceLogs(),
                 ),
               ],
