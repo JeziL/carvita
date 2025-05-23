@@ -546,11 +546,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  void _triggerNotificationReschedule() {
+  void _triggerNotificationReschedule({AppLocalizations? l10n}) {
     context
         .read<UpcomingMaintenanceCubit>()
         .rescheduleNotificationsBasedOnNewSettings(
-          AppLocalizations.of(context),
+          l10n ?? AppLocalizations.of(context),
         );
   }
 
@@ -751,7 +751,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (result != localeProvider.appLocale) {
       await localeProvider.setLocale(result);
       if (mounted) {
-        _triggerNotificationReschedule();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _triggerNotificationReschedule(l10n: AppLocalizations.of(context));
+          }
+        });
       }
     }
   }
