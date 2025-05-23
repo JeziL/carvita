@@ -74,7 +74,9 @@ class UpcomingMaintenanceCubit extends Cubit<UpcomingMaintenanceState> {
 
       allPredictions.sort((a, b) => a.compareTo(b)); // Sort all by due date
       emit(UpcomingMaintenanceLoaded(allPredictions));
-      await _scheduleNotifications(allPredictions, l10n);
+      if (l10n != null) {
+        await _scheduleNotifications(allPredictions, l10n);
+      }
     } catch (e) {
       emit(UpcomingMaintenanceError(e.toString()));
     }
