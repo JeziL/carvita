@@ -798,5 +798,9 @@
         "type": "String"
       }
     }
+  },
+  "openSourceLicenses": "Open source licenses",
+  "@openSourceLicenses": {
+    "description": "The label for the open source licenses entry in the settings screen"
   }
 }

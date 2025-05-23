@@ -7,6 +7,7 @@ import 'package:collection/collection.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -51,6 +52,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
   int _selectedReminderItemCount = 3;
   bool _isExporting = false;
   bool _isImporting = false;
+  PackageInfo _packageInfo = PackageInfo(
+    appName: '',
+    packageName: '',
+    version: '',
+    buildNumber: '',
+  );
 
   @override
   void initState() {
@@ -58,6 +65,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _loadDefaultVehicleInfo();
     _loadReminderSettings();
     _loadNotificationSettings();
+    _initPackageInfo();
   }
 
   Future<void> _loadDefaultVehicleInfo() async {
@@ -760,6 +768,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  Future<void> _initPackageInfo() async {
+    final info = await PackageInfo.fromPlatform();
+    setState(() {
+      _packageInfo = info;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final vehicleState = context.watch<VehicleCubit>().state;
@@ -963,7 +978,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _buildSettingItem(
                   icon: Icons.info_outline,
                   label: AppLocalizations.of(context)!.appVersionEntry,
-                  value: "0.9.0 (early access)",
+                  value: _packageInfo.version,
                 ),
                 // _buildSettingItem(
                 //   icon: Icons.help_outline,
@@ -977,6 +992,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   label: AppLocalizations.of(context)!.privacyPolicy,
                   onTap: () {
                     Navigator.pushNamed(context, AppRoutes.privacyRoute);
+                  },
+                ),
+                _buildSettingItem(
+                  icon: Icons.copyright_outlined,
+                  label: AppLocalizations.of(context)!.openSourceLicenses,
+                  onTap: () {
+                    showLicensePage(
+                      context: context,
+                      applicationVersion: _packageInfo.version,
+                    );
                   },
                 ),
               ],
