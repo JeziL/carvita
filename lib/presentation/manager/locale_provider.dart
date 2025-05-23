@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:carvita/core/services/preferences_service.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
+import 'package:carvita/main.dart';
 
 class LocaleProvider extends ChangeNotifier {
   final PreferencesService _preferencesService;
@@ -46,14 +47,26 @@ class LocaleProvider extends ChangeNotifier {
     if (locale == null) {
       return AppLocalizations.of(context)!.languageFollowSystem;
     }
-    switch (locale.languageCode) {
-      case 'en':
-        return "English";
-      case 'zh':
-        if (locale.scriptCode == 'Hans') return "简体中文";
-        return "中文";
-      default:
-        return locale.toLanguageTag();
+
+    String localeName = locale.toLanguageTag();
+    for (var lang in appSupportedLocales) {
+      final lo = lang['locale'] as Locale;
+      final name = lang['name'] as String;
+      if (locale == lo) {
+        localeName = name;
+        break;
+      }
+      if (locale.languageCode == lo.languageCode &&
+          locale.scriptCode == lo.scriptCode) {
+        localeName = name;
+        break;
+      }
+      if (locale.languageCode == lo.languageCode) {
+        localeName = name;
+        break;
+      }
     }
+
+    return localeName;
   }
 }

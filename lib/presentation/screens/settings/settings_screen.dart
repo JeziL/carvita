@@ -699,12 +699,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         'locale': null,
         'name': LocaleProvider.getLocaleDisplayString(null, context),
       },
-      ...appSupportedLocales.map(
-        (l) => {
-          'locale': l,
-          'name': LocaleProvider.getLocaleDisplayString(l, context),
-        },
-      ),
+      ...appSupportedLocales,
     ];
 
     Locale? currentSelection = localeProvider.appLocale;

@@ -22,8 +22,24 @@ import 'package:carvita/presentation/navigation/app_router.dart';
 final RouteObserver<ModalRoute<void>> routeObserver =
     RouteObserver<ModalRoute<void>>();
 final appSupportedLocales = [
-  Locale('en'),
-  Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hans'),
+  {'name': 'English', 'locale': Locale('en')},
+  {'name': 'العربية', 'locale': Locale('ar')},
+  {'name': 'Deutsch', 'locale': Locale('de')},
+  {'name': 'Español', 'locale': Locale('es')},
+  {'name': 'Français', 'locale': Locale('fr')},
+  {'name': 'Italiano', 'locale': Locale('it')},
+  {'name': '日本語', 'locale': Locale('ja')},
+  {'name': '한국어', 'locale': Locale('ko')},
+  {'name': 'Português', 'locale': Locale('pt')},
+  {'name': 'Русский', 'locale': Locale('ru')},
+  {
+    'name': '简体中文',
+    'locale': Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hans'),
+  },
+  {
+    'name': '繁體中文',
+    'locale': Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant'),
+  },
 ];
 
 Future<void> main() async {
@@ -93,7 +109,9 @@ class CarVitaApp extends StatelessWidget {
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
-            supportedLocales: appSupportedLocales,
+            supportedLocales: appSupportedLocales.map(
+              (lang) => lang['locale'] as Locale,
+            ),
             locale: localeProvider.appLocale,
 
             builder: (context, child) {
