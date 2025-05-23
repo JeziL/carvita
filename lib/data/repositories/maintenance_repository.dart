@@ -1,5 +1,6 @@
 import 'package:carvita/data/models/maintenance_plan_item.dart';
 import 'package:carvita/data/models/service_log_entry.dart';
+import 'package:carvita/data/models/service_log_performed_item_link.dart';
 import 'package:carvita/data/sources/local/database_helper.dart';
 
 class MaintenanceRepository {
@@ -48,5 +49,11 @@ class MaintenanceRepository {
   Future<bool> deleteServiceLog(int logId) async {
     final count = await _dbHelper.deleteServiceLog(logId);
     return count > 0;
+  }
+
+  Future<List<ServiceLogPerformedItemLink>> getPerformedItemLinksForVehicle(
+    int vehicleId,
+  ) async {
+    return await _dbHelper.getPerformedItemLinksForVehicle(vehicleId);
   }
 }

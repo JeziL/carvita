@@ -64,7 +64,6 @@ class CarVitaApp extends StatelessWidget {
                 vehicleRepository,
                 maintenanceRepository,
                 predictionService,
-                databaseHelper, // or refactor link fetching
                 notificationService,
                 preferencesService,
               )..loadAllUpcomingMaintenance(

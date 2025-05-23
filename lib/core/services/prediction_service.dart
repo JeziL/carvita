@@ -6,6 +6,7 @@ import 'package:carvita/core/utils/mileage_estimator.dart';
 import 'package:carvita/data/models/maintenance_plan_item.dart';
 import 'package:carvita/data/models/predicted_maintenance.dart';
 import 'package:carvita/data/models/service_log_entry.dart';
+import 'package:carvita/data/models/service_log_performed_item_link.dart';
 import 'package:carvita/data/models/vehicle.dart';
 
 class PredictionService {
@@ -228,19 +229,4 @@ class PredictionService {
       date.second,
     );
   }
-}
-
-// Utility data structure for linking service logs and performed items
-// This should be prepared by the Repository layer when fetching service logs
-// or PredictionService can directly rely on the Repository to get this information
-class ServiceLogPerformedItemLink {
-  final int serviceLogId;
-  final int maintenancePlanItemId;
-  // final DateTime serviceLogDate; // maybe need this for sorting
-
-  ServiceLogPerformedItemLink({
-    required this.serviceLogId,
-    required this.maintenancePlanItemId,
-    // required this.serviceLogDate,
-  });
 }

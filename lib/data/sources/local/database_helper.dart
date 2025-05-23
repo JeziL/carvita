@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
-import 'package:carvita/core/services/prediction_service.dart';
 import 'package:carvita/data/models/maintenance_plan_item.dart';
 import 'package:carvita/data/models/service_log_entry.dart';
+import 'package:carvita/data/models/service_log_performed_item_link.dart';
 import 'package:carvita/data/models/vehicle.dart';
 
 class DatabaseHelper {

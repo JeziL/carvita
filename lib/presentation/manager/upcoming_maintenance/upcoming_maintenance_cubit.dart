@@ -8,10 +8,10 @@ import 'package:carvita/core/services/preferences_service.dart';
 import 'package:carvita/data/models/maintenance_plan_item.dart';
 import 'package:carvita/data/models/predicted_maintenance.dart';
 import 'package:carvita/data/models/service_log_entry.dart';
+import 'package:carvita/data/models/service_log_performed_item_link.dart';
 import 'package:carvita/data/models/vehicle.dart';
 import 'package:carvita/data/repositories/maintenance_repository.dart';
 import 'package:carvita/data/repositories/vehicle_repository.dart';
-import 'package:carvita/data/sources/local/database_helper.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'upcoming_maintenance_state.dart';
 
@@ -19,8 +19,6 @@ class UpcomingMaintenanceCubit extends Cubit<UpcomingMaintenanceState> {
   final VehicleRepository _vehicleRepository;
   final MaintenanceRepository _maintenanceRepository;
   final PredictionService _predictionService;
-  final DatabaseHelper
-  _dbHelper; // Temporary for getPerformedItemLinksForVehicle, ideally through repo
   late StreamSubscription _vehicleCubitSubscription;
   final NotificationService _notificationService;
   final PreferencesService _preferencesService;
@@ -29,7 +27,6 @@ class UpcomingMaintenanceCubit extends Cubit<UpcomingMaintenanceState> {
     this._vehicleRepository,
     this._maintenanceRepository,
     this._predictionService,
-    this._dbHelper, // Pass dbHelper or refactor link fetching into repo
     this._notificationService,
     this._preferencesService,
   ) : super(UpcomingMaintenanceInitial());
@@ -54,11 +51,11 @@ class UpcomingMaintenanceCubit extends Cubit<UpcomingMaintenanceState> {
         final List<ServiceLogEntry> serviceEntries =
             logsWithItems.map((lwi) => lwi.entry).toList();
 
-        // Fetch or construct ServiceLogPerformedItemLink list
-        // This is a simplified placeholder for getting the link data.
-        // MaintenanceRepository should provide this efficiently.
+        // Fetch ServiceLogPerformedItemLink list
         final List<ServiceLogPerformedItemLink> performedItemLinks =
-            await _dbHelper.getPerformedItemLinksForVehicle(vehicle.id!);
+            await _maintenanceRepository.getPerformedItemLinksForVehicle(
+              vehicle.id!,
+            );
 
         final vehiclePredictions = _predictionService
             .getUpcomingServicesForVehicle(
