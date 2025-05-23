@@ -25,6 +25,7 @@ class InfoGridItem extends StatelessWidget {
               fontSize: 12,
               color: AppColors.textBlack.withValues(alpha: 0.7),
             ),
+            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 4),
           Text(

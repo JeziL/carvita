@@ -188,9 +188,24 @@ class _UpcomingMaintenanceListScreenState
           ),
           onTap: (_) => setState(() {}), // Trigger rebuild to apply filter
           tabs: [
-            Tab(text: AppLocalizations.of(context)!.nextYear),
-            Tab(text: AppLocalizations.of(context)!.thisWeek),
-            Tab(text: AppLocalizations.of(context)!.thisMonth),
+            Tab(
+              child: Text(
+                AppLocalizations.of(context)!.nextYear,
+                textAlign: TextAlign.center,
+              ),
+            ),
+            Tab(
+              child: Text(
+                AppLocalizations.of(context)!.thisWeek,
+                textAlign: TextAlign.center,
+              ),
+            ),
+            Tab(
+              child: Text(
+                AppLocalizations.of(context)!.thisMonth,
+                textAlign: TextAlign.center,
+              ),
+            ),
           ],
         ),
       ),
@@ -214,17 +229,20 @@ class _UpcomingMaintenanceListScreenState
 
             if (displayedPredictions.isEmpty) {
               return Center(
-                child: Text(
-                  _selectedVehicleFilter == null && _tabController.index == 0
-                      ? AppLocalizations.of(context)!.maintenanceListEmpty
-                      : AppLocalizations.of(
-                        context,
-                      )!.maintenanceListEmptyAfterFilter,
-                  style: TextStyle(
-                    color: AppColors.textBlack.withValues(alpha: 0.7),
-                    fontSize: 15,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    _selectedVehicleFilter == null && _tabController.index == 0
+                        ? AppLocalizations.of(context)!.maintenanceListEmpty
+                        : AppLocalizations.of(
+                          context,
+                        )!.maintenanceListEmptyAfterFilter,
+                    style: TextStyle(
+                      color: AppColors.textBlack.withValues(alpha: 0.7),
+                      fontSize: 15,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                  textAlign: TextAlign.center,
                 ),
               );
             }

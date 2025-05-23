@@ -114,12 +114,14 @@ class _ServiceHistoryTabState extends State<ServiceHistoryTab> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    AppLocalizations.of(context)!.maintenanceLog,
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.textBlack,
+                  Expanded(
+                    child: Text(
+                      AppLocalizations.of(context)!.maintenanceLog,
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.textBlack,
+                      ),
                     ),
                   ),
                   ElevatedButton.icon(

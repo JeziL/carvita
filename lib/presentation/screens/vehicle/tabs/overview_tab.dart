@@ -43,12 +43,14 @@ class OverviewTab extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    AppLocalizations.of(context)!.vehicleInfo,
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.textBlack,
+                  Expanded(
+                    child: Text(
+                      AppLocalizations.of(context)!.vehicleInfo,
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.textBlack,
+                      ),
                     ),
                   ),
                   TextButton(
