@@ -30,6 +30,7 @@ import 'package:carvita/presentation/screens/common_widgets/main_bottom_navigati
 
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_state.dart'
     as vehicle_list_state_import;
+import 'package:url_launcher/url_launcher.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -980,13 +981,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   label: AppLocalizations.of(context)!.appVersionEntry,
                   value: _packageInfo.version,
                 ),
-                // _buildSettingItem(
-                //   icon: Icons.help_outline,
-                //   label: "Help & Support",
-                //   onTap: () {
-                //     /* Placeholder */
-                //   },
-                // ),
+                _buildSettingItem(
+                  icon: Icons.help_outline,
+                  label: AppLocalizations.of(context)!.helpAndSupport,
+                  onTap: () {
+                    final url = Uri.parse('https://github.com/JeziL/carvita');
+                    launchUrl(url);
+                  },
+                ),
                 _buildSettingItem(
                   icon: Icons.shield_outlined,
                   label: AppLocalizations.of(context)!.privacyPolicy,

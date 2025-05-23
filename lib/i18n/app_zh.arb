@@ -154,5 +154,6 @@
   "mileageUnitLabel": "里程单位",
   "chooseMileageUnit": "选择里程单位",
   "mileageUnit": "{unit, select, km{公里 (km)} mi{英里 (mi)} other{}}",
+  "helpAndSupport": "帮助与支持",
   "openSourceLicenses": "开源许可证"
 }

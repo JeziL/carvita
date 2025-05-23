@@ -799,6 +799,10 @@
       }
     }
   },
+  "helpAndSupport": "Help & support",
+  "@helpAndSupport": {
+    "description": "The label for the help and support entry in the settings screen"
+  },
   "openSourceLicenses": "Open source licenses",
   "@openSourceLicenses": {
     "description": "The label for the open source licenses entry in the settings screen"
