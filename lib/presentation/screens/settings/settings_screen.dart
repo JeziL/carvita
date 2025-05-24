@@ -12,6 +12,7 @@ import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/constants/app_routes.dart';
@@ -30,7 +31,6 @@ import 'package:carvita/presentation/screens/common_widgets/main_bottom_navigati
 
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_state.dart'
     as vehicle_list_state_import;
-import 'package:url_launcher/url_launcher.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});

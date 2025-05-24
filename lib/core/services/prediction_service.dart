@@ -20,8 +20,6 @@ class PredictionService {
     allPerformedItemsForVehicle, // utility data structure
     DateTime? currentDateOverride, // For testing
   }) {
-    final DateTime now = currentDateOverride ?? DateTime.now();
-
     // 1. Look for the last service log entry for this planItem on this vehicle
     ServiceLogEntry? lastServiceLogForItem;
     // Find all performedItem records for this planItem
@@ -63,6 +61,7 @@ class PredictionService {
     bool isFirst = false;
 
     double vehicleDailyRate = MileageEstimator.getAverageDailyMileage(
+      vehicle,
       allLogsForVehicle,
     );
 
@@ -83,7 +82,7 @@ class PredictionService {
             currentMileage: vehicle.mileage,
             targetMileage: targetMileageForPrediction,
             dailyRate: vehicleDailyRate,
-            fromDate: now,
+            fromDate: currentDateOverride ?? vehicle.mileageLastUpdated,
           );
           mileageNotes = "first mileage period";
         }
@@ -101,7 +100,7 @@ class PredictionService {
             currentMileage: vehicle.mileage,
             targetMileage: targetMileageForPrediction,
             dailyRate: vehicleDailyRate,
-            fromDate: now,
+            fromDate: currentDateOverride ?? vehicle.mileageLastUpdated,
           );
           mileageNotes = "general mileage period (from purchase date)";
         }
@@ -122,7 +121,7 @@ class PredictionService {
           currentMileage: vehicle.mileage,
           targetMileage: targetMileageForPrediction,
           dailyRate: vehicleDailyRate,
-          fromDate: now,
+          fromDate: currentDateOverride ?? vehicle.mileageLastUpdated,
         );
         mileageNotes = "general mileage period";
       }

@@ -1,49 +1,44 @@
 import 'package:carvita/data/models/service_log_entry.dart';
+import 'package:carvita/data/models/vehicle.dart';
 
 class MileageEstimator {
-  static const double defaultMonthlyMileage =
-      1666.6667; // default: 20000(km/mi) in a year
-  static const double defaultDailyMileage = defaultMonthlyMileage / 30.4375;
+  static const double defaultDailyMileage =
+      20000 / 365.2425; // default: 20000(km/mi) in a year
 
-  // Calculate average daily mileage based on service logs
+  // Calculate average daily mileage based on vehicle info and service logs
   static double getAverageDailyMileage(
+    Vehicle vehicle,
     List<ServiceLogEntry> logs, {
     double fallback = defaultDailyMileage,
   }) {
-    if (logs.length < 2) {
-      return fallback;
-    }
-
-    logs.sort((a, b) => a.serviceDate.compareTo(b.serviceDate));
-
-    ServiceLogEntry? firstLog;
-    ServiceLogEntry? lastLog;
-
-    for (int i = 0; i < logs.length; i++) {
-      if (logs[i].mileageAtService > 0) {
-        firstLog = logs[i];
-        break;
+    List<Map<String, dynamic>> entryList = [
+      {'time': vehicle.mileageLastUpdated, 'mileage': vehicle.mileage},
+    ];
+    for (var log in logs) {
+      if (log.mileageAtService > 0) {
+        entryList.add({
+          'time': log.serviceDate,
+          'mileage': log.mileageAtService,
+        });
       }
     }
 
-    for (int i = logs.length - 1; i >= 0; i--) {
-      if (logs[i].mileageAtService > 0) {
-        lastLog = logs[i];
-        break;
-      }
-    }
+    entryList.sort(
+      (a, b) => (a['time'] as DateTime).compareTo((b['time'] as DateTime)),
+    );
 
-    if (firstLog == null ||
-        lastLog == null ||
-        firstLog.id == lastLog.id ||
-        firstLog.mileageAtService >= lastLog.mileageAtService) {
+    if (entryList.length < 2) return fallback;
+    if ((entryList.last['mileage'] as double) <=
+        (entryList.first['mileage'] as double)) {
       return fallback;
     }
 
     final double mileageDiff =
-        lastLog.mileageAtService - firstLog.mileageAtService;
+        entryList.last['mileage'] - entryList.first['mileage'];
     final int daysDiff =
-        lastLog.serviceDate.difference(firstLog.serviceDate).inDays;
+        (entryList.last['time'] as DateTime)
+            .difference(entryList.first['time'])
+            .inDays;
 
     if (daysDiff <= 0 || mileageDiff <= 0) {
       return fallback;
