@@ -203,10 +203,18 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
         return;
       }
 
+      final mileageFilled =
+          double.tryParse(_mileageController.text.trim()) ?? 0;
+      var mileageLastUpdated = DateTime.now();
+      if (_isEditing && mileageFilled == widget.vehicle!.mileage) {
+        mileageLastUpdated = widget.vehicle!.mileageLastUpdated;
+      } else {}
+
       final vehicleData = Vehicle(
         id: widget.vehicle?.id,
         name: _nameController.text.trim(),
-        mileage: double.tryParse(_mileageController.text.trim()) ?? 0.0,
+        mileage: mileageFilled,
+        mileageLastUpdated: mileageLastUpdated,
         boughtDate: _selectedBoughtDate!,
         image: _selectedImageBytes,
         model:

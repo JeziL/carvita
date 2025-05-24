@@ -6,6 +6,7 @@ class Vehicle extends Equatable {
   final int? id;
   final String name;
   final double mileage;
+  final DateTime mileageLastUpdated;
   final DateTime boughtDate;
   final Uint8List? image;
   final String? model;
@@ -17,6 +18,7 @@ class Vehicle extends Equatable {
     this.id,
     required this.name,
     required this.mileage,
+    required this.mileageLastUpdated,
     required this.boughtDate,
     this.image,
     this.model,
@@ -30,6 +32,7 @@ class Vehicle extends Equatable {
       id: map['id'] as int?,
       name: map['name'] as String,
       mileage: (map['mileage'] as num).toDouble(),
+      mileageLastUpdated: DateTime.parse(map['mileage_last_updated'] as String),
       boughtDate: DateTime.parse(map['bought_date'] as String),
       image: map['image'] as Uint8List?,
       model: map['model'] as String?,
@@ -44,6 +47,7 @@ class Vehicle extends Equatable {
       'id': id,
       'name': name,
       'mileage': mileage,
+      'mileage_last_updated': mileageLastUpdated.toIso8601String(),
       'bought_date': boughtDate.toIso8601String(),
       'image': image,
       'model': model,
@@ -57,6 +61,7 @@ class Vehicle extends Equatable {
     int? id,
     String? name,
     double? mileage,
+    DateTime? mileageLastUpdated,
     DateTime? boughtDate,
     Uint8List? image,
     String? model,
@@ -69,6 +74,7 @@ class Vehicle extends Equatable {
       id: id ?? this.id,
       name: name ?? this.name,
       mileage: mileage ?? this.mileage,
+      mileageLastUpdated: mileageLastUpdated ?? this.mileageLastUpdated,
       boughtDate: boughtDate ?? this.boughtDate,
       image: clearImage ? null : (image ?? this.image),
       model: model ?? this.model,
@@ -82,6 +88,7 @@ class Vehicle extends Equatable {
     return id == other.id &&
         name == other.name &&
         mileage == other.mileage &&
+        mileageLastUpdated == other.mileageLastUpdated &&
         boughtDate == other.boughtDate &&
         image == other.image &&
         model == other.model &&
@@ -95,6 +102,7 @@ class Vehicle extends Equatable {
     id,
     name,
     mileage,
+    mileageLastUpdated,
     boughtDate,
     image,
     model,

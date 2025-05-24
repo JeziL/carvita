@@ -280,6 +280,7 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
         if (confirmUpdate == true) {
           final updatedVehicle = currentVehicle.copyWith(
             mileage: newMileageAtService,
+            mileageLastUpdated: _selectedServiceDate!,
           );
           // ignore: use_build_context_synchronously
           await context.read<VehicleCubit>().updateVehicle(updatedVehicle);

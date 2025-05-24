@@ -39,6 +39,7 @@ class DatabaseHelper {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         mileage REAL NOT NULL,
+        mileage_last_updated TEXT NOT NULL,
         bought_date TEXT NOT NULL,
         image BLOB,
         model TEXT,

@@ -34,6 +34,7 @@ class _UpcomingMaintenanceListScreenState
     id: -999,
     name: "All vehicles",
     mileage: 0,
+    mileageLastUpdated: DateTime(0),
     boughtDate: DateTime(0),
   );
   List<Vehicle> _allVehicles = [];
