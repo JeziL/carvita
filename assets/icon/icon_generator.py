@@ -35,7 +35,7 @@ def draw_carvita_icon(filename, colors, img_size=512, side_width=60, fill_bg=Fal
     ]
 
     # first path
-    ctx.set_source_rgb(*[c / 255 for c in colors[0]])
+    ctx.set_source_rgb(*[c / 255 for c in colors[1]])
     ctx.new_path()
     ctx.move_to(*path_points[0])
     for point in path_points[1:]:
@@ -45,7 +45,7 @@ def draw_carvita_icon(filename, colors, img_size=512, side_width=60, fill_bg=Fal
 
     # copy & rotate to second path
     original_path = ctx.copy_path()
-    ctx.set_source_rgb(*[c / 255 for c in colors[1]])
+    ctx.set_source_rgb(*[c / 255 for c in colors[2]])
     ctx.new_path()
     ctx.append_path(original_path)
     ctx.rotate(math.radians(120))
@@ -55,7 +55,7 @@ def draw_carvita_icon(filename, colors, img_size=512, side_width=60, fill_bg=Fal
     ctx.fill()
 
     # copy & rotate to third path
-    ctx.set_source_rgb(*[c / 255 for c in colors[2]])
+    ctx.set_source_rgb(*[c / 255 for c in colors[0]])
     ctx.new_path()
     ctx.append_path(original_path)
     ctx.rotate(math.radians(120))
@@ -70,12 +70,8 @@ def draw_carvita_icon(filename, colors, img_size=512, side_width=60, fill_bg=Fal
 
 if __name__ == "__main__":
     draw_carvita_icon(
-        "icon.png",
+        "assets/icon/icon.png",
         img_size=1024,
         side_width=120,
-        colors=[
-            [108, 175, 201],
-            [228, 235, 246],
-            [52, 76, 129],
-        ],
+        colors=[(51, 52, 70), (127, 140, 170), (184, 207, 206)],
     )
