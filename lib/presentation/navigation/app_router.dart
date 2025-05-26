@@ -54,12 +54,20 @@ class AppRouter {
             arguments?['planItem'] as MaintenancePlanItem?;
         final MaintenancePlanCubit? cubitInstance =
             arguments?['cubitInstance'] as MaintenancePlanCubit?;
+        final ServiceLogCubit? serviceLogCubit =
+            arguments?['serviceLogCubit'] as ServiceLogCubit?;
 
-        if (vehicleId != null && cubitInstance != null && vehicleName != null) {
+        if (vehicleId != null &&
+            cubitInstance != null &&
+            vehicleName != null &&
+            serviceLogCubit != null) {
           return MaterialPageRoute(
             builder:
-                (_) => BlocProvider.value(
-                  value: cubitInstance,
+                (_) => MultiBlocProvider(
+                  providers: [
+                    BlocProvider.value(value: cubitInstance),
+                    BlocProvider.value(value: serviceLogCubit),
+                  ],
                   child: AddEditMaintenancePlanItemScreen(
                     vehicleId: vehicleId,
                     planItemToEdit: planItem,

@@ -10,6 +10,7 @@ import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/presentation/manager/locale_provider.dart';
 import 'package:carvita/presentation/manager/maintenance_plan/maintenance_plan_cubit.dart';
 import 'package:carvita/presentation/manager/maintenance_plan/maintenance_plan_state.dart';
+import 'package:carvita/presentation/manager/service_log/service_log_cubit.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
 
 class AddEditMaintenancePlanItemScreen extends StatefulWidget {
@@ -206,6 +207,7 @@ class _AddEditMaintenancePlanItemScreenState
         context.read<UpcomingMaintenanceCubit>().loadAllUpcomingMaintenance(
           AppLocalizations.of(context),
         );
+        context.read<ServiceLogCubit>().fetchServiceLogs();
       }
 
       if (mounted) Navigator.of(context).pop();

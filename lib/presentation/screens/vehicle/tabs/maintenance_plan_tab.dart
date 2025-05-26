@@ -9,6 +9,7 @@ import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/presentation/manager/locale_provider.dart';
 import 'package:carvita/presentation/manager/maintenance_plan/maintenance_plan_cubit.dart';
 import 'package:carvita/presentation/manager/maintenance_plan/maintenance_plan_state.dart';
+import 'package:carvita/presentation/manager/service_log/service_log_cubit.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
 
 class MaintenancePlanTab extends StatefulWidget {
@@ -77,6 +78,7 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
         context.read<UpcomingMaintenanceCubit>().loadAllUpcomingMaintenance(
           AppLocalizations.of(context),
         );
+        context.read<ServiceLogCubit>().fetchServiceLogs();
       }
     }
   }
@@ -166,6 +168,7 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
                           'vehicleName': widget.vehicleName,
                           'planItem': null, // Adding new item
                           'cubitInstance': maintenancePlanCubit,
+                          'serviceLogCubit': context.read<ServiceLogCubit>(),
                         },
                       );
                     },
@@ -307,6 +310,8 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
                                         'vehicleName': widget.vehicleName,
                                         'planItem': item,
                                         'cubitInstance': maintenancePlanCubit,
+                                        'serviceLogCubit':
+                                            context.read<ServiceLogCubit>(),
                                       },
                                     );
                                   } else if (value == 'delete') {
