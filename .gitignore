@@ -56,3 +56,8 @@ linux/
 macos/
 web/
 windows/
+
+# Assets unnecessary for GitHub
+.design/assets/feature_graphic/PSD/
+.design/assets/feature_graphic/output/*/gp*
+.design/assets/screenshots/
