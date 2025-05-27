@@ -1,0 +1,11 @@
+✅ Visualize Your Vehicle's Status: A clear dashboard provides an at-a-glance overview of your vehicles and the most urgent upcoming services.
+
+✅ Track Multiple Vehicles: Manage all your cars, motorcycles, or other vehicles in one place.
+
+✅ Create Custom Maintenance Plans: Input your vehicle manufacturer's recommended service schedule (both time and mileage intervals, including first service requirements) to create a plan tailored specifically to your vehicle.
+
+✅ Log Every Service: Keep a detailed digital history of all maintenance performed, including date, mileage, items serviced, costs, and notes.
+
+✅ Get Predictions: Calculates upcoming maintenance tasks for each item in your plan, considering both time and mileage cycles, and even predicts due dates based on your vehicle's usage patterns.
+
+✅ Stay Alert with Reminders: Receive timely local notifications for upcoming services, so you can schedule appointments without stress.
