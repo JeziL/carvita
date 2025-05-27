@@ -2,13 +2,20 @@ name: Flutter
 
 on:
   workflow_dispatch:
+  push:
+    tags:
+      - 'v*.*.*+*'
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -39,8 +46,29 @@ jobs:
       - name: Build APK
         run: flutter build apk
 
+      - name: Get Tag Message
+        id: tag_message
+        if: github.event_name == 'push'
+        run: |
+          git show -s --format=%B ${{ github.ref_name }} > RELEASE_NOTES.md
+          echo "Tag message saved to RELEASE_NOTES.md"
+
+      - name: Create Release and Upload APK
+        uses: softprops/action-gh-release@v2
+        if: github.event_name == 'push'
+        with:
+          files: build/app/outputs/apk/release/app-release.apk
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          body_path: RELEASE_NOTES.md
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
+        if: github.event_name == 'workflow_dispatch'
         with:
           name: carvita-release-universal.apk
           path: build/app/outputs/apk/release/app-release.apk
