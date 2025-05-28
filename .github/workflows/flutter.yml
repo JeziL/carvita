@@ -50,7 +50,7 @@ jobs:
         id: tag_message
         if: github.event_name == 'push'
         run: |
-          git show -s --format=%B ${{ github.ref_name }} > RELEASE_NOTES.md
+          git tag -l --format="%(contents)" ${{ github.ref_name }} > ${{ github.workspace }}-CHANGELOG.txt
           echo "Tag message saved to RELEASE_NOTES.md"
 
       - name: Create Release and Upload APK
@@ -60,7 +60,7 @@ jobs:
           files: build/app/outputs/apk/release/app-release.apk
           tag_name: ${{ github.ref_name }}
           name: Release ${{ github.ref_name }}
-          body_path: RELEASE_NOTES.md
+          body_path: ${{ github.workspace }}-CHANGELOG.txt
           draft: false
           prerelease: false
         env:
