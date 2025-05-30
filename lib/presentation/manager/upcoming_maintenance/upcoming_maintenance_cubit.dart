@@ -19,7 +19,6 @@ class UpcomingMaintenanceCubit extends Cubit<UpcomingMaintenanceState> {
   final VehicleRepository _vehicleRepository;
   final MaintenanceRepository _maintenanceRepository;
   final PredictionService _predictionService;
-  late StreamSubscription _vehicleCubitSubscription;
   final NotificationService _notificationService;
   final PreferencesService _preferencesService;
 
@@ -139,11 +138,5 @@ class UpcomingMaintenanceCubit extends Cubit<UpcomingMaintenanceState> {
     } else {
       loadAllUpcomingMaintenance(l10n);
     }
-  }
-
-  @override
-  Future<void> close() {
-    _vehicleCubitSubscription.cancel();
-    return super.close();
   }
 }
