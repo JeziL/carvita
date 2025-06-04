@@ -105,7 +105,7 @@ class _AddEditMaintenancePlanItemScreenState
           SnackBar(
             content: Text(
               AppLocalizations.of(context)!.invalidRegularInterval,
-              style: TextStyle(color: AppColors.textWhite),
+              style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
             ),
             backgroundColor: AppColors.urgentReminderText,
             duration: Duration(seconds: 3),
@@ -122,7 +122,7 @@ class _AddEditMaintenancePlanItemScreenState
               AppLocalizations.of(context)!.invalidOptionalEntry(
                 AppLocalizations.of(context)!.regularInterval,
               ),
-              style: TextStyle(color: AppColors.textWhite),
+              style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
             ),
             backgroundColor: AppColors.urgentReminderText,
             duration: Duration(seconds: 3),
@@ -139,7 +139,7 @@ class _AddEditMaintenancePlanItemScreenState
               AppLocalizations.of(context)!.invalidOptionalEntry(
                 AppLocalizations.of(context)!.regularInterval,
               ),
-              style: TextStyle(color: AppColors.textWhite),
+              style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
             ),
             backgroundColor: AppColors.urgentReminderText,
             duration: Duration(seconds: 3),
@@ -157,7 +157,7 @@ class _AddEditMaintenancePlanItemScreenState
               AppLocalizations.of(context)!.invalidOptionalEntry(
                 AppLocalizations.of(context)!.initialInterval,
               ),
-              style: TextStyle(color: AppColors.textWhite),
+              style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
             ),
             backgroundColor: AppColors.urgentReminderText,
             duration: Duration(seconds: 3),
@@ -175,7 +175,7 @@ class _AddEditMaintenancePlanItemScreenState
               AppLocalizations.of(context)!.invalidOptionalEntry(
                 AppLocalizations.of(context)!.initialInterval,
               ),
-              style: TextStyle(color: AppColors.textWhite),
+              style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
             ),
             backgroundColor: AppColors.urgentReminderText,
             duration: Duration(seconds: 3),
@@ -232,7 +232,9 @@ class _AddEditMaintenancePlanItemScreenState
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w400,
-            color: AppColors.textWhite.withValues(alpha: 0.9),
+            color: Theme.of(
+              context,
+            ).colorScheme.onPrimary.withValues(alpha: 0.9),
           ),
         ),
         const SizedBox(height: 8),
@@ -241,7 +243,9 @@ class _AddEditMaintenancePlanItemScreenState
             Expanded(
               child: TextFormField(
                 controller: timeController,
-                style: const TextStyle(color: AppColors.textWhite),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onPrimary,
+                ),
                 decoration: InputDecoration(hintText: timeHint),
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -251,7 +255,9 @@ class _AddEditMaintenancePlanItemScreenState
             Expanded(
               child: TextFormField(
                 controller: mileageController,
-                style: const TextStyle(color: AppColors.textWhite),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onPrimary,
+                ),
                 decoration: InputDecoration(hintText: mileageHint),
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -264,7 +270,9 @@ class _AddEditMaintenancePlanItemScreenState
           AppLocalizations.of(context)!.hintComesFirst,
           style: TextStyle(
             fontSize: 12,
-            color: AppColors.textWhite.withValues(alpha: 0.7),
+            color: Theme.of(
+              context,
+            ).colorScheme.onPrimary.withValues(alpha: 0.7),
           ),
         ),
       ],
@@ -285,17 +293,19 @@ class _AddEditMaintenancePlanItemScreenState
             AppLocalizations.of(
               context,
             )!.addEditMaintenanceItem(_isEditing ? 'edit' : 'add'),
-            style: const TextStyle(
-              color: AppColors.textWhite,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onPrimary,
               fontWeight: FontWeight.w500,
             ),
           ),
-          backgroundColor: AppColors.statusBarColor,
+          backgroundColor: Theme.of(
+            context,
+          ).colorScheme.inverseSurface.withValues(alpha: 0.1),
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(
+            icon: Icon(
               Icons.arrow_back_ios_new,
-              color: AppColors.textWhite,
+              color: Theme.of(context).colorScheme.onPrimary,
             ),
             onPressed: () => Navigator.of(context).pop(),
           ),
@@ -315,7 +325,9 @@ class _AddEditMaintenancePlanItemScreenState
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 13,
-                    color: AppColors.textWhite.withValues(alpha: 0.8),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onPrimary.withValues(alpha: 0.8),
                     height: 1.5,
                   ),
                 ),
@@ -323,7 +335,9 @@ class _AddEditMaintenancePlanItemScreenState
 
                 TextFormField(
                   controller: _itemNameController,
-                  style: const TextStyle(color: AppColors.textWhite),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onPrimary,
+                  ),
                   decoration: InputDecoration(
                     labelText: '${AppLocalizations.of(context)!.itemName}*',
                     hintText: AppLocalizations.of(context)!.itemNameHint,
@@ -361,7 +375,9 @@ class _AddEditMaintenancePlanItemScreenState
                 const SizedBox(height: 20),
                 TextFormField(
                   controller: _notesController,
-                  style: const TextStyle(color: AppColors.textWhite),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onPrimary,
+                  ),
                   decoration: InputDecoration(
                     labelText:
                         "${AppLocalizations.of(context)!.notes} (${AppLocalizations.of(context)!.optionalEntry})",
@@ -375,7 +391,7 @@ class _AddEditMaintenancePlanItemScreenState
                 ElevatedButton(
                   onPressed: _submitForm,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.white,
+                    backgroundColor: Theme.of(context).colorScheme.onPrimary,
                     padding: const EdgeInsets.symmetric(vertical: 15),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(25),
@@ -389,7 +405,9 @@ class _AddEditMaintenancePlanItemScreenState
                     AppLocalizations.of(
                       context,
                     )!.addEditButtonText(_isEditing ? 'edit' : 'add'),
-                    style: const TextStyle(color: AppColors.primaryBlue),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                   ),
                 ),
               ],

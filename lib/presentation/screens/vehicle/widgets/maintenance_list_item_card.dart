@@ -42,7 +42,9 @@ class MaintenanceListItemCard extends StatelessWidget {
           style: TextStyle(
             fontWeight: FontWeight.w500,
             color:
-                isUrgent ? AppColors.urgentReminderText : AppColors.primaryBlue,
+                isUrgent
+                    ? AppColors.urgentReminderText
+                    : Theme.of(context).colorScheme.primary,
           ),
         ),
       ],
@@ -52,12 +54,15 @@ class MaintenanceListItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: AppColors.cardBackground,
+      color: Theme.of(context).colorScheme.surfaceContainerLowest,
       elevation: 1,
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey[200]!, width: 0.5),
+        side: BorderSide(
+          color: Theme.of(context).colorScheme.outline,
+          width: 0.2,
+        ),
       ),
       child: Padding(
         padding: const EdgeInsets.all(15.0),
@@ -68,10 +73,10 @@ class MaintenanceListItemCard extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
-                  color: AppColors.textBlack,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
               const SizedBox(height: 8),

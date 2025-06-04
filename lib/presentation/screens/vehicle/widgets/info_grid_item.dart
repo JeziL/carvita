@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'package:carvita/core/constants/app_colors.dart';
-
 class InfoGridItem extends StatelessWidget {
   final String label;
   final String value;
@@ -13,7 +11,7 @@ class InfoGridItem extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color: Theme.of(context).colorScheme.surfaceContainer,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -23,17 +21,19 @@ class InfoGridItem extends StatelessWidget {
             label,
             style: TextStyle(
               fontSize: 12,
-              color: AppColors.textBlack.withValues(alpha: 0.7),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.7),
             ),
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 4),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w500,
-              color: AppColors.textBlack,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
             overflow: TextOverflow.ellipsis,
           ),

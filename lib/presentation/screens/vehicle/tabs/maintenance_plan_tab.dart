@@ -40,20 +40,23 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          backgroundColor: AppColors.cardBackground,
+          backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
           title: Text(
             AppLocalizations.of(context)!.confirmDelete,
-            style: TextStyle(color: AppColors.textBlack, fontSize: 24),
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface,
+              fontSize: 24,
+            ),
           ),
           content: Text(
             AppLocalizations.of(context)!.deleteConfirmMPlan(item.itemName),
-            style: const TextStyle(color: AppColors.textBlack),
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
           ),
           actions: <Widget>[
             TextButton(
               child: Text(
                 AppLocalizations.of(context)!.cancel,
-                style: TextStyle(color: AppColors.primaryBlue),
+                style: TextStyle(color: Theme.of(context).colorScheme.primary),
               ),
               onPressed: () => Navigator.of(dialogContext).pop(false),
             ),
@@ -132,7 +135,9 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
             SnackBar(
               content: Text(
                 state.message,
-                style: const TextStyle(color: AppColors.textWhite),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onPrimary,
+                ),
               ),
               backgroundColor: AppColors.urgentReminderText,
             ),
@@ -154,7 +159,7 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w500,
-                        color: AppColors.textBlack,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                   ),
@@ -172,17 +177,19 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
                         },
                       );
                     },
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.add,
                       size: 18,
-                      color: AppColors.white,
+                      color: Theme.of(context).colorScheme.onPrimary,
                     ),
                     label: Text(
                       AppLocalizations.of(context)!.addMPlan,
-                      style: TextStyle(color: AppColors.white),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onPrimary,
+                      ),
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryBlue,
+                      backgroundColor: Theme.of(context).colorScheme.primary,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,
                         vertical: 8,
@@ -209,7 +216,7 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
                         )!.emptyMPlan(AppLocalizations.of(context)!.addMPlan),
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color: AppColors.textBlack,
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 15,
                         ),
                       ),
@@ -227,14 +234,17 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
                       final firstIntervalString = _formatFirstInterval(item);
 
                       return Card(
-                        color: AppColors.cardBackground,
+                        color:
+                            Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerLowest,
                         elevation: 1,
                         margin: const EdgeInsets.only(bottom: 12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                           side: BorderSide(
-                            color: Colors.grey[200]!,
-                            width: 0.5,
+                            color: Theme.of(context).colorScheme.outline,
+                            width: 0.2,
                           ),
                         ),
                         child: Padding(
@@ -248,10 +258,13 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
                                   children: [
                                     Text(
                                       item.itemName,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.w500,
-                                        color: AppColors.textBlack,
+                                        color:
+                                            Theme.of(
+                                              context,
+                                            ).colorScheme.onSurface,
                                       ),
                                     ),
                                     const SizedBox(height: 8),
@@ -259,9 +272,10 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
                                       regularIntervalString,
                                       style: TextStyle(
                                         fontSize: 13,
-                                        color: AppColors.textBlack.withValues(
-                                          alpha: 0.8,
-                                        ),
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface
+                                            .withValues(alpha: 0.8),
                                       ),
                                     ),
                                     if (firstIntervalString.isNotEmpty)
@@ -271,9 +285,10 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
                                         firstIntervalString,
                                         style: TextStyle(
                                           fontSize: 13,
-                                          color: AppColors.textBlack.withValues(
-                                            alpha: 0.8,
-                                          ),
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurface
+                                              .withValues(alpha: 0.8),
                                         ),
                                       ),
                                     if (item.notes != null &&
@@ -285,9 +300,10 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
                                         "${AppLocalizations.of(context)!.notes}: ${item.notes}",
                                         style: TextStyle(
                                           fontSize: 13,
-                                          color: AppColors.textBlack.withValues(
-                                            alpha: 0.7,
-                                          ),
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurface
+                                              .withValues(alpha: 0.7),
                                         ),
                                       ),
                                   ],
@@ -296,9 +312,8 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
                               PopupMenuButton<String>(
                                 icon: Icon(
                                   Icons.more_vert,
-                                  color: AppColors.textBlack.withValues(
-                                    alpha: 0.6,
-                                  ),
+                                  color: Theme.of(context).colorScheme.onSurface
+                                      .withValues(alpha: 0.6),
                                 ),
                                 onSelected: (String value) {
                                   if (value == 'edit') {
@@ -328,7 +343,10 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
                                           children: [
                                             Icon(
                                               Icons.edit_outlined,
-                                              color: AppColors.primaryBlue,
+                                              color:
+                                                  Theme.of(
+                                                    context,
+                                                  ).colorScheme.primary,
                                               size: 20,
                                             ),
                                             SizedBox(width: 8),
@@ -337,7 +355,10 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
                                                 context,
                                               )!.edit,
                                               style: TextStyle(
-                                                color: AppColors.textBlack,
+                                                color:
+                                                    Theme.of(
+                                                      context,
+                                                    ).colorScheme.onSurface,
                                               ),
                                             ),
                                           ],
@@ -359,7 +380,10 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
                                                 context,
                                               )!.delete,
                                               style: TextStyle(
-                                                color: AppColors.textBlack,
+                                                color:
+                                                    Theme.of(
+                                                      context,
+                                                    ).colorScheme.onSurface,
                                               ),
                                             ),
                                           ],

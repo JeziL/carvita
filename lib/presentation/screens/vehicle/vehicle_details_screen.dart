@@ -91,9 +91,9 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
           Align(
             alignment: Alignment.topLeft,
             child: IconButton(
-              icon: const Icon(
+              icon: Icon(
                 Icons.arrow_back_ios_new,
-                color: AppColors.white,
+                color: Theme.of(context).colorScheme.onPrimary,
                 size: 24,
               ),
               onPressed: () => Navigator.of(context).pop(),
@@ -113,17 +113,21 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
                       width: 100,
                       height: 100,
                       decoration: BoxDecoration(
-                        color: AppColors.white.withValues(alpha: 0.2),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onPrimary.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: AppColors.white.withValues(alpha: 0.5),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onPrimary.withValues(alpha: 0.5),
                           width: 3,
                         ),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.directions_car,
                         size: 50,
-                        color: AppColors.white,
+                        color: Theme.of(context).colorScheme.onPrimary,
                       ),
                     ),
               ),
@@ -133,24 +137,28 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
               width: 100,
               height: 100,
               decoration: BoxDecoration(
-                color: AppColors.white.withValues(alpha: 0.2),
+                color: Theme.of(
+                  context,
+                ).colorScheme.onPrimary.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: AppColors.white.withValues(alpha: 0.5),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onPrimary.withValues(alpha: 0.5),
                   width: 3,
                 ),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.directions_car,
                 size: 50,
-                color: AppColors.white,
+                color: Theme.of(context).colorScheme.onPrimary,
               ),
             ),
           const SizedBox(height: 10),
           Text(
             vehicle.name,
-            style: const TextStyle(
-              color: AppColors.white,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onPrimary,
               fontSize: 22,
               fontWeight: FontWeight.w500,
             ),
@@ -160,7 +168,9 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
           Text(
             "${vehicle.model != null ? '${vehicle.model} - ' : ''}${DateFormat.y((Localizations.localeOf(context).toLanguageTag())).format(vehicle.boughtDate)}",
             style: TextStyle(
-              color: AppColors.white.withValues(alpha: 0.85),
+              color: Theme.of(
+                context,
+              ).colorScheme.onPrimary.withValues(alpha: 0.85),
               fontSize: 14,
             ),
             textAlign: TextAlign.center,
@@ -175,16 +185,16 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
       padding: const EdgeInsets.all(5),
       decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.1),
+        color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: TabBar(
         controller: _tabController,
-        labelColor: AppColors.primaryBlue,
-        unselectedLabelColor: AppColors.white,
+        labelColor: Theme.of(context).colorScheme.primary,
+        unselectedLabelColor: Theme.of(context).colorScheme.onPrimary,
         indicator: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
-          color: AppColors.white,
+          color: Theme.of(context).colorScheme.onPrimary,
         ),
         indicatorWeight: 0,
         dividerColor: Colors.transparent,
@@ -263,9 +273,9 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
                 backgroundColor: Colors.transparent,
                 body:
                     _isLoading
-                        ? const Center(
+                        ? Center(
                           child: CircularProgressIndicator(
-                            color: AppColors.white,
+                            color: Theme.of(context).colorScheme.onPrimary,
                           ),
                         )
                         : _error.isNotEmpty
@@ -274,7 +284,9 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
                             padding: const EdgeInsets.all(20.0),
                             child: Text(
                               _error,
-                              style: const TextStyle(color: AppColors.white),
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onPrimary,
+                              ),
                               textAlign: TextAlign.center,
                             ),
                           ),
@@ -283,7 +295,9 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
                         ? Center(
                           child: Text(
                             AppLocalizations.of(context)!.errVehDeleted,
-                            style: TextStyle(color: AppColors.white),
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onPrimary,
+                            ),
                           ),
                         )
                         : Column(
@@ -292,8 +306,11 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
                             _buildTabBar(),
                             Expanded(
                               child: Container(
-                                decoration: const BoxDecoration(
-                                  color: AppColors.cardBackground,
+                                decoration: BoxDecoration(
+                                  color:
+                                      Theme.of(
+                                        context,
+                                      ).colorScheme.surfaceContainerLowest,
                                   borderRadius: BorderRadius.only(
                                     topLeft: Radius.circular(24),
                                     topRight: Radius.circular(24),
@@ -335,11 +352,11 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
                       },
                     );
                   },
-                  backgroundColor: AppColors.primaryBlue,
+                  backgroundColor: Theme.of(context).colorScheme.primary,
                   shape: const CircleBorder(),
-                  child: const Icon(
+                  child: Icon(
                     Icons.edit_calendar_outlined,
-                    color: AppColors.white,
+                    color: Theme.of(context).colorScheme.onPrimary,
                   ),
                 ),
               ),

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/data/models/vehicle.dart';
 
 class VehicleSummaryCard extends StatelessWidget {
@@ -18,7 +17,7 @@ class VehicleSummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: AppColors.cardBackground,
+      color: Theme.of(context).colorScheme.surfaceContainerLowest,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       elevation: 4,
       margin: const EdgeInsets.symmetric(vertical: 8),
@@ -66,8 +65,8 @@ class VehicleSummaryCard extends StatelessWidget {
                   children: [
                     Text(
                       vehicle.name,
-                      style: const TextStyle(
-                        color: AppColors.textBlack,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
                       ),
@@ -77,7 +76,9 @@ class VehicleSummaryCard extends StatelessWidget {
                     Text(
                       nextMaintenanceInfo,
                       style: TextStyle(
-                        color: AppColors.textBlack.withValues(alpha: 0.7),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withValues(alpha: 0.7),
                         fontSize: 13,
                       ),
                     ),

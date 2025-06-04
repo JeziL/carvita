@@ -11,7 +11,9 @@ class AppTheme {
 
     final Gradient primaryGradient = LinearGradient(
       colors: [
-        colorScheme.primary,
+        isDark
+            ? AppColors.darken(colorScheme.primary, 0.1)
+            : colorScheme.primary,
         isDark
             ? AppColors.darken(colorScheme.secondary, 0.1)
             : colorScheme.secondary,
@@ -27,7 +29,7 @@ class AppTheme {
       scaffoldBackgroundColor: Colors.transparent,
       appBarTheme: AppBarTheme(
         elevation: 0,
-        backgroundColor: AppColors.statusBarColor,
+        backgroundColor: colorScheme.surfaceContainer,
         iconTheme: IconThemeData(color: colorScheme.onPrimaryContainer),
         titleTextStyle: TextStyle(
           color: colorScheme.onPrimaryContainer,
@@ -55,23 +57,27 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         hintStyle: TextStyle(
-          color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+          color: colorScheme.onPrimary.withValues(alpha: 0.7),
         ),
-        labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+        labelStyle: TextStyle(color: colorScheme.onPrimary),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10.0),
-          borderSide: BorderSide(color: colorScheme.outline),
+          borderSide: BorderSide(
+            color: colorScheme.onPrimary.withValues(alpha: 0.3),
+          ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10.0),
-          borderSide: BorderSide(color: colorScheme.outline),
+          borderSide: BorderSide(
+            color: colorScheme.onPrimary.withValues(alpha: 0.3),
+          ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10.0),
-          borderSide: BorderSide(color: colorScheme.primary, width: 2.0),
+          borderSide: BorderSide(color: colorScheme.onPrimary),
         ),
         filled: true,
-        fillColor: colorScheme.surfaceContainerHighest,
+        fillColor: colorScheme.onPrimary.withValues(alpha: 0.15),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 13,
           vertical: 13,

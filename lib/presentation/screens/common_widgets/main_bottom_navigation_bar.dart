@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/constants/app_routes.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
 
@@ -36,7 +35,9 @@ class MainBottomNavigationBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.bottomNavBackground,
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerLowest.withValues(alpha: 0.95),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.1),
@@ -59,8 +60,8 @@ class MainBottomNavigationBar extends StatelessWidget {
           onTap: (index) => _onItemTapped(context, index),
           type: BottomNavigationBarType.fixed,
           backgroundColor: Colors.transparent,
-          selectedItemColor: AppColors.bottomNavActiveIcon,
-          unselectedItemColor: AppColors.bottomNavInactiveIcon,
+          selectedItemColor: Theme.of(context).colorScheme.primary,
+          unselectedItemColor: Theme.of(context).colorScheme.onSurface,
           selectedFontSize: 10,
           unselectedFontSize: 10,
           elevation: 0,

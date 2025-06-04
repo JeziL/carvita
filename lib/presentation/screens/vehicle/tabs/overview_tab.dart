@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/constants/app_routes.dart';
 import 'package:carvita/data/models/predicted_maintenance.dart';
 import 'package:carvita/data/models/vehicle.dart';
@@ -49,7 +48,7 @@ class OverviewTab extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w500,
-                        color: AppColors.textBlack,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                   ),
@@ -65,7 +64,7 @@ class OverviewTab extends StatelessWidget {
                       AppLocalizations.of(context)!.edit,
                       style: TextStyle(
                         fontSize: 14,
-                        color: AppColors.primaryBlue,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                     ),
                   ),
@@ -110,7 +109,7 @@ class OverviewTab extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 25,
                   fontWeight: FontWeight.w500,
-                  color: AppColors.textBlack,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
               const SizedBox(height: 10),
@@ -123,7 +122,9 @@ class OverviewTab extends StatelessWidget {
                     AppLocalizations.of(context)!.noNextMaintenance,
                     style: TextStyle(
                       fontSize: 15,
-                      color: AppColors.textBlack.withValues(alpha: 0.7),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.7),
                     ),
                   ),
             ],

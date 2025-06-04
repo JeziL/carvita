@@ -41,22 +41,22 @@ class _ServiceHistoryTabState extends State<ServiceHistoryTab> {
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          backgroundColor: AppColors.cardBackground,
+          backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
           title: Text(
             AppLocalizations.of(context)!.confirmDelete,
-            style: TextStyle(color: AppColors.textBlack),
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
           ),
           content: Text(
             AppLocalizations.of(
               context,
             )!.deleteConfirmMLog(logWithItems.entry.serviceDate),
-            style: const TextStyle(color: AppColors.textBlack),
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
           ),
           actions: <Widget>[
             TextButton(
               child: Text(
                 AppLocalizations.of(context)!.cancel,
-                style: TextStyle(color: AppColors.primaryBlue),
+                style: TextStyle(color: Theme.of(context).colorScheme.primary),
               ),
               onPressed: () => Navigator.of(dialogContext).pop(false),
             ),
@@ -98,7 +98,9 @@ class _ServiceHistoryTabState extends State<ServiceHistoryTab> {
             SnackBar(
               content: Text(
                 state.message,
-                style: const TextStyle(color: AppColors.textWhite),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onPrimary,
+                ),
               ),
               backgroundColor: AppColors.urgentReminderText,
             ),
@@ -120,7 +122,7 @@ class _ServiceHistoryTabState extends State<ServiceHistoryTab> {
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w500,
-                        color: AppColors.textBlack,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                   ),
@@ -138,17 +140,19 @@ class _ServiceHistoryTabState extends State<ServiceHistoryTab> {
                         },
                       );
                     },
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.add,
                       size: 18,
-                      color: AppColors.white,
+                      color: Theme.of(context).colorScheme.onPrimary,
                     ),
                     label: Text(
                       AppLocalizations.of(context)!.addMLog,
-                      style: TextStyle(color: AppColors.white),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onPrimary,
+                      ),
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryBlue,
+                      backgroundColor: Theme.of(context).colorScheme.primary,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,
                         vertical: 8,
@@ -175,7 +179,7 @@ class _ServiceHistoryTabState extends State<ServiceHistoryTab> {
                         )!.emptyMLog(AppLocalizations.of(context)!.addMLog),
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color: AppColors.textBlack,
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 15,
                         ),
                       ),
@@ -192,14 +196,17 @@ class _ServiceHistoryTabState extends State<ServiceHistoryTab> {
                       final entry = logWithItems.entry;
 
                       return Card(
-                        color: AppColors.cardBackground,
+                        color:
+                            Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerLowest,
                         elevation: 1,
                         margin: const EdgeInsets.only(bottom: 12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                           side: BorderSide(
-                            color: Colors.grey[200]!,
-                            width: 0.5,
+                            color: Theme.of(context).colorScheme.outline,
+                            width: 0.2,
                           ),
                         ),
                         child: Padding(
@@ -218,10 +225,13 @@ class _ServiceHistoryTabState extends State<ServiceHistoryTab> {
                                   children: [
                                     Text(
                                       "${DateFormat.yMMMd(Localizations.localeOf(context).toLanguageTag()).format(entry.serviceDate)} @ ${AppLocalizations.of(context)!.nMileage(entry.mileageAtService.round(), localeProvider.mileageUnit)}",
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w500,
-                                        color: AppColors.textBlack,
+                                        color:
+                                            Theme.of(
+                                              context,
+                                            ).colorScheme.onSurface,
                                       ),
                                     ),
                                     const SizedBox(height: 8),
@@ -236,7 +246,9 @@ class _ServiceHistoryTabState extends State<ServiceHistoryTab> {
                                             "${AppLocalizations.of(context)!.serviceItemLabel}: ${logWithItems.performedItemDisplayNames.join(AppLocalizations.of(context)!.seperator)}",
                                             style: TextStyle(
                                               fontSize: 13,
-                                              color: AppColors.textBlack
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurface
                                                   .withValues(alpha: 0.7),
                                             ),
                                           ),
@@ -250,9 +262,10 @@ class _ServiceHistoryTabState extends State<ServiceHistoryTab> {
                                         )!.costWithSign(entry.cost!),
                                         style: TextStyle(
                                           fontSize: 13,
-                                          color: AppColors.textBlack.withValues(
-                                            alpha: 0.8,
-                                          ),
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurface
+                                              .withValues(alpha: 0.8),
                                         ),
                                       ),
                                     if (entry.notes != null &&
@@ -264,9 +277,10 @@ class _ServiceHistoryTabState extends State<ServiceHistoryTab> {
                                         "${AppLocalizations.of(context)!.notes}: ${entry.notes}",
                                         style: TextStyle(
                                           fontSize: 13,
-                                          color: AppColors.textBlack.withValues(
-                                            alpha: 0.7,
-                                          ),
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurface
+                                              .withValues(alpha: 0.7),
                                         ),
                                       ),
                                   ],
@@ -275,9 +289,8 @@ class _ServiceHistoryTabState extends State<ServiceHistoryTab> {
                               PopupMenuButton<String>(
                                 icon: Icon(
                                   Icons.more_vert,
-                                  color: AppColors.textBlack.withValues(
-                                    alpha: 0.6,
-                                  ),
+                                  color: Theme.of(context).colorScheme.onSurface
+                                      .withValues(alpha: 0.6),
                                 ),
                                 onSelected: (String value) {
                                   if (value == 'edit') {
@@ -307,7 +320,10 @@ class _ServiceHistoryTabState extends State<ServiceHistoryTab> {
                                           children: [
                                             Icon(
                                               Icons.edit_outlined,
-                                              color: AppColors.primaryBlue,
+                                              color:
+                                                  Theme.of(
+                                                    context,
+                                                  ).colorScheme.primary,
                                               size: 20,
                                             ),
                                             SizedBox(width: 8),
@@ -316,7 +332,10 @@ class _ServiceHistoryTabState extends State<ServiceHistoryTab> {
                                                 context,
                                               )!.edit,
                                               style: TextStyle(
-                                                color: AppColors.textBlack,
+                                                color:
+                                                    Theme.of(
+                                                      context,
+                                                    ).colorScheme.onSurface,
                                               ),
                                             ),
                                           ],
@@ -338,7 +357,10 @@ class _ServiceHistoryTabState extends State<ServiceHistoryTab> {
                                                 context,
                                               )!.delete,
                                               style: TextStyle(
-                                                color: AppColors.textBlack,
+                                                color:
+                                                    Theme.of(
+                                                      context,
+                                                    ).colorScheme.onSurface,
                                               ),
                                             ),
                                           ],

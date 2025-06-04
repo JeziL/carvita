@@ -119,10 +119,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
         return StatefulBuilder(
           builder: (stfContext, stfSetState) {
             return AlertDialog(
-              backgroundColor: AppColors.cardBackground,
+              backgroundColor:
+                  Theme.of(context).colorScheme.surfaceContainerLowest,
               title: Text(
                 AppLocalizations.of(context)!.chooseDefaultVehicle,
-                style: TextStyle(color: AppColors.textBlack, fontSize: 20),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontSize: 20,
+                ),
               ),
               contentPadding: const EdgeInsets.only(top: 10.0, bottom: 0),
               content: SizedBox(
@@ -136,7 +140,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                           child: Text(
                             AppLocalizations.of(context)!.noVehicles,
-                            style: TextStyle(color: AppColors.textBlack),
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
                           ),
                         )
                         : ListView.builder(
@@ -147,13 +153,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             return RadioListTile<int?>(
                               title: Text(
                                 vehicle.name,
-                                style: const TextStyle(
-                                  color: AppColors.textBlack,
+                                style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
                                 ),
                               ),
                               value: vehicle.id,
                               groupValue: newSelectedId,
-                              activeColor: AppColors.primaryBlue,
+                              activeColor:
+                                  Theme.of(context).colorScheme.primary,
                               onChanged: (int? value) {
                                 stfSetState(() {
                                   newSelectedId = value;
@@ -182,7 +190,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 TextButton(
                   child: Text(
                     AppLocalizations.of(context)!.cancel,
-                    style: TextStyle(color: AppColors.primaryBlue),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                   ),
                   onPressed: () {
                     Navigator.of(dialogContext).pop(_currentDefaultVehicleId);
@@ -218,11 +228,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
           context: context,
           builder: (BuildContext dialogContext) {
             return SimpleDialog(
-              backgroundColor: AppColors.cardBackground,
+              backgroundColor:
+                  Theme.of(context).colorScheme.surfaceContainerLowest,
               title: Text(
                 AppLocalizations.of(context)!.chooseThreshold,
                 style: TextStyle(
-                  color: AppColors.textBlack,
+                  color: Theme.of(context).colorScheme.onSurface,
                   fontSize: 20,
                   fontWeight: FontWeight.w500,
                 ),
@@ -235,8 +246,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 12.0),
                         child: Text(
                           threshold.displayString(context),
-                          style: const TextStyle(
-                            color: AppColors.textBlack,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontSize: 16,
                           ),
                         ),
@@ -261,11 +272,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder: (BuildContext dialogContext) {
         return SimpleDialog(
-          backgroundColor: AppColors.cardBackground,
+          backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
           title: Text(
             AppLocalizations.of(context)!.chooseDisplayItemCount,
             style: TextStyle(
-              color: AppColors.textBlack,
+              color: Theme.of(context).colorScheme.onSurface,
               fontSize: 20,
               fontWeight: FontWeight.w500,
             ),
@@ -278,8 +289,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 12.0),
                     child: Text(
                       AppLocalizations.of(context)!.itemCount(count),
-                      style: const TextStyle(
-                        color: AppColors.textBlack,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
                         fontSize: 16,
                       ),
                     ),
@@ -382,20 +393,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
       barrierDismissible: false,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          backgroundColor: AppColors.cardBackground,
+          backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
           title: Text(
             AppLocalizations.of(context)!.restoreWarningTitle,
-            style: TextStyle(color: AppColors.textBlack, fontSize: 20),
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface,
+              fontSize: 20,
+            ),
           ),
           content: Text(
             AppLocalizations.of(context)!.restoreWarningBody,
-            style: TextStyle(color: AppColors.textBlack),
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
           ),
           actions: <Widget>[
             TextButton(
               child: Text(
                 AppLocalizations.of(context)!.cancel,
-                style: TextStyle(color: AppColors.primaryBlue),
+                style: TextStyle(color: Theme.of(context).colorScheme.primary),
               ),
               onPressed: () => Navigator.of(dialogContext).pop(false),
             ),
@@ -448,21 +462,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
             barrierDismissible: false,
             builder: (BuildContext dialogContext) {
               return AlertDialog(
-                backgroundColor: AppColors.cardBackground,
+                backgroundColor:
+                    Theme.of(context).colorScheme.surfaceContainerLowest,
                 title: Text(
                   AppLocalizations.of(context)!.restoreSuccessTitle,
-                  style: TextStyle(color: AppColors.textBlack),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
                 ),
                 content: Text(
                   AppLocalizations.of(context)!.restoreSuccessBody,
-                  style: TextStyle(color: AppColors.textBlack),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
                 ),
                 actions: <Widget>[
                   TextButton(
                     child: Text(
                       AppLocalizations.of(context)!.exitButton,
                       style: TextStyle(
-                        color: AppColors.primaryBlue,
+                        color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -520,11 +539,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder: (BuildContext dialogContext) {
         return SimpleDialog(
-          backgroundColor: AppColors.cardBackground,
+          backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
           title: Text(
             AppLocalizations.of(context)!.chooseLeadTime,
             style: TextStyle(
-              color: AppColors.textBlack,
+              color: Theme.of(context).colorScheme.onSurface,
               fontSize: 20,
               fontWeight: FontWeight.w500,
             ),
@@ -537,8 +556,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 12.0),
                     child: Text(
                       AppLocalizations.of(context)!.notificationLeadTime(days),
-                      style: const TextStyle(
-                        color: AppColors.textBlack,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
                         fontSize: 16,
                       ),
                     ),
@@ -577,11 +596,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder: (BuildContext dialogContext) {
         return SimpleDialog(
-          backgroundColor: AppColors.cardBackground,
+          backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
           title: Text(
             AppLocalizations.of(context)!.chooseMileageUnit,
             style: TextStyle(
-              color: AppColors.textBlack,
+              color: Theme.of(context).colorScheme.onSurface,
               fontSize: 20,
               fontWeight: FontWeight.w500,
             ),
@@ -597,8 +616,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       style: TextStyle(
                         color:
                             (currentSelection == unit)
-                                ? AppColors.primaryBlue
-                                : AppColors.textBlack,
+                                ? Theme.of(context).colorScheme.primary
+                                : Theme.of(context).colorScheme.onSurface,
                         fontSize: 16,
                         fontWeight:
                             (currentSelection == unit)
@@ -624,7 +643,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required List<Widget> children,
   }) {
     return Card(
-      color: AppColors.cardBackground,
+      color: Theme.of(context).colorScheme.surfaceContainerLowest,
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 9),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       elevation: 2,
@@ -645,7 +664,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: AppColors.textBlack.withValues(alpha: 0.6),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.6),
                 ),
               ),
             ),
@@ -666,10 +687,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return ListTile(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       contentPadding: EdgeInsets.zero,
-      leading: Icon(icon, color: AppColors.primaryBlue, size: 22),
+      leading: Icon(
+        icon,
+        color: Theme.of(context).colorScheme.primary,
+        size: 22,
+      ),
       title: Text(
         label,
-        style: const TextStyle(fontSize: 16, color: AppColors.textBlack),
+        style: TextStyle(
+          fontSize: 16,
+          color: Theme.of(context).colorScheme.onSurface,
+        ),
       ),
       subtitle:
           value != null
@@ -677,7 +705,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 value,
                 style: TextStyle(
                   fontSize: 14,
-                  color: AppColors.textBlack.withValues(alpha: 0.7),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.7),
                 ),
               )
               : null,
@@ -686,7 +716,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           (onTap != null
               ? Icon(
                 Icons.chevron_right,
-                color: AppColors.textBlack.withValues(alpha: 0.5),
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.5),
               )
               : null),
       onTap: onTap,
@@ -711,11 +743,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder: (BuildContext dialogContext) {
         return SimpleDialog(
-          backgroundColor: AppColors.cardBackground,
+          backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
           title: Text(
             AppLocalizations.of(context)!.chooseLanguage,
             style: TextStyle(
-              color: AppColors.textBlack,
+              color: Theme.of(context).colorScheme.onSurface,
               fontSize: 20,
               fontWeight: FontWeight.w500,
             ),
@@ -736,8 +768,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                         langLocale?.toLanguageTag()) ||
                                     (currentSelection == null &&
                                         langLocale == null)
-                                ? AppColors.primaryBlue
-                                : AppColors.textBlack,
+                                ? Theme.of(context).colorScheme.primary
+                                : Theme.of(context).colorScheme.onSurface,
                         fontSize: 16,
                         fontWeight:
                             (currentSelection?.toLanguageTag() ==
@@ -775,7 +807,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _showColorPicker(BuildContext context, ThemeProvider themeProvider) {
-    Color pickerColor = themeProvider.customSeedColor ?? AppColors.primaryBlue;
+    Color pickerColor =
+        themeProvider.customSeedColor ?? Theme.of(context).colorScheme.primary;
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -880,11 +913,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
           title: Text(
             AppLocalizations.of(context)!.navSettings,
             style: TextStyle(
-              color: AppColors.textWhite,
+              color: Theme.of(context).colorScheme.onPrimary,
               fontWeight: FontWeight.w500,
             ),
           ),
-          backgroundColor: AppColors.statusBarColor,
+          backgroundColor: Theme.of(
+            context,
+          ).colorScheme.inverseSurface.withValues(alpha: 0.1),
           elevation: 0,
         ),
         body: ListView(
@@ -930,7 +965,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         _triggerNotificationReschedule();
                       }
                     },
-                    activeColor: AppColors.primaryBlue,
+                    activeColor: Theme.of(context).colorScheme.primary,
                   ),
                 ),
                 _buildSettingItem(
@@ -968,7 +1003,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             content: Text(
                               AppLocalizations.of(context)!.noVehicles,
                             ),
-                            backgroundColor: AppColors.primaryBlue,
+                            backgroundColor:
+                                Theme.of(context).colorScheme.primary,
                           ),
                         );
                       }
@@ -976,7 +1012,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(AppLocalizations.of(context)!.loading),
-                          backgroundColor: AppColors.primaryBlue,
+                          backgroundColor:
+                              Theme.of(context).colorScheme.primary,
                         ),
                       );
                       context.read<VehicleCubit>().fetchVehicles();
@@ -1035,7 +1072,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       decoration: BoxDecoration(
                         color:
                             themeProvider.customSeedColor ??
-                            AppColors.primaryBlue,
+                            Theme.of(context).colorScheme.primary,
                         shape: BoxShape.circle,
                         border: Border.all(
                           color: Theme.of(context).colorScheme.outline,
@@ -1055,17 +1092,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   onTap: _isImporting ? null : _importDatabase,
                   trailing:
                       _isImporting
-                          ? const SizedBox(
+                          ? SizedBox(
                             width: 20,
                             height: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              color: AppColors.primaryBlue,
+                              color: Theme.of(context).colorScheme.primary,
                             ),
                           )
                           : Icon(
                             Icons.chevron_right,
-                            color: AppColors.textBlack.withValues(alpha: 0.5),
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withValues(alpha: 0.5),
                           ),
                 ),
                 _buildSettingItem(
@@ -1074,17 +1113,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   onTap: _isExporting ? null : _exportDatabase,
                   trailing:
                       _isExporting
-                          ? const SizedBox(
+                          ? SizedBox(
                             width: 20,
                             height: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              color: AppColors.primaryBlue,
+                              color: Theme.of(context).colorScheme.primary,
                             ),
                           )
                           : Icon(
                             Icons.chevron_right,
-                            color: AppColors.textBlack.withValues(alpha: 0.5),
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withValues(alpha: 0.5),
                           ),
                 ),
               ],

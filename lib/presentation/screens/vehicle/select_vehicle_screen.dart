@@ -62,18 +62,24 @@ class SelectVehicleScreen extends StatelessWidget {
         appBar: AppBar(
           title: Text(
             AppLocalizations.of(context)!.chooseVehicle,
-            style: TextStyle(color: AppColors.textWhite),
+            style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
           ),
-          backgroundColor: AppColors.statusBarColor,
+          backgroundColor: Theme.of(
+            context,
+          ).colorScheme.inverseSurface.withValues(alpha: 0.1),
           elevation: 0,
-          iconTheme: const IconThemeData(color: AppColors.textWhite),
+          iconTheme: IconThemeData(
+            color: Theme.of(context).colorScheme.onPrimary,
+          ),
         ),
         body: ListView.builder(
           itemCount: vehicles.length,
           itemBuilder: (context, index) {
             final vehicle = vehicles[index];
             return Card(
-              color: AppColors.white.withValues(alpha: 0.9),
+              color: Theme.of(
+                context,
+              ).colorScheme.onPrimary.withValues(alpha: 0.9),
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -105,15 +111,17 @@ class SelectVehicleScreen extends StatelessWidget {
                         ),
                 title: Text(
                   vehicle.name,
-                  style: const TextStyle(
-                    color: AppColors.textBlack,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
                 subtitle: Text(
                   vehicle.model ?? AppLocalizations.of(context)!.unknownModel,
                   style: TextStyle(
-                    color: AppColors.textBlack.withValues(alpha: 0.7),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
                 ),
                 onTap: () {

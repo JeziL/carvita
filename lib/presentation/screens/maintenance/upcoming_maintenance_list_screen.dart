@@ -121,16 +121,16 @@ class _UpcomingMaintenanceListScreenState
   Widget build(BuildContext context) {
     final localeProvider = context.watch<LocaleProvider>();
     return Scaffold(
-      backgroundColor: AppColors.white,
+      backgroundColor: Theme.of(context).colorScheme.onPrimary,
       appBar: AppBar(
         title: Text(
           AppLocalizations.of(context)!.upcomingMaintenance,
-          style: TextStyle(color: AppColors.textBlack),
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
         ),
-        backgroundColor: AppColors.white,
+        backgroundColor: Theme.of(context).colorScheme.onPrimary,
         elevation: 1.0,
-        iconTheme: const IconThemeData(
-          color: AppColors.textBlack,
+        iconTheme: IconThemeData(
+          color: Theme.of(context).colorScheme.onSurface,
         ), // Back button color
         automaticallyImplyLeading: false,
         actions: [
@@ -142,7 +142,9 @@ class _UpcomingMaintenanceListScreenState
               return PopupMenuButton<Vehicle?>(
                 icon: Icon(
                   Icons.filter_list,
-                  color: AppColors.textBlack.withValues(alpha: 0.7),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.7),
                 ),
                 tooltip: AppLocalizations.of(context)!.filterByVehicle,
                 onSelected: (Vehicle? vehicle) {
@@ -179,9 +181,11 @@ class _UpcomingMaintenanceListScreenState
         ],
         bottom: TabBar(
           controller: _tabController,
-          labelColor: AppColors.primaryBlue,
-          unselectedLabelColor: AppColors.textBlack.withValues(alpha: 0.7),
-          indicatorColor: AppColors.primaryBlue,
+          labelColor: Theme.of(context).colorScheme.primary,
+          unselectedLabelColor: Theme.of(
+            context,
+          ).colorScheme.onSurface.withValues(alpha: 0.7),
+          indicatorColor: Theme.of(context).colorScheme.primary,
           indicatorWeight: 2.5,
           labelStyle: const TextStyle(
             fontSize: 14,
@@ -239,7 +243,9 @@ class _UpcomingMaintenanceListScreenState
                           context,
                         )!.maintenanceListEmptyAfterFilter,
                     style: TextStyle(
-                      color: AppColors.textBlack.withValues(alpha: 0.7),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.7),
                       fontSize: 15,
                     ),
                     textAlign: TextAlign.center,
@@ -282,9 +288,9 @@ class _UpcomingMaintenanceListScreenState
                     ),
                     title: Text(
                       itemName,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.w500,
-                        color: AppColors.textBlack,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     subtitle: Column(
@@ -293,7 +299,9 @@ class _UpcomingMaintenanceListScreenState
                         Text(
                           vehicleName,
                           style: TextStyle(
-                            color: AppColors.textBlack.withValues(alpha: 0.8),
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withValues(alpha: 0.8),
                           ),
                         ),
                         Text(
@@ -303,13 +311,15 @@ class _UpcomingMaintenanceListScreenState
                             color:
                                 daysRemaining <= 30
                                     ? AppColors.urgentReminderText
-                                    : AppColors.primaryBlue,
+                                    : Theme.of(context).colorScheme.primary,
                           ),
                         ),
                         Text(
                           "${AppLocalizations.of(context)!.estimated}: $dueDate ${prediction.predictedAtMileage != null ? '/ ${prediction.predictedAtMileage!.toStringAsFixed(0)} ${localeProvider.mileageUnit}' : ''}",
                           style: TextStyle(
-                            color: AppColors.textBlack.withValues(alpha: 0.8),
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withValues(alpha: 0.8),
                           ),
                         ),
                       ],
@@ -329,7 +339,7 @@ class _UpcomingMaintenanceListScreenState
           return Center(
             child: Text(
               AppLocalizations.of(context)!.loading,
-              style: TextStyle(color: AppColors.textBlack),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
             ),
           );
         },

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'package:carvita/core/constants/app_colors.dart';
-
 class QuickActionButton extends StatelessWidget {
   final String label;
   final IconData icon;
@@ -20,7 +18,9 @@ class QuickActionButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.quickActionBackground,
+          backgroundColor: Theme.of(
+            context,
+          ).colorScheme.surfaceContainerLowest.withValues(alpha: 0.2),
           padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 8),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -28,18 +28,24 @@ class QuickActionButton extends StatelessWidget {
           elevation: 0,
         ).copyWith(
           overlayColor: WidgetStatePropertyAll(
-            AppColors.white.withValues(alpha: 0.1),
+            Theme.of(
+              context,
+            ).colorScheme.surfaceContainerLowest.withValues(alpha: 0.1),
           ),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: AppColors.textWhite, size: 28),
+            Icon(
+              icon,
+              color: Theme.of(context).colorScheme.onPrimary,
+              size: 28,
+            ),
             const SizedBox(height: 5),
             Text(
               label,
-              style: const TextStyle(
-                color: AppColors.textWhite,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onPrimary,
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),

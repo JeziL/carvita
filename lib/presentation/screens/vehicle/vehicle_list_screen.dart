@@ -32,20 +32,23 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          backgroundColor: AppColors.cardBackground,
+          backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
           title: Text(
             AppLocalizations.of(context)!.confirmDelete,
-            style: TextStyle(color: AppColors.textBlack, fontSize: 24),
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface,
+              fontSize: 24,
+            ),
           ),
           content: Text(
             AppLocalizations.of(context)!.deleteConfirmVeh(vehicle.name),
-            style: const TextStyle(color: AppColors.textBlack),
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
           ),
           actions: <Widget>[
             TextButton(
               child: Text(
                 AppLocalizations.of(context)!.cancel,
-                style: TextStyle(color: AppColors.primaryBlue),
+                style: TextStyle(color: Theme.of(context).colorScheme.primary),
               ),
               onPressed: () {
                 Navigator.of(dialogContext).pop(false);
@@ -81,16 +84,16 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.onPrimary,
       appBar: AppBar(
         title: Text(
           AppLocalizations.of(context)!.myVehicles,
           style: TextStyle(
-            color: AppColors.textBlack,
+            color: Theme.of(context).colorScheme.onSurface,
             fontWeight: FontWeight.w500,
           ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.onPrimary,
         elevation: 1,
         shadowColor: Colors.black.withValues(alpha: 0.7),
       ),
@@ -101,7 +104,9 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
               SnackBar(
                 content: Text(
                   state.message,
-                  style: const TextStyle(color: AppColors.textWhite),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onPrimary,
+                  ),
                 ),
                 backgroundColor: AppColors.urgentReminderText,
               ),
@@ -110,8 +115,10 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
         },
         builder: (context, state) {
           if (state is VehicleLoading) {
-            return const Center(
-              child: CircularProgressIndicator(color: AppColors.white),
+            return Center(
+              child: CircularProgressIndicator(
+                color: Theme.of(context).colorScheme.onPrimary,
+              ),
             );
           } else if (state is VehicleLoaded) {
             if (state.vehicles.isEmpty) {
@@ -122,7 +129,7 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
                     Icon(
                       Icons.no_transfer_rounded,
                       size: 60,
-                      color: AppColors.textBlack,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                     SizedBox(height: 16),
                     Text(
@@ -130,7 +137,7 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 16,
-                        color: AppColors.textBlack,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                   ],
@@ -143,7 +150,7 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
               itemBuilder: (context, index) {
                 final vehicle = state.vehicles[index];
                 return Card(
-                  color: AppColors.cardBackground,
+                  color: Theme.of(context).colorScheme.surfaceContainerLowest,
                   margin: const EdgeInsets.only(bottom: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -191,9 +198,9 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
                             ),
                     title: Text(
                       vehicle.name,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.w500,
-                        color: AppColors.textBlack,
+                        color: Theme.of(context).colorScheme.onSurface,
                         fontSize: 17,
                       ),
                     ),
@@ -204,18 +211,18 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
                             ? Text(
                               "${AppLocalizations.of(context)!.vehicleModel}: ${vehicle.model!}",
                               style: TextStyle(
-                                color: AppColors.textBlack.withValues(
-                                  alpha: 0.7,
-                                ),
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withValues(alpha: 0.7),
                                 fontSize: 13,
                               ),
                             )
                             : Text(
                               AppLocalizations.of(context)!.unknownModel,
                               style: TextStyle(
-                                color: AppColors.textBlack.withValues(
-                                  alpha: 0.7,
-                                ),
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withValues(alpha: 0.7),
                                 fontSize: 13,
                               ),
                             ),
@@ -225,9 +232,9 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          icon: const Icon(
+                          icon: Icon(
                             Icons.edit_outlined,
-                            color: AppColors.primaryBlue,
+                            color: Theme.of(context).colorScheme.primary,
                           ),
                           onPressed: () {
                             Navigator.pushNamed(
@@ -268,7 +275,7 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
           return Center(
             child: Text(
               AppLocalizations.of(context)!.loading,
-              style: TextStyle(color: AppColors.textWhite),
+              style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
             ),
           );
         },
@@ -277,9 +284,9 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
         onPressed: () {
           Navigator.pushNamed(context, AppRoutes.addVehicleRoute);
         },
-        backgroundColor: AppColors.primaryBlue,
+        backgroundColor: Theme.of(context).colorScheme.primary,
         shape: const CircleBorder(),
-        child: const Icon(Icons.add, color: AppColors.white),
+        child: Icon(Icons.add, color: Theme.of(context).colorScheme.onPrimary),
       ),
       bottomNavigationBar: const MainBottomNavigationBar(
         currentIndex: 1,

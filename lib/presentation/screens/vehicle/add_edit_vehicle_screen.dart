@@ -92,19 +92,21 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
   void _showImagePickerOptions() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.cardBackground,
+      backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
       builder: (BuildContext bc) {
         return SafeArea(
           child: Wrap(
             children: <Widget>[
               ListTile(
-                leading: const Icon(
+                leading: Icon(
                   Icons.photo_library,
-                  color: AppColors.primaryBlue,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
                 title: Text(
                   AppLocalizations.of(context)!.chooseFromGallery,
-                  style: TextStyle(color: AppColors.textBlack),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
                 ),
                 onTap: () {
                   _pickImage(ImageSource.gallery);
@@ -112,13 +114,15 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
                 },
               ),
               ListTile(
-                leading: const Icon(
+                leading: Icon(
                   Icons.photo_camera,
-                  color: AppColors.primaryBlue,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
                 title: Text(
                   AppLocalizations.of(context)!.takePhoto,
-                  style: TextStyle(color: AppColors.textBlack),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
                 ),
                 onTap: () {
                   _pickImage(ImageSource.camera);
@@ -157,23 +161,7 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
       lastDate: DateTime.now().add(
         const Duration(days: 1),
       ), // Cannot be in future
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.light().copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: AppColors.primaryBlue,
-              onPrimary: AppColors.white,
-              onSurface: AppColors.textBlack,
-            ),
-            textButtonTheme: TextButtonThemeData(
-              style: TextButton.styleFrom(
-                foregroundColor: AppColors.primaryBlue,
-              ),
-            ),
-          ),
-          child: child!,
-        );
-      },
+      builder: (_, child) => child!,
     );
     if (picked != null && picked != _selectedBoughtDate) {
       setState(() {
@@ -196,7 +184,7 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
               AppLocalizations.of(
                 context,
               )!.invalidEmptyEntry(AppLocalizations.of(context)!.boughtDate),
-              style: TextStyle(color: AppColors.textWhite),
+              style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
             ),
             backgroundColor: AppColors.urgentReminderText,
           ),
@@ -257,7 +245,6 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final inputDecorationTheme = Theme.of(context).inputDecorationTheme;
     final localeProvider = context.watch<LocaleProvider>();
     final themeExtensions = Theme.of(context).extension<AppThemeExtensions>()!;
 
@@ -273,19 +260,8 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
         padding: const EdgeInsets.only(bottom: 18.0),
         child: TextFormField(
           controller: controller,
-          style: const TextStyle(color: AppColors.textWhite),
-          decoration: InputDecoration(
-            labelText: label,
-            hintText: hint,
-            labelStyle: inputDecorationTheme.labelStyle,
-            hintStyle: inputDecorationTheme.hintStyle,
-            border: inputDecorationTheme.border,
-            enabledBorder: inputDecorationTheme.enabledBorder,
-            focusedBorder: inputDecorationTheme.focusedBorder,
-            filled: inputDecorationTheme.filled,
-            fillColor: inputDecorationTheme.fillColor,
-            contentPadding: inputDecorationTheme.contentPadding,
-          ),
+          style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
+          decoration: InputDecoration(labelText: label, hintText: hint),
           keyboardType: keyboardType,
           validator: (value) {
             if (isRequired && (value == null || value.trim().isEmpty)) {
@@ -306,17 +282,19 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
             AppLocalizations.of(
               context,
             )!.addEditVehicle(_isEditing ? 'edit' : 'add'),
-            style: const TextStyle(
-              color: AppColors.textWhite,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onPrimary,
               fontWeight: FontWeight.w500,
             ),
           ),
-          backgroundColor: AppColors.statusBarColor,
+          backgroundColor: Theme.of(
+            context,
+          ).colorScheme.inverseSurface.withValues(alpha: 0.1),
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(
+            icon: Icon(
               Icons.arrow_back_ios_new,
-              color: AppColors.textWhite,
+              color: Theme.of(context).colorScheme.onPrimary,
             ),
             onPressed: () => Navigator.of(context).pop(),
           ),
@@ -334,10 +312,14 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
                     height: 150,
                     margin: const EdgeInsets.only(bottom: 20),
                     decoration: BoxDecoration(
-                      color: AppColors.textWhite.withValues(alpha: 0.15),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onPrimary.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                        color: AppColors.textWhite.withValues(alpha: 0.3),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onPrimary.withValues(alpha: 0.3),
                       ),
                     ),
                     child:
@@ -357,12 +339,16 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
                                 Icon(
                                   Icons.add_a_photo_outlined,
                                   size: 36,
-                                  color: AppColors.textWhite,
+                                  color:
+                                      Theme.of(context).colorScheme.onPrimary,
                                 ),
                                 SizedBox(height: 8),
                                 Text(
                                   "${AppLocalizations.of(context)!.uploadVehicleImage} (${AppLocalizations.of(context)!.optionalEntry})",
-                                  style: TextStyle(color: AppColors.textWhite),
+                                  style: TextStyle(
+                                    color:
+                                        Theme.of(context).colorScheme.onPrimary,
+                                  ),
                                 ),
                               ],
                             ),
@@ -399,12 +385,14 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
                   padding: const EdgeInsets.only(bottom: 18.0),
                   child: TextFormField(
                     controller: _boughtDateController,
-                    style: const TextStyle(color: AppColors.textWhite),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onPrimary,
+                    ),
                     decoration: InputDecoration(
                       labelText: '${AppLocalizations.of(context)!.boughtDate}*',
                       suffixIcon: Icon(
                         Icons.calendar_today,
-                        color: AppColors.textWhite,
+                        color: Theme.of(context).colorScheme.onPrimary,
                       ),
                     ),
                     readOnly: true,
@@ -444,7 +432,7 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
                 ElevatedButton(
                   onPressed: _submitForm,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.white,
+                    backgroundColor: Theme.of(context).colorScheme.onPrimary,
                     padding: const EdgeInsets.symmetric(vertical: 15),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(25),
@@ -458,7 +446,9 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
                     AppLocalizations.of(
                       context,
                     )!.addEditButtonText(_isEditing ? 'edit' : 'add'),
-                    style: const TextStyle(color: AppColors.primaryBlue),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                   ),
                 ),
               ],

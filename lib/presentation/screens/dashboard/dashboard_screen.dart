@@ -199,7 +199,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         child: Center(
           child: Text(
             AppLocalizations.of(context)!.noUpcomingMaintenance,
-            style: TextStyle(color: AppColors.textWhite),
+            style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
           ),
         ),
       );
@@ -216,7 +216,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     final urgentItems = filteredPredictions.take(currentItemCount).toList();
 
     return Card(
-      color: AppColors.cardBackground,
+      color: Theme.of(context).colorScheme.surfaceContainerLowest,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       elevation: 4,
       margin: const EdgeInsets.symmetric(vertical: 10),
@@ -238,8 +238,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                     AppLocalizations.of(
                       context,
                     )!.itemsDueSoon(filteredPredictions.length),
-                    style: const TextStyle(
-                      color: AppColors.textBlack,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
                       fontSize: 18,
                       fontWeight: FontWeight.w500,
                     ),
@@ -271,8 +271,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                         children: [
                           Text(
                             itemName,
-                            style: const TextStyle(
-                              color: AppColors.textBlack,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
                             ),
@@ -280,7 +280,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                           Text(
                             vehicleName,
                             style: TextStyle(
-                              color: AppColors.textBlack.withValues(alpha: 0.7),
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurface.withValues(alpha: 0.7),
                               fontSize: 12,
                             ),
                           ),
@@ -293,7 +295,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                         color:
                             daysRemaining <= 30
                                 ? AppColors.urgentReminderText
-                                : AppColors.primaryBlue,
+                                : Theme.of(context).colorScheme.primary,
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                       ),
@@ -313,7 +315,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                       ),
                   child: Text(
                     "${AppLocalizations.of(context)!.viewAll} >>",
-                    style: TextStyle(color: AppColors.primaryBlue),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                   ),
                 ),
               ),
@@ -373,12 +377,14 @@ class _DashboardScreenState extends State<DashboardScreen>
           title: Text(
             AppLocalizations.of(context)!.dashboardTitle,
             style: TextStyle(
-              color: AppColors.textWhite,
+              color: Theme.of(context).colorScheme.onPrimary,
               fontWeight: FontWeight.w500,
               fontSize: 28,
             ),
           ),
-          backgroundColor: AppColors.statusBarColor,
+          backgroundColor: Theme.of(
+            context,
+          ).colorScheme.inverseSurface.withValues(alpha: 0.1),
           elevation: 0,
           systemOverlayStyle: const SystemUiOverlayStyle(
             statusBarIconBrightness: Brightness.light,
@@ -426,17 +432,17 @@ class _DashboardScreenState extends State<DashboardScreen>
                   Text(
                     AppLocalizations.of(context)!.urgentReminders,
                     style: TextStyle(
-                      color: AppColors.textWhite,
+                      color: Theme.of(context).colorScheme.onPrimary,
                       fontSize: 18,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                   if (upcomingState is UpcomingMaintenanceLoading)
-                    const Center(
+                    Center(
                       child: Padding(
                         padding: EdgeInsets.all(8.0),
                         child: CircularProgressIndicator(
-                          color: AppColors.white,
+                          color: Theme.of(context).colorScheme.onPrimary,
                           strokeWidth: 2,
                         ),
                       ),
@@ -456,7 +462,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                   Text(
                     AppLocalizations.of(context)!.myVehicles,
                     style: TextStyle(
-                      color: AppColors.textWhite,
+                      color: Theme.of(context).colorScheme.onPrimary,
                       fontSize: 18,
                       fontWeight: FontWeight.w500,
                     ),
@@ -464,9 +470,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                   BlocBuilder<VehicleCubit, VehicleState>(
                     builder: (context, state) {
                       if (state is VehicleLoading) {
-                        return const Center(
+                        return Center(
                           child: CircularProgressIndicator(
-                            color: AppColors.white,
+                            color: Theme.of(context).colorScheme.onPrimary,
                           ),
                         );
                       } else if (state is VehicleLoaded) {
@@ -476,7 +482,10 @@ class _DashboardScreenState extends State<DashboardScreen>
                             child: Center(
                               child: Text(
                                 AppLocalizations.of(context)!.noVehicles,
-                                style: TextStyle(color: AppColors.textWhite),
+                                style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.onPrimary,
+                                ),
                               ),
                             ),
                           );
@@ -509,7 +518,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                         child: Center(
                           child: Text(
                             AppLocalizations.of(context)!.noVehicles,
-                            style: TextStyle(color: AppColors.textWhite),
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onPrimary,
+                            ),
                           ),
                         ),
                       );
