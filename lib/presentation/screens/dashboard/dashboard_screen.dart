@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/constants/app_routes.dart';
 import 'package:carvita/core/services/preferences_service.dart';
+import 'package:carvita/core/theme/app_theme.dart';
 import 'package:carvita/core/widgets/gradient_background.dart';
 import 'package:carvita/data/models/predicted_maintenance.dart';
 import 'package:carvita/data/models/vehicle.dart';
@@ -361,8 +362,10 @@ class _DashboardScreenState extends State<DashboardScreen>
         statusBarBrightness: Brightness.dark,
       ),
     );
+    final themeExtensions = Theme.of(context).extension<AppThemeExtensions>()!;
 
     return GradientBackground(
+      gradient: themeExtensions.primaryGradient,
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(

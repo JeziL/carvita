@@ -5,6 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl_standalone.dart';
 import 'package:provider/provider.dart';
 
+import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/constants/app_routes.dart';
 import 'package:carvita/core/services/notification_service.dart';
 import 'package:carvita/core/services/prediction_service.dart';
@@ -15,6 +16,7 @@ import 'package:carvita/data/repositories/vehicle_repository.dart';
 import 'package:carvita/data/sources/local/database_helper.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/presentation/manager/locale_provider.dart';
+import 'package:carvita/presentation/manager/theme_provider.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_cubit.dart';
 import 'package:carvita/presentation/navigation/app_router.dart';
@@ -48,11 +50,13 @@ Future<void> main() async {
   await notificationService.initialize();
   await notificationService.requestPermissions();
   await findSystemLocale();
-  runApp(const CarVitaApp());
+  final preferencesService = PreferencesService();
+  runApp(CarVitaApp(preferencesService: preferencesService));
 }
 
 class CarVitaApp extends StatelessWidget {
-  const CarVitaApp({super.key});
+  final PreferencesService preferencesService;
+  const CarVitaApp({super.key, required this.preferencesService});
 
   @override
   Widget build(BuildContext context) {
@@ -89,12 +93,49 @@ class CarVitaApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => LocaleProvider(preferencesService),
         ),
+        ChangeNotifierProvider(
+          create: (_) => ThemeProvider(preferencesService),
+        ),
       ],
-      child: Consumer<LocaleProvider>(
-        builder: (context, localeProvider, child) {
+      child: Consumer2<LocaleProvider, ThemeProvider>(
+        builder: (context, localeProvider, themeProvider, child) {
+          ColorScheme lightColorScheme;
+          ColorScheme darkColorScheme;
+          if (themeProvider.themePreference == AppThemePreference.custom &&
+              themeProvider.customSeedColor != null) {
+            lightColorScheme = ColorScheme.fromSeed(
+              seedColor: themeProvider.customSeedColor!,
+              brightness: Brightness.light,
+            );
+            darkColorScheme = ColorScheme.fromSeed(
+              seedColor: themeProvider.customSeedColor!,
+              brightness: Brightness.dark,
+            );
+          } else {
+            lightColorScheme = ColorScheme.fromSeed(
+              seedColor: AppColors.primaryBlue,
+              brightness: Brightness.light,
+              primary: AppColors.primaryBlue,
+              secondary: AppColors.secondaryBlue,
+            );
+            darkColorScheme = ColorScheme.fromSeed(
+              seedColor: AppColors.primaryBlue,
+              brightness: Brightness.dark,
+            );
+          }
+          final lightThemeData = AppTheme.getThemeData(
+            lightColorScheme,
+            Brightness.light,
+          );
+          final darkThemeData = AppTheme.getThemeData(
+            darkColorScheme,
+            Brightness.dark,
+          );
           return MaterialApp(
             title: "CarVita",
-            theme: AppTheme.lightTheme,
+            theme: lightThemeData,
+            darkTheme: darkThemeData,
+            themeMode: themeProvider.themeMode,
             debugShowCheckedModeBanner: false,
 
             // router

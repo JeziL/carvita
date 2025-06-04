@@ -18,11 +18,12 @@ class AppColors {
   static const Color fabBackground = Color(0xFFFFFFFF);
   static const Color fabIcon = primaryBlue;
 
-  static const Gradient primaryGradient = LinearGradient(
-    colors: [primaryBlue, secondaryBlue],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
+  static Color darken(Color color, [double amount = .1]) {
+    assert(amount >= 0 && amount <= 1);
+    final hsl = HSLColor.fromColor(color);
+    final hslDark = hsl.withLightness((hsl.lightness - amount).clamp(0.0, 1.0));
+    return hslDark.toColor();
+  }
 
   static const Color bottomNavBackground = Color.fromRGBO(255, 255, 255, 0.95);
   static const Color bottomNavActiveIcon = primaryBlue;

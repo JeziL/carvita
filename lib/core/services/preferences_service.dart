@@ -4,6 +4,25 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:carvita/i18n/generated/app_localizations.dart';
 
+enum AppThemePreference { system, light, dark, custom }
+
+extension AppThemePreferenceDetails on AppThemePreference {
+  String get keyString => name;
+  // TODO: i18n
+  String displayString(BuildContext context) {
+    switch (this) {
+      case AppThemePreference.system:
+        return "System";
+      case AppThemePreference.light:
+        return "Light";
+      case AppThemePreference.dark:
+        return "Dark";
+      case AppThemePreference.custom:
+        return "Custom";
+    }
+  }
+}
+
 enum DueReminderThresholdValue { week, month, halfYear }
 
 extension DueReminderThresholdDetails on DueReminderThresholdValue {
@@ -42,6 +61,8 @@ class PreferencesService {
   static const String _appScriptCodeKey = 'locale_script_code';
   static const String _appCountryCodeKey = 'locale_country_code';
   static const String _mileageUnitKey = 'mileage_unit';
+  static const String _themePreferenceKey = 'theme_preference';
+  static const String _customThemeSeedColorKey = 'custom_theme_seed_color';
 
   Future<void> setDefaultVehicleId(int? vehicleId) async {
     final prefs = await SharedPreferences.getInstance();
@@ -153,5 +174,37 @@ class PreferencesService {
   Future<String> getMileageUnit() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_mileageUnitKey) ?? 'km';
+  }
+
+  Future<void> setThemePreference(AppThemePreference preference) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_themePreferenceKey, preference.keyString);
+  }
+
+  Future<AppThemePreference> getThemePreference() async {
+    final prefs = await SharedPreferences.getInstance();
+    final preferenceString = prefs.getString(_themePreferenceKey);
+    if (preferenceString == null) {
+      return AppThemePreference.system;
+    }
+    return AppThemePreference.values.firstWhere(
+      (e) => e.keyString == preferenceString,
+      orElse: () => AppThemePreference.system,
+    );
+  }
+
+  Future<void> setCustomThemeSeedColor(Color? color) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (color == null) {
+      await prefs.remove(_customThemeSeedColorKey);
+    } else {
+      await prefs.setInt(_customThemeSeedColorKey, color.toARGB32());
+    }
+  }
+
+  Future<Color?> getCustomThemeSeedColor() async {
+    final prefs = await SharedPreferences.getInstance();
+    final colorValue = prefs.getInt(_customThemeSeedColorKey);
+    return colorValue != null ? Color(colorValue) : null;
   }
 }

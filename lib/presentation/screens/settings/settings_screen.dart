@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:collection/collection.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as path;
@@ -18,6 +19,7 @@ import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/constants/app_routes.dart';
 import 'package:carvita/core/services/notification_service.dart';
 import 'package:carvita/core/services/preferences_service.dart';
+import 'package:carvita/core/theme/app_theme.dart';
 import 'package:carvita/core/widgets/gradient_background.dart';
 import 'package:carvita/data/models/vehicle.dart';
 import 'package:carvita/data/repositories/vehicle_repository.dart';
@@ -25,6 +27,7 @@ import 'package:carvita/data/sources/local/database_helper.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/main.dart';
 import 'package:carvita/presentation/manager/locale_provider.dart';
+import 'package:carvita/presentation/manager/theme_provider.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_cubit.dart';
 import 'package:carvita/presentation/screens/common_widgets/main_bottom_navigation_bar.dart';
@@ -771,12 +774,105 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
   }
 
+  void _showColorPicker(BuildContext context, ThemeProvider themeProvider) {
+    Color pickerColor = themeProvider.customSeedColor ?? AppColors.primaryBlue;
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Pick a Color"), // TODO: i18n
+          content: SingleChildScrollView(
+            child: ColorPicker(
+              pickerColor: pickerColor,
+              onColorChanged: (color) => pickerColor = color,
+              enableAlpha: false, // Usually seed colors don't need alpha
+              pickerAreaHeightPercent: 0.8,
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text(AppLocalizations.of(context)!.cancel),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text("OK"), // TODO: i18n
+              onPressed: () {
+                themeProvider.setCustomSeedColor(pickerColor);
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showSelectThemeDialog(
+    BuildContext context,
+    ThemeProvider themeProvider,
+  ) async {
+    final AppThemePreference? result = await showDialog<AppThemePreference>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return SimpleDialog(
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          title: Text(
+            "Choose Theme", // TODO: i18n
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface,
+              fontSize: 20,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          children:
+              AppThemePreference.values.map((preference) {
+                return SimpleDialogOption(
+                  onPressed: () => Navigator.pop(dialogContext, preference),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12.0),
+                    child: Text(
+                      preference.displayString(context),
+                      style: TextStyle(
+                        color:
+                            themeProvider.themePreference == preference
+                                ? Theme.of(context).colorScheme.primary
+                                : Theme.of(context).colorScheme.onSurface,
+                        fontSize: 16,
+                        fontWeight:
+                            themeProvider.themePreference == preference
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+        );
+      },
+    );
+
+    if (result != null) {
+      themeProvider.setThemePreference(result);
+      if (result == AppThemePreference.custom &&
+          themeProvider.customSeedColor == null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _showColorPicker(context, themeProvider);
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final vehicleState = context.watch<VehicleCubit>().state;
     final localeProvider = context.watch<LocaleProvider>();
+    final themeProvider = context.watch<ThemeProvider>();
+    final themeExtensions = Theme.of(context).extension<AppThemeExtensions>()!;
 
     return GradientBackground(
+      gradient: themeExtensions.primaryGradient,
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
@@ -923,6 +1019,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       () =>
                           _showSelectMileageUnitDialog(context, localeProvider),
                 ),
+                _buildSettingItem(
+                  icon: Icons.brightness_6_outlined,
+                  label: "Theme", // TODO: i18n
+                  value: themeProvider.themePreference.displayString(context),
+                  onTap: () => _showSelectThemeDialog(context, themeProvider),
+                ),
+                if (themeProvider.themePreference == AppThemePreference.custom)
+                  _buildSettingItem(
+                    icon: Icons.color_lens_outlined,
+                    label: "Theme Color", // TODO: i18n
+                    trailing: Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        color:
+                            themeProvider.customSeedColor ??
+                            AppColors.primaryBlue,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.outline,
+                        ),
+                      ),
+                    ),
+                    onTap: () => _showColorPicker(context, themeProvider),
+                  ),
               ],
             ),
             _buildSettingsCard(

@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import 'package:carvita/core/constants/app_colors.dart';
+import 'package:carvita/core/theme/app_theme.dart';
 import 'package:carvita/core/widgets/gradient_background.dart';
 import 'package:carvita/data/models/maintenance_plan_item.dart';
 import 'package:carvita/data/models/service_log_entry.dart';
@@ -468,7 +469,9 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
   @override
   Widget build(BuildContext context) {
     final localeProvider = context.watch<LocaleProvider>();
+    final themeExtensions = Theme.of(context).extension<AppThemeExtensions>()!;
     return GradientBackground(
+      gradient: themeExtensions.primaryGradient,
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(

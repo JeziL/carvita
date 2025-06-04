@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:carvita/core/constants/app_colors.dart';
+import 'package:carvita/core/theme/app_theme.dart';
 import 'package:carvita/core/widgets/gradient_background.dart';
 import 'package:carvita/data/models/maintenance_plan_item.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
@@ -273,8 +274,10 @@ class _AddEditMaintenancePlanItemScreenState
   @override
   Widget build(BuildContext context) {
     final localeProvider = context.watch<LocaleProvider>();
+    final themeExtensions = Theme.of(context).extension<AppThemeExtensions>()!;
 
     return GradientBackground(
+      gradient: themeExtensions.primaryGradient,
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(

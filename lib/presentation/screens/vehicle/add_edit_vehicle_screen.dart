@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 import 'package:carvita/core/constants/app_colors.dart';
+import 'package:carvita/core/theme/app_theme.dart';
 import 'package:carvita/core/widgets/gradient_background.dart';
 import 'package:carvita/data/models/vehicle.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
@@ -258,6 +259,7 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
   Widget build(BuildContext context) {
     final inputDecorationTheme = Theme.of(context).inputDecorationTheme;
     final localeProvider = context.watch<LocaleProvider>();
+    final themeExtensions = Theme.of(context).extension<AppThemeExtensions>()!;
 
     Widget formField(
       TextEditingController controller,
@@ -296,6 +298,7 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
     }
 
     return GradientBackground(
+      gradient: themeExtensions.primaryGradient,
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(

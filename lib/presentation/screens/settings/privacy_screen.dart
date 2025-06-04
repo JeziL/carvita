@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:carvita/core/constants/app_colors.dart';
+import 'package:carvita/core/theme/app_theme.dart';
 import 'package:carvita/core/widgets/gradient_background.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
 
@@ -9,7 +10,9 @@ class PrivacyScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeExtensions = Theme.of(context).extension<AppThemeExtensions>()!;
     return GradientBackground(
+      gradient: themeExtensions.primaryGradient,
       child: Scaffold(
         appBar: AppBar(
           title: Text(AppLocalizations.of(context)!.privacyPolicy),

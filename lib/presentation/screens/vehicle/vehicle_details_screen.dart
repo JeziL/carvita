@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 
 import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/constants/app_routes.dart';
+import 'package:carvita/core/theme/app_theme.dart';
 import 'package:carvita/core/widgets/gradient_background.dart';
 import 'package:carvita/data/models/vehicle.dart';
 import 'package:carvita/data/repositories/maintenance_repository.dart';
@@ -213,6 +214,7 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
     );
 
     final maintenanceRepository = MaintenanceRepository();
+    final themeExtensions = Theme.of(context).extension<AppThemeExtensions>()!;
 
     return BlocListener<VehicleCubit, vehicle_list_state_import.VehicleState>(
       listener: (BuildContext context, vehicleListState) {
@@ -256,6 +258,7 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
         child: Builder(
           builder: (builderContext) {
             return GradientBackground(
+              gradient: themeExtensions.primaryGradient,
               child: Scaffold(
                 backgroundColor: Colors.transparent,
                 body:

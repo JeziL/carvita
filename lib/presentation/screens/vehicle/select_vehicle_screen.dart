@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:carvita/core/constants/app_colors.dart';
+import 'package:carvita/core/theme/app_theme.dart';
 import 'package:carvita/core/widgets/gradient_background.dart';
 import 'package:carvita/data/models/vehicle.dart';
 import 'package:carvita/data/repositories/maintenance_repository.dart';
@@ -53,7 +54,9 @@ class SelectVehicleScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeExtensions = Theme.of(context).extension<AppThemeExtensions>()!;
     return GradientBackground(
+      gradient: themeExtensions.primaryGradient,
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
