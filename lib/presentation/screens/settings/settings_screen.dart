@@ -813,7 +813,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(AppLocalizations.of(context)!.chooseColor),
+          title: Text(
+            AppLocalizations.of(context)!.chooseColor,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface,
+              fontSize: 20,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
           content: SingleChildScrollView(
             child: ColorPicker(
               pickerColor: pickerColor,
