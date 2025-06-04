@@ -813,7 +813,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Pick a Color"), // TODO: i18n
+          title: Text(AppLocalizations.of(context)!.chooseColor),
           content: SingleChildScrollView(
             child: ColorPicker(
               pickerColor: pickerColor,
@@ -830,7 +830,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               },
             ),
             TextButton(
-              child: Text("OK"), // TODO: i18n
+              child: Text(AppLocalizations.of(context)!.ok),
               onPressed: () {
                 themeProvider.setCustomSeedColor(pickerColor);
                 Navigator.of(context).pop();
@@ -852,7 +852,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         return SimpleDialog(
           backgroundColor: Theme.of(context).colorScheme.surface,
           title: Text(
-            "Choose Theme", // TODO: i18n
+            AppLocalizations.of(context)!.chooseTheme,
             style: TextStyle(
               color: Theme.of(context).colorScheme.onSurface,
               fontSize: 20,
@@ -1058,14 +1058,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 _buildSettingItem(
                   icon: Icons.brightness_6_outlined,
-                  label: "Theme", // TODO: i18n
+                  label: AppLocalizations.of(context)!.theme,
                   value: themeProvider.themePreference.displayString(context),
                   onTap: () => _showSelectThemeDialog(context, themeProvider),
                 ),
                 if (themeProvider.themePreference == AppThemePreference.custom)
                   _buildSettingItem(
                     icon: Icons.color_lens_outlined,
-                    label: "Theme Color", // TODO: i18n
+                    label: AppLocalizations.of(context)!.themeColor,
                     trailing: Container(
                       width: 24,
                       height: 24,

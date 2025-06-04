@@ -155,5 +155,14 @@
   "mileageUnitLabel": "주행 거리 단위",
   "mileageUnit": "{unit, select, km{킬로미터 (km)} mi{마일 (mi)} other{}}",
   "helpAndSupport": "도움말 및 지원",
-  "openSourceLicenses": "오픈소스 라이선스"
+  "openSourceLicenses": "오픈소스 라이선스",
+  "themeSystem": "시스템",
+  "themeLight": "라이트",
+  "themeDark": "다크",
+  "themeCustom": "사용자 지정",
+  "chooseColor": "색상 선택",
+  "ok": "확인",
+  "chooseTheme": "테마 선택",
+  "theme": "테마",
+  "themeColor": "테마 색상"
 }

@@ -155,5 +155,14 @@
   "mileageUnitLabel": "Ед. пробега",
   "mileageUnit": "{unit, select, km{Километры (км)} mi{Мили (ми)} other{}}",
   "helpAndSupport": "Помощь и поддержка",
-  "openSourceLicenses": "Лицензии Open Source"
+  "openSourceLicenses": "Лицензии Open Source",
+  "themeSystem": "Системная",
+  "themeLight": "Светлая",
+  "themeDark": "Тёмная",
+  "themeCustom": "Пользовательская",
+  "chooseColor": "Выберите цвет",
+  "ok": "ОК",
+  "chooseTheme": "Выберите тему",
+  "theme": "Тема",
+  "themeColor": "Цвет темы"
 }

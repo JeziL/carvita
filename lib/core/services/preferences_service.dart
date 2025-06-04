@@ -8,17 +8,16 @@ enum AppThemePreference { system, light, dark, custom }
 
 extension AppThemePreferenceDetails on AppThemePreference {
   String get keyString => name;
-  // TODO: i18n
   String displayString(BuildContext context) {
     switch (this) {
       case AppThemePreference.system:
-        return "System";
+        return AppLocalizations.of(context)!.themeSystem;
       case AppThemePreference.light:
-        return "Light";
+        return AppLocalizations.of(context)!.themeLight;
       case AppThemePreference.dark:
-        return "Dark";
+        return AppLocalizations.of(context)!.themeDark;
       case AppThemePreference.custom:
-        return "Custom";
+        return AppLocalizations.of(context)!.themeCustom;
     }
   }
 }

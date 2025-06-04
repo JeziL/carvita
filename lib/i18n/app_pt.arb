@@ -155,5 +155,14 @@
   "mileageUnitLabel": "Unidade de quilometragem",
   "mileageUnit": "{unit, select, km{Quilómetros (km)} mi{Milhas (mi)} other{}}",
   "helpAndSupport": "Ajuda e suporte",
-  "openSourceLicenses": "Licenças de código aberto"
+  "openSourceLicenses": "Licenças de código aberto",
+  "themeSystem": "Sistema",
+  "themeLight": "Claro",
+  "themeDark": "Escuro",
+  "themeCustom": "Personalizado",
+  "chooseColor": "Escolha uma cor",
+  "ok": "OK",
+  "chooseTheme": "Escolher tema",
+  "theme": "Tema",
+  "themeColor": "Cor do tema"
 }

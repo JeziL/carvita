@@ -155,5 +155,14 @@
   "mileageUnitLabel": "走行距離単位",
   "mileageUnit": "{unit, select, km{キロメートル (km)} mi{マイル (mi)} other{}}",
   "helpAndSupport": "ヘルプとサポート",
-  "openSourceLicenses": "オープンソースライセンス"
+  "openSourceLicenses": "オープンソースライセンス",
+  "themeSystem": "システム",
+  "themeLight": "ライト",
+  "themeDark": "ダーク",
+  "themeCustom": "カスタム",
+  "chooseColor": "色を選択",
+  "ok": "OK",
+  "chooseTheme": "テーマを選択",
+  "theme": "テーマ",
+  "themeColor": "テーマの色"
 }

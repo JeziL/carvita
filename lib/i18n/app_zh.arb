@@ -155,5 +155,14 @@
   "chooseMileageUnit": "选择里程单位",
   "mileageUnit": "{unit, select, km{公里 (km)} mi{英里 (mi)} other{}}",
   "helpAndSupport": "帮助与支持",
-  "openSourceLicenses": "开源许可证"
+  "openSourceLicenses": "开源许可证",
+  "themeSystem": "跟随系统",
+  "themeLight": "浅色",
+  "themeDark": "深色",
+  "themeCustom": "自定义",
+  "chooseColor": "选择主题色",
+  "ok": "确定",
+  "chooseTheme": "选择主题",
+  "theme": "主题",
+  "themeColor": "主题色"
 }

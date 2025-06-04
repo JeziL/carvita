@@ -155,5 +155,14 @@
   "mileageUnitLabel": "وحدة المسافة",
   "mileageUnit": "{unit, select, km{كيلومتر (كم)} mi{ميل (ميل)} other{}}",
   "helpAndSupport": "المساعدة والدعم",
-  "openSourceLicenses": "تراخيص المصادر المفتوحة"
+  "openSourceLicenses": "تراخيص المصادر المفتوحة",
+  "themeSystem": "نظام",
+  "themeLight": "فاتح",
+  "themeDark": "داكن",
+  "themeCustom": "مخصص",
+  "chooseColor": "اختر لونًا",
+  "ok": "موافق",
+  "chooseTheme": "اختر المظهر",
+  "theme": "المظهر",
+  "themeColor": "لون المظهر"
 }

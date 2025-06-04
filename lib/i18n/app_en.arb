@@ -806,5 +806,41 @@
   "openSourceLicenses": "Open source licenses",
   "@openSourceLicenses": {
     "description": "The label for the open source licenses entry in the settings screen"
+  },
+  "themeSystem": "System",
+  "@themeSystem": {
+    "description": "The value for theme setting when following system"
+  },
+  "themeLight": "Light",
+  "@themeLight": {
+    "description": "The value for theme setting option light mode"
+  },
+  "themeDark": "Dark",
+  "@themeDark": {
+    "description": "The value for theme setting option dark mode"
+  },
+  "themeCustom": "Custom",
+  "@themeCustom": {
+    "description": "The value for theme setting option custom mode"
+  },
+  "chooseColor": "Pick a color",
+  "@chooseColor": {
+    "description": "The title for the dialog when user choosing custom theme color"
+  },
+  "ok": "OK",
+  "@ok": {
+    "description": "The text for ok button of dialogs"
+  },
+  "chooseTheme": "Choose theme",
+  "@chooseTheme": {
+    "description": "The title for the dialog when user choosing theme mode"
+  },
+  "theme": "Theme",
+  "@theme": {
+    "description": "The settings entry label for theme mode"
+  },
+  "themeColor": "Theme color",
+  "@themeColor": {
+    "description": "The settings entry label for custom theme color"
   }
 }
