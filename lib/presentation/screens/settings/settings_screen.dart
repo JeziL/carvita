@@ -917,13 +917,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           automaticallyImplyLeading: false,
-          title: Text(
-            AppLocalizations.of(context)!.navSettings,
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onPrimary,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
+          title: Text(AppLocalizations.of(context)!.navSettings),
           backgroundColor: Theme.of(
             context,
           ).colorScheme.inverseSurface.withValues(alpha: 0.1),

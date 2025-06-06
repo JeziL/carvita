@@ -14,38 +14,33 @@ class QuickActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor =
+        isDark
+            ? Theme.of(context).colorScheme.onPrimaryContainer
+            : Theme.of(context).colorScheme.surfaceContainerLowest;
     return Expanded(
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: Theme.of(
-            context,
-          ).colorScheme.surfaceContainerLowest.withValues(alpha: 0.2),
+          backgroundColor: bgColor.withValues(alpha: 0.2),
           padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 8),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
           elevation: 0,
         ).copyWith(
-          overlayColor: WidgetStatePropertyAll(
-            Theme.of(
-              context,
-            ).colorScheme.surfaceContainerLowest.withValues(alpha: 0.1),
-          ),
+          overlayColor: WidgetStatePropertyAll(bgColor.withValues(alpha: 0.1)),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              color: Theme.of(context).colorScheme.onPrimary,
-              size: 28,
-            ),
+            Icon(icon, color: bgColor, size: 28),
             const SizedBox(height: 5),
             Text(
               label,
               style: TextStyle(
-                color: Theme.of(context).colorScheme.onPrimary,
+                color: bgColor,
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),

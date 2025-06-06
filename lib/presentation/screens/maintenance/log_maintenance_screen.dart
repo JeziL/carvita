@@ -286,15 +286,19 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
   }
 
   Widget _buildItemSelectionSection() {
+    final themeExtensions = Theme.of(context).extension<AppThemeExtensions>()!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor =
+        isDark
+            ? Theme.of(context).colorScheme.onPrimaryContainer
+            : Theme.of(context).colorScheme.onPrimary;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           "${AppLocalizations.of(context)!.maintenanceItems}*",
           style: TextStyle(
-            color: Theme.of(
-              context,
-            ).colorScheme.onPrimary.withValues(alpha: 0.9),
+            color: themeExtensions.textColorOnBackground.withValues(alpha: 0.9),
             fontSize: 14,
           ),
         ),
@@ -310,7 +314,7 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
             } else if (state is plan_state.MaintenancePlanLoading) {
               return Center(
                 child: CircularProgressIndicator(
-                  color: Theme.of(context).colorScheme.onPrimary,
+                  color: themeExtensions.textColorOnBackground,
                   strokeWidth: 2,
                 ),
               );
@@ -322,9 +326,9 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
                   Text(
                     "${AppLocalizations.of(context)!.chooseFromPlan}:",
                     style: TextStyle(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onPrimary.withValues(alpha: 0.8),
+                      color: themeExtensions.textColorOnBackground.withValues(
+                        alpha: 0.8,
+                      ),
                       fontSize: 13,
                     ),
                   ),
@@ -349,9 +353,8 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
                                           ? Theme.of(
                                             context,
                                           ).colorScheme.primary
-                                          : Theme.of(context)
-                                              .colorScheme
-                                              .onPrimary
+                                          : themeExtensions
+                                              .textColorOnBackground
                                               .withValues(alpha: 0.9),
                                 ),
                               ),
@@ -376,9 +379,8 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
                                           ? Theme.of(
                                             context,
                                           ).colorScheme.primary
-                                          : Theme.of(context)
-                                              .colorScheme
-                                              .onPrimary
+                                          : themeExtensions
+                                              .textColorOnBackground
                                               .withValues(alpha: 0.3),
                                 ),
                               ),
@@ -398,9 +400,9 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
                   Text(
                     "${AppLocalizations.of(context)!.customItemAdded}:",
                     style: TextStyle(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onPrimary.withValues(alpha: 0.8),
+                      color: themeExtensions.textColorOnBackground.withValues(
+                        alpha: 0.8,
+                      ),
                       fontSize: 13,
                     ),
                   ),
@@ -416,15 +418,16 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
                                   name,
                                   style: TextStyle(
                                     color:
-                                        Theme.of(context).colorScheme.primary,
+                                        themeExtensions
+                                            .primaryGradient
+                                            .colors[0],
                                   ),
                                 ),
-                                backgroundColor: Theme.of(
-                                  context,
-                                ).colorScheme.onPrimary.withValues(alpha: 0.9),
-                                deleteIconColor: Theme.of(
-                                  context,
-                                ).colorScheme.primary.withValues(alpha: 0.7),
+                                backgroundColor: bgColor.withValues(alpha: 0.9),
+                                deleteIconColor: themeExtensions
+                                    .primaryGradient
+                                    .colors[0]
+                                    .withValues(alpha: 0.7),
                                 onDeleted: () {
                                   setState(() {
                                     _selectedCustomItemNames.remove(name);
@@ -444,7 +447,7 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
                       child: TextFormField(
                         controller: _customItemNameController,
                         style: TextStyle(
-                          color: Theme.of(context).colorScheme.onPrimary,
+                          color: themeExtensions.textColorOnBackground,
                         ),
                         decoration: InputDecoration(
                           hintText:
@@ -458,7 +461,7 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
                     IconButton(
                       icon: Icon(
                         Icons.add_circle_outline,
-                        color: Theme.of(context).colorScheme.onPrimary,
+                        color: themeExtensions.textColorOnBackground,
                       ),
                       onPressed: _addCustomItem,
                     ),
@@ -476,6 +479,12 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
   Widget build(BuildContext context) {
     final localeProvider = context.watch<LocaleProvider>();
     final themeExtensions = Theme.of(context).extension<AppThemeExtensions>()!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor =
+        isDark
+            ? Theme.of(context).colorScheme.onPrimaryContainer
+            : Theme.of(context).colorScheme.onPrimary;
+
     return GradientBackground(
       gradient: themeExtensions.primaryGradient,
       child: Scaffold(
@@ -485,20 +494,13 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
             AppLocalizations.of(
               context,
             )!.addEditMaintenanceLog(_isEditing ? 'edit' : 'add'),
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onPrimary,
-              fontWeight: FontWeight.w500,
-            ),
           ),
           backgroundColor: Theme.of(
             context,
           ).colorScheme.inverseSurface.withValues(alpha: 0.1),
           elevation: 0,
           leading: IconButton(
-            icon: Icon(
-              Icons.arrow_back_ios_new,
-              color: Theme.of(context).colorScheme.onPrimary,
-            ),
+            icon: Icon(Icons.arrow_back_ios_new),
             onPressed: () => Navigator.of(context).pop(),
           ),
         ),
@@ -517,9 +519,9 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 13,
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onPrimary.withValues(alpha: 0.8),
+                    color: themeExtensions.textColorOnBackground.withValues(
+                      alpha: 0.8,
+                    ),
                     height: 1.5,
                   ),
                 ),
@@ -528,14 +530,14 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
                 TextFormField(
                   controller: _dateController,
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.onPrimary,
+                    color: themeExtensions.textColorOnBackground,
                   ),
                   decoration: InputDecoration(
                     labelText:
                         '${AppLocalizations.of(context)!.maintenanceDate}*',
                     suffixIcon: Icon(
                       Icons.calendar_today,
-                      color: Theme.of(context).colorScheme.onPrimary,
+                      color: themeExtensions.textColorOnBackground,
                     ),
                   ),
                   readOnly: true,
@@ -554,7 +556,7 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
                 TextFormField(
                   controller: _mileageController,
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.onPrimary,
+                    color: themeExtensions.textColorOnBackground,
                   ),
                   decoration: InputDecoration(
                     labelText:
@@ -591,7 +593,7 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
                 TextFormField(
                   controller: _costController,
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.onPrimary,
+                    color: themeExtensions.textColorOnBackground,
                   ),
                   decoration: InputDecoration(
                     labelText:
@@ -612,7 +614,7 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
                 TextFormField(
                   controller: _notesController,
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.onPrimary,
+                    color: themeExtensions.textColorOnBackground,
                   ),
                   decoration: InputDecoration(
                     labelText:
@@ -627,7 +629,7 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
                 ElevatedButton(
                   onPressed: _submitForm,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.onPrimary,
+                    backgroundColor: bgColor,
                     padding: const EdgeInsets.symmetric(vertical: 15),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(25),
@@ -642,7 +644,10 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
                       context,
                     )!.addEditButtonText(_isEditing ? 'edit' : 'add'),
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.primary,
+                      color:
+                          isDark
+                              ? Theme.of(context).colorScheme.onPrimary
+                              : Theme.of(context).colorScheme.primary,
                     ),
                   ),
                 ),

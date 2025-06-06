@@ -14,22 +14,13 @@ class PrivacyScreen extends StatelessWidget {
       gradient: themeExtensions.primaryGradient,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(
-            AppLocalizations.of(context)!.privacyPolicy,
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onPrimary,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
+          title: Text(AppLocalizations.of(context)!.privacyPolicy),
           backgroundColor: Theme.of(
             context,
           ).colorScheme.inverseSurface.withValues(alpha: 0.1),
           elevation: 0,
           leading: IconButton(
-            icon: Icon(
-              Icons.arrow_back_ios_new,
-              color: Theme.of(context).colorScheme.onPrimary,
-            ),
+            icon: Icon(Icons.arrow_back_ios_new),
             onPressed: () => Navigator.of(context).pop(),
           ),
         ),
@@ -43,9 +34,9 @@ class PrivacyScreen extends StatelessWidget {
                   Icon(
                     Icons.verified_user_outlined,
                     size: 128,
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onPrimary.withValues(alpha: 0.8),
+                    color: themeExtensions.textColorOnBackground.withValues(
+                      alpha: 0.8,
+                    ),
                   ),
                   SizedBox(height: 24),
                   Text(
@@ -53,7 +44,7 @@ class PrivacyScreen extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.onPrimary,
+                      color: themeExtensions.textColorOnBackground,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -69,7 +60,7 @@ class PrivacyScreen extends StatelessWidget {
                           children: [
                             Icon(
                               Icons.cloud_off_outlined,
-                              color: Theme.of(context).colorScheme.onPrimary,
+                              color: themeExtensions.textColorOnBackground,
                             ),
                             SizedBox(width: 8),
                             Expanded(
@@ -79,8 +70,7 @@ class PrivacyScreen extends StatelessWidget {
                                 )!.privacyLocalStorage,
                                 style: TextStyle(
                                   fontSize: 16,
-                                  color:
-                                      Theme.of(context).colorScheme.onPrimary,
+                                  color: themeExtensions.textColorOnBackground,
                                 ),
                               ),
                             ),
@@ -92,7 +82,7 @@ class PrivacyScreen extends StatelessWidget {
                           children: [
                             Icon(
                               Icons.pan_tool_outlined,
-                              color: Theme.of(context).colorScheme.onPrimary,
+                              color: themeExtensions.textColorOnBackground,
                             ),
                             SizedBox(width: 8),
                             Expanded(
@@ -100,8 +90,7 @@ class PrivacyScreen extends StatelessWidget {
                                 AppLocalizations.of(context)!.privacyControl,
                                 style: TextStyle(
                                   fontSize: 16,
-                                  color:
-                                      Theme.of(context).colorScheme.onPrimary,
+                                  color: themeExtensions.textColorOnBackground,
                                 ),
                               ),
                             ),

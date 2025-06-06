@@ -247,6 +247,11 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
   Widget build(BuildContext context) {
     final localeProvider = context.watch<LocaleProvider>();
     final themeExtensions = Theme.of(context).extension<AppThemeExtensions>()!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor =
+        isDark
+            ? Theme.of(context).colorScheme.onPrimaryContainer
+            : Theme.of(context).colorScheme.onPrimary;
 
     Widget formField(
       TextEditingController controller,
@@ -260,7 +265,7 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
         padding: const EdgeInsets.only(bottom: 18.0),
         child: TextFormField(
           controller: controller,
-          style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
+          style: TextStyle(color: themeExtensions.textColorOnBackground),
           decoration: InputDecoration(labelText: label, hintText: hint),
           keyboardType: keyboardType,
           validator: (value) {
@@ -282,20 +287,13 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
             AppLocalizations.of(
               context,
             )!.addEditVehicle(_isEditing ? 'edit' : 'add'),
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onPrimary,
-              fontWeight: FontWeight.w500,
-            ),
           ),
           backgroundColor: Theme.of(
             context,
           ).colorScheme.inverseSurface.withValues(alpha: 0.1),
           elevation: 0,
           leading: IconButton(
-            icon: Icon(
-              Icons.arrow_back_ios_new,
-              color: Theme.of(context).colorScheme.onPrimary,
-            ),
+            icon: Icon(Icons.arrow_back_ios_new),
             onPressed: () => Navigator.of(context).pop(),
           ),
         ),
@@ -312,15 +310,9 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
                     height: 150,
                     margin: const EdgeInsets.only(bottom: 20),
                     decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onPrimary.withValues(alpha: 0.15),
+                      color: bgColor.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onPrimary.withValues(alpha: 0.3),
-                      ),
+                      border: Border.all(color: bgColor.withValues(alpha: 0.3)),
                     ),
                     child:
                         _selectedImageBytes != null
@@ -339,15 +331,14 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
                                 Icon(
                                   Icons.add_a_photo_outlined,
                                   size: 36,
-                                  color:
-                                      Theme.of(context).colorScheme.onPrimary,
+                                  color: themeExtensions.textColorOnBackground,
                                 ),
                                 SizedBox(height: 8),
                                 Text(
                                   "${AppLocalizations.of(context)!.uploadVehicleImage} (${AppLocalizations.of(context)!.optionalEntry})",
                                   style: TextStyle(
                                     color:
-                                        Theme.of(context).colorScheme.onPrimary,
+                                        themeExtensions.textColorOnBackground,
                                   ),
                                 ),
                               ],
@@ -386,13 +377,13 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
                   child: TextFormField(
                     controller: _boughtDateController,
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.onPrimary,
+                      color: themeExtensions.textColorOnBackground,
                     ),
                     decoration: InputDecoration(
                       labelText: '${AppLocalizations.of(context)!.boughtDate}*',
                       suffixIcon: Icon(
                         Icons.calendar_today,
-                        color: Theme.of(context).colorScheme.onPrimary,
+                        color: themeExtensions.textColorOnBackground,
                       ),
                     ),
                     readOnly: true,
@@ -432,7 +423,7 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
                 ElevatedButton(
                   onPressed: _submitForm,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.onPrimary,
+                    backgroundColor: bgColor,
                     padding: const EdgeInsets.symmetric(vertical: 15),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(25),
@@ -447,7 +438,10 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
                       context,
                     )!.addEditButtonText(_isEditing ? 'edit' : 'add'),
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.primary,
+                      color:
+                          isDark
+                              ? Theme.of(context).colorScheme.onPrimary
+                              : Theme.of(context).colorScheme.primary,
                     ),
                   ),
                 ),

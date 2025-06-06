@@ -190,6 +190,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     BuildContext context,
     List<PredictedMaintenanceInfo> allPredictions,
   ) {
+    final themeExtensions = Theme.of(context).extension<AppThemeExtensions>()!;
     final DueReminderThresholdValue currentThreshold = _dashboardThreshold;
     final int currentItemCount = _dashboardItemCount;
 
@@ -199,7 +200,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         child: Center(
           child: Text(
             AppLocalizations.of(context)!.noUpcomingMaintenance,
-            style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
+            style: TextStyle(color: themeExtensions.textColorOnBackground),
           ),
         ),
       );
@@ -376,11 +377,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           automaticallyImplyLeading: false,
           title: Text(
             AppLocalizations.of(context)!.dashboardTitle,
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onPrimary,
-              fontWeight: FontWeight.w500,
-              fontSize: 28,
-            ),
+            style: TextStyle(fontSize: 28),
           ),
           backgroundColor: Theme.of(
             context,
@@ -432,7 +429,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                   Text(
                     AppLocalizations.of(context)!.urgentReminders,
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.onPrimary,
+                      color: themeExtensions.textColorOnBackground,
                       fontSize: 18,
                       fontWeight: FontWeight.w500,
                     ),
@@ -442,7 +439,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                       child: Padding(
                         padding: EdgeInsets.all(8.0),
                         child: CircularProgressIndicator(
-                          color: Theme.of(context).colorScheme.onPrimary,
+                          color: themeExtensions.textColorOnBackground,
                           strokeWidth: 2,
                         ),
                       ),
@@ -462,7 +459,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                   Text(
                     AppLocalizations.of(context)!.myVehicles,
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.onPrimary,
+                      color: themeExtensions.textColorOnBackground,
                       fontSize: 18,
                       fontWeight: FontWeight.w500,
                     ),
@@ -472,7 +469,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                       if (state is VehicleLoading) {
                         return Center(
                           child: CircularProgressIndicator(
-                            color: Theme.of(context).colorScheme.onPrimary,
+                            color: themeExtensions.textColorOnBackground,
                           ),
                         );
                       } else if (state is VehicleLoaded) {
@@ -483,8 +480,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                               child: Text(
                                 AppLocalizations.of(context)!.noVehicles,
                                 style: TextStyle(
-                                  color:
-                                      Theme.of(context).colorScheme.onPrimary,
+                                  color: themeExtensions.textColorOnBackground,
                                 ),
                               ),
                             ),
@@ -519,7 +515,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                           child: Text(
                             AppLocalizations.of(context)!.noVehicles,
                             style: TextStyle(
-                              color: Theme.of(context).colorScheme.onPrimary,
+                              color: themeExtensions.textColorOnBackground,
                             ),
                           ),
                         ),

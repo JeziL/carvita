@@ -222,7 +222,7 @@ class _AddEditMaintenancePlanItemScreenState
     required String timeHint,
     required String mileageHint,
   }) {
-    // final inputDecorationTheme = Theme.of(context).inputDecorationTheme;
+    final themeExtensions = Theme.of(context).extension<AppThemeExtensions>()!;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -232,9 +232,7 @@ class _AddEditMaintenancePlanItemScreenState
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w400,
-            color: Theme.of(
-              context,
-            ).colorScheme.onPrimary.withValues(alpha: 0.9),
+            color: themeExtensions.textColorOnBackground.withValues(alpha: 0.9),
           ),
         ),
         const SizedBox(height: 8),
@@ -243,9 +241,7 @@ class _AddEditMaintenancePlanItemScreenState
             Expanded(
               child: TextFormField(
                 controller: timeController,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onPrimary,
-                ),
+                style: TextStyle(color: themeExtensions.textColorOnBackground),
                 decoration: InputDecoration(hintText: timeHint),
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -255,9 +251,7 @@ class _AddEditMaintenancePlanItemScreenState
             Expanded(
               child: TextFormField(
                 controller: mileageController,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onPrimary,
-                ),
+                style: TextStyle(color: themeExtensions.textColorOnBackground),
                 decoration: InputDecoration(hintText: mileageHint),
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -270,9 +264,7 @@ class _AddEditMaintenancePlanItemScreenState
           AppLocalizations.of(context)!.hintComesFirst,
           style: TextStyle(
             fontSize: 12,
-            color: Theme.of(
-              context,
-            ).colorScheme.onPrimary.withValues(alpha: 0.7),
+            color: themeExtensions.textColorOnBackground.withValues(alpha: 0.7),
           ),
         ),
       ],
@@ -283,6 +275,11 @@ class _AddEditMaintenancePlanItemScreenState
   Widget build(BuildContext context) {
     final localeProvider = context.watch<LocaleProvider>();
     final themeExtensions = Theme.of(context).extension<AppThemeExtensions>()!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor =
+        isDark
+            ? Theme.of(context).colorScheme.onPrimaryContainer
+            : Theme.of(context).colorScheme.onPrimary;
 
     return GradientBackground(
       gradient: themeExtensions.primaryGradient,
@@ -293,20 +290,13 @@ class _AddEditMaintenancePlanItemScreenState
             AppLocalizations.of(
               context,
             )!.addEditMaintenanceItem(_isEditing ? 'edit' : 'add'),
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onPrimary,
-              fontWeight: FontWeight.w500,
-            ),
           ),
           backgroundColor: Theme.of(
             context,
           ).colorScheme.inverseSurface.withValues(alpha: 0.1),
           elevation: 0,
           leading: IconButton(
-            icon: Icon(
-              Icons.arrow_back_ios_new,
-              color: Theme.of(context).colorScheme.onPrimary,
-            ),
+            icon: Icon(Icons.arrow_back_ios_new),
             onPressed: () => Navigator.of(context).pop(),
           ),
         ),
@@ -325,9 +315,9 @@ class _AddEditMaintenancePlanItemScreenState
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 13,
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onPrimary.withValues(alpha: 0.8),
+                    color: themeExtensions.textColorOnBackground.withValues(
+                      alpha: 0.8,
+                    ),
                     height: 1.5,
                   ),
                 ),
@@ -336,7 +326,7 @@ class _AddEditMaintenancePlanItemScreenState
                 TextFormField(
                   controller: _itemNameController,
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.onPrimary,
+                    color: themeExtensions.textColorOnBackground,
                   ),
                   decoration: InputDecoration(
                     labelText: '${AppLocalizations.of(context)!.itemName}*',
@@ -376,7 +366,7 @@ class _AddEditMaintenancePlanItemScreenState
                 TextFormField(
                   controller: _notesController,
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.onPrimary,
+                    color: themeExtensions.textColorOnBackground,
                   ),
                   decoration: InputDecoration(
                     labelText:
@@ -391,7 +381,7 @@ class _AddEditMaintenancePlanItemScreenState
                 ElevatedButton(
                   onPressed: _submitForm,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.onPrimary,
+                    backgroundColor: bgColor,
                     padding: const EdgeInsets.symmetric(vertical: 15),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(25),
@@ -406,7 +396,10 @@ class _AddEditMaintenancePlanItemScreenState
                       context,
                     )!.addEditButtonText(_isEditing ? 'edit' : 'add'),
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.primary,
+                      color:
+                          isDark
+                              ? Theme.of(context).colorScheme.onPrimary
+                              : Theme.of(context).colorScheme.primary,
                     ),
                   ),
                 ),

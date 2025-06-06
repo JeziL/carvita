@@ -60,26 +60,18 @@ class SelectVehicleScreen extends StatelessWidget {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          title: Text(
-            AppLocalizations.of(context)!.chooseVehicle,
-            style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
-          ),
+          title: Text(AppLocalizations.of(context)!.chooseVehicle),
           backgroundColor: Theme.of(
             context,
           ).colorScheme.inverseSurface.withValues(alpha: 0.1),
           elevation: 0,
-          iconTheme: IconThemeData(
-            color: Theme.of(context).colorScheme.onPrimary,
-          ),
         ),
         body: ListView.builder(
           itemCount: vehicles.length,
           itemBuilder: (context, index) {
             final vehicle = vehicles[index];
             return Card(
-              color: Theme.of(
-                context,
-              ).colorScheme.onPrimary.withValues(alpha: 0.9),
+              color: Theme.of(context).colorScheme.surfaceContainerLowest,
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),

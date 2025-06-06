@@ -1,22 +1,18 @@
 import 'package:flutter/material.dart';
 
-import 'package:carvita/core/constants/app_colors.dart';
-
 class AppTheme {
   static ThemeData getThemeData(
     ColorScheme colorScheme,
     Brightness brightness,
   ) {
     final isDark = brightness == Brightness.dark;
+    final textColorOnBackground =
+        isDark ? colorScheme.onPrimaryContainer : colorScheme.onPrimary;
 
     final Gradient primaryGradient = LinearGradient(
       colors: [
-        isDark
-            ? AppColors.darken(colorScheme.primary, 0.1)
-            : colorScheme.primary,
-        isDark
-            ? AppColors.darken(colorScheme.secondary, 0.1)
-            : colorScheme.secondary,
+        isDark ? colorScheme.onPrimary : colorScheme.primary,
+        isDark ? colorScheme.onPrimary : colorScheme.secondary,
       ],
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
@@ -30,9 +26,13 @@ class AppTheme {
       appBarTheme: AppBarTheme(
         elevation: 0,
         backgroundColor: colorScheme.surfaceContainer,
-        iconTheme: IconThemeData(color: colorScheme.onPrimaryContainer),
+        iconTheme: IconThemeData(
+          color:
+              isDark ? colorScheme.onPrimaryContainer : colorScheme.onPrimary,
+        ),
         titleTextStyle: TextStyle(
-          color: colorScheme.onPrimaryContainer,
+          color:
+              isDark ? colorScheme.onPrimaryContainer : colorScheme.onPrimary,
           fontSize: 20,
           fontWeight: FontWeight.w500,
         ),
@@ -57,27 +57,27 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         hintStyle: TextStyle(
-          color: colorScheme.onPrimary.withValues(alpha: 0.7),
+          color: textColorOnBackground.withValues(alpha: 0.7),
         ),
-        labelStyle: TextStyle(color: colorScheme.onPrimary),
+        labelStyle: TextStyle(color: textColorOnBackground),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10.0),
           borderSide: BorderSide(
-            color: colorScheme.onPrimary.withValues(alpha: 0.3),
+            color: textColorOnBackground.withValues(alpha: 0.3),
           ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10.0),
           borderSide: BorderSide(
-            color: colorScheme.onPrimary.withValues(alpha: 0.3),
+            color: textColorOnBackground.withValues(alpha: 0.3),
           ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10.0),
-          borderSide: BorderSide(color: colorScheme.onPrimary),
+          borderSide: BorderSide(color: textColorOnBackground),
         ),
         filled: true,
-        fillColor: colorScheme.onPrimary.withValues(alpha: 0.15),
+        fillColor: textColorOnBackground.withValues(alpha: 0.15),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 13,
           vertical: 13,
@@ -113,7 +113,10 @@ class AppTheme {
         elevation: 0,
       ),
       extensions: <ThemeExtension<dynamic>>[
-        AppThemeExtensions(primaryGradient: primaryGradient),
+        AppThemeExtensions(
+          primaryGradient: primaryGradient,
+          textColorOnBackground: textColorOnBackground,
+        ),
       ],
     );
   }
@@ -121,14 +124,23 @@ class AppTheme {
 
 @immutable
 class AppThemeExtensions extends ThemeExtension<AppThemeExtensions> {
-  const AppThemeExtensions({required this.primaryGradient});
+  const AppThemeExtensions({
+    required this.primaryGradient,
+    required this.textColorOnBackground,
+  });
 
   final Gradient primaryGradient;
+  final Color textColorOnBackground;
 
   @override
-  AppThemeExtensions copyWith({Gradient? primaryGradient}) {
+  AppThemeExtensions copyWith({
+    Gradient? primaryGradient,
+    Color? textColorOnBackground,
+  }) {
     return AppThemeExtensions(
       primaryGradient: primaryGradient ?? this.primaryGradient,
+      textColorOnBackground:
+          textColorOnBackground ?? this.textColorOnBackground,
     );
   }
 
@@ -140,6 +152,8 @@ class AppThemeExtensions extends ThemeExtension<AppThemeExtensions> {
     return AppThemeExtensions(
       primaryGradient:
           Gradient.lerp(primaryGradient, other.primaryGradient, t)!,
+      textColorOnBackground:
+          Color.lerp(textColorOnBackground, other.textColorOnBackground, t)!,
     );
   }
 }
