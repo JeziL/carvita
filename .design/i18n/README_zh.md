@@ -29,7 +29,11 @@
 
 ## 开始使用
 
-从 [Github Releases](https://github.com/JeziL/carvita/releases/latest) 下载。
+[<img src="https://f-droid.org/badge/get-it-on-zh-cn.png"
+    alt="从 F-Droid 下载"
+    height="80">](https://f-droid.org/packages/com.wangjinli.carvita)
+
+...或从 [Github Releases](https://github.com/JeziL/carvita/releases/latest) 下载。
 
 ## 帮助与支持
 

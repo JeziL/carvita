@@ -29,7 +29,11 @@
 
 ## Get Started
 
-Download from [Github Releases](https://github.com/JeziL/carvita/releases/latest).
+[<img src="https://f-droid.org/badge/get-it-on.png"
+    alt="Get it on F-Droid"
+    height="80">](https://f-droid.org/packages/com.wangjinli.carvita)
+
+...or download from [Github Releases](https://github.com/JeziL/carvita/releases/latest).
 
 ## Help & Support
 
