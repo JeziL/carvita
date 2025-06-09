@@ -1158,9 +1158,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   icon: Icons.copyright_outlined,
                   label: AppLocalizations.of(context)!.openSourceLicenses,
                   onTap: () {
-                    showLicensePage(
-                      context: context,
-                      applicationVersion: _packageInfo.version,
+                    ThemeData theme = Theme.of(context);
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder:
+                            (context) => Theme(
+                              data: theme.copyWith(
+                                appBarTheme: theme.appBarTheme.copyWith(
+                                  titleTextStyle: theme
+                                      .appBarTheme
+                                      .titleTextStyle
+                                      ?.copyWith(
+                                        color: theme.colorScheme.onSurface,
+                                      ),
+                                  iconTheme: IconThemeData(
+                                    color:
+                                        Theme.of(context).colorScheme.onSurface,
+                                  ),
+                                ),
+                              ),
+                              child: LicensePage(
+                                applicationVersion: _packageInfo.version,
+                              ),
+                            ),
+                      ),
                     );
                   },
                 ),
