@@ -44,6 +44,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       DueReminderThresholdValue.month;
   int _dashboardItemCount = 3;
   String? _pendingShortcutType;
+  bool _coldStartWithQuickAction = false;
 
   void _handleGlobalLogMaintenance(BuildContext context) async {
     final vehicleState = context.read<VehicleCubit>().state;
@@ -190,11 +191,20 @@ class _DashboardScreenState extends State<DashboardScreen>
     quickActions.initialize((String shortcutType) {
       final vehicleState = context.read<VehicleCubit>().state;
       if (vehicleState is VehicleLoaded) {
-        _handleGlobalLogMaintenance(context);
+        if (_coldStartWithQuickAction) {
+          if (mounted) {
+            setState(() {
+              _coldStartWithQuickAction = false;
+            });
+          }
+        } else {
+          _handleGlobalLogMaintenance(context);
+        }
       } else {
         if (mounted) {
           setState(() {
             _pendingShortcutType = shortcutType;
+            _coldStartWithQuickAction = false;
           });
         }
       }
@@ -403,6 +413,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           _handleGlobalLogMaintenance(context);
           setState(() {
             _pendingShortcutType = null;
+            _coldStartWithQuickAction = true;
           });
         }
       },
