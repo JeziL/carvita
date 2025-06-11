@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import 'package:collection/collection.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:quick_actions/quick_actions.dart';
 
 import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/constants/app_routes.dart';
@@ -42,6 +43,7 @@ class _DashboardScreenState extends State<DashboardScreen>
   DueReminderThresholdValue _dashboardThreshold =
       DueReminderThresholdValue.month;
   int _dashboardItemCount = 3;
+  String? _pendingShortcutType;
 
   void _handleGlobalLogMaintenance(BuildContext context) async {
     final vehicleState = context.read<VehicleCubit>().state;
@@ -136,6 +138,7 @@ class _DashboardScreenState extends State<DashboardScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _initializeQuickActions();
     _loadDashboardFilterSettings();
   }
 
@@ -171,6 +174,31 @@ class _DashboardScreenState extends State<DashboardScreen>
   @override
   void didPush() {
     _loadDashboardFilterSettings();
+  }
+
+  void _initializeQuickActions() {
+    const QuickActions quickActions = QuickActions();
+
+    quickActions.setShortcutItems(<ShortcutItem>[
+      const ShortcutItem(
+        type: 'action_log',
+        localizedTitle: 'Log maintenance',
+        icon: 'ic_launcher',
+      ),
+    ]);
+
+    quickActions.initialize((String shortcutType) {
+      final vehicleState = context.read<VehicleCubit>().state;
+      if (vehicleState is VehicleLoaded) {
+        _handleGlobalLogMaintenance(context);
+      } else {
+        if (mounted) {
+          setState(() {
+            _pendingShortcutType = shortcutType;
+          });
+        }
+      }
+    });
   }
 
   Future<void> _loadDashboardFilterSettings() async {
@@ -369,165 +397,176 @@ class _DashboardScreenState extends State<DashboardScreen>
     );
     final themeExtensions = Theme.of(context).extension<AppThemeExtensions>()!;
 
-    return GradientBackground(
-      gradient: themeExtensions.primaryGradient,
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          title: Text(
-            AppLocalizations.of(context)!.dashboardTitle,
-            style: TextStyle(fontSize: 28),
+    return BlocListener<VehicleCubit, VehicleState>(
+      listener: (context, state) {
+        if (_pendingShortcutType != null && state is VehicleLoaded) {
+          _handleGlobalLogMaintenance(context);
+          setState(() {
+            _pendingShortcutType = null;
+          });
+        }
+      },
+      child: GradientBackground(
+        gradient: themeExtensions.primaryGradient,
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          appBar: AppBar(
+            automaticallyImplyLeading: false,
+            title: Text(
+              AppLocalizations.of(context)!.dashboardTitle,
+              style: TextStyle(fontSize: 28),
+            ),
+            backgroundColor: Theme.of(
+              context,
+            ).colorScheme.inverseSurface.withValues(alpha: 0.1),
+            elevation: 0,
+            systemOverlayStyle: const SystemUiOverlayStyle(
+              statusBarIconBrightness: Brightness.light,
+              statusBarBrightness: Brightness.dark,
+            ),
           ),
-          backgroundColor: Theme.of(
-            context,
-          ).colorScheme.inverseSurface.withValues(alpha: 0.1),
-          elevation: 0,
-          systemOverlayStyle: const SystemUiOverlayStyle(
-            statusBarIconBrightness: Brightness.light,
-            statusBarBrightness: Brightness.dark,
-          ),
-        ),
-        body: BlocBuilder<UpcomingMaintenanceCubit, UpcomingMaintenanceState>(
-          builder: (context, upcomingState) {
-            List<PredictedMaintenanceInfo> allPredictions = [];
-            if (upcomingState is UpcomingMaintenanceLoaded) {
-              allPredictions = upcomingState.allPredictions;
-            }
+          body: BlocBuilder<UpcomingMaintenanceCubit, UpcomingMaintenanceState>(
+            builder: (context, upcomingState) {
+              List<PredictedMaintenanceInfo> allPredictions = [];
+              if (upcomingState is UpcomingMaintenanceLoaded) {
+                allPredictions = upcomingState.allPredictions;
+              }
 
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Quick Actions
-                  Row(
-                    children: [
-                      QuickActionButton(
-                        label: AppLocalizations.of(context)!.addVehicle,
-                        icon: Icons.add_circle_outline,
-                        onPressed: () {
-                          Navigator.pushNamed(
-                            context,
-                            AppRoutes.addVehicleRoute,
-                          );
-                        },
-                      ),
-                      const SizedBox(width: 15),
-                      QuickActionButton(
-                        label: AppLocalizations.of(context)!.logMaintenance,
-                        icon: Icons.edit_calendar_outlined,
-                        onPressed: () {
-                          _handleGlobalLogMaintenance(context);
-                        },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 25),
-
-                  // Urgent Reminders
-                  Text(
-                    AppLocalizations.of(context)!.urgentReminders,
-                    style: TextStyle(
-                      color: themeExtensions.textColorOnBackground,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  if (upcomingState is UpcomingMaintenanceLoading)
-                    Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: CircularProgressIndicator(
-                          color: themeExtensions.textColorOnBackground,
-                          strokeWidth: 2,
+              return SingleChildScrollView(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Quick Actions
+                    Row(
+                      children: [
+                        QuickActionButton(
+                          label: AppLocalizations.of(context)!.addVehicle,
+                          icon: Icons.add_circle_outline,
+                          onPressed: () {
+                            Navigator.pushNamed(
+                              context,
+                              AppRoutes.addVehicleRoute,
+                            );
+                          },
                         ),
-                      ),
+                        const SizedBox(width: 15),
+                        QuickActionButton(
+                          label: AppLocalizations.of(context)!.logMaintenance,
+                          icon: Icons.edit_calendar_outlined,
+                          onPressed: () {
+                            _handleGlobalLogMaintenance(context);
+                          },
+                        ),
+                      ],
                     ),
-                  if (upcomingState is UpcomingMaintenanceLoaded)
-                    _buildDashboardUrgentReminders(context, allPredictions),
-                  if (upcomingState is UpcomingMaintenanceError)
-                    Text(
-                      upcomingState.message,
-                      style: const TextStyle(
-                        color: AppColors.urgentReminderText,
-                      ),
-                    ),
-                  const SizedBox(height: 15),
+                    const SizedBox(height: 25),
 
-                  // My Vehicles
-                  Text(
-                    AppLocalizations.of(context)!.myVehicles,
-                    style: TextStyle(
-                      color: themeExtensions.textColorOnBackground,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
+                    // Urgent Reminders
+                    Text(
+                      AppLocalizations.of(context)!.urgentReminders,
+                      style: TextStyle(
+                        color: themeExtensions.textColorOnBackground,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                  ),
-                  BlocBuilder<VehicleCubit, VehicleState>(
-                    builder: (context, state) {
-                      if (state is VehicleLoading) {
-                        return Center(
+                    if (upcomingState is UpcomingMaintenanceLoading)
+                      Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(8.0),
                           child: CircularProgressIndicator(
                             color: themeExtensions.textColorOnBackground,
+                            strokeWidth: 2,
                           ),
-                        );
-                      } else if (state is VehicleLoaded) {
-                        if (state.vehicles.isEmpty) {
-                          return Padding(
-                            padding: EdgeInsets.all(16.0),
-                            child: Center(
-                              child: Text(
-                                AppLocalizations.of(context)!.noVehicles,
-                                style: TextStyle(
-                                  color: themeExtensions.textColorOnBackground,
+                        ),
+                      ),
+                    if (upcomingState is UpcomingMaintenanceLoaded)
+                      _buildDashboardUrgentReminders(context, allPredictions),
+                    if (upcomingState is UpcomingMaintenanceError)
+                      Text(
+                        upcomingState.message,
+                        style: const TextStyle(
+                          color: AppColors.urgentReminderText,
+                        ),
+                      ),
+                    const SizedBox(height: 15),
+
+                    // My Vehicles
+                    Text(
+                      AppLocalizations.of(context)!.myVehicles,
+                      style: TextStyle(
+                        color: themeExtensions.textColorOnBackground,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    BlocBuilder<VehicleCubit, VehicleState>(
+                      builder: (context, state) {
+                        if (state is VehicleLoading) {
+                          return Center(
+                            child: CircularProgressIndicator(
+                              color: themeExtensions.textColorOnBackground,
+                            ),
+                          );
+                        } else if (state is VehicleLoaded) {
+                          if (state.vehicles.isEmpty) {
+                            return Padding(
+                              padding: EdgeInsets.all(16.0),
+                              child: Center(
+                                child: Text(
+                                  AppLocalizations.of(context)!.noVehicles,
+                                  style: TextStyle(
+                                    color:
+                                        themeExtensions.textColorOnBackground,
+                                  ),
                                 ),
+                              ),
+                            );
+                          }
+                          return ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: state.vehicles.length,
+                            itemBuilder: (context, index) {
+                              final vehicle = state.vehicles[index];
+                              return _buildVehicleSummaryCardWithPrediction(
+                                context,
+                                vehicle,
+                                allPredictions,
+                              );
+                            },
+                          );
+                        } else if (state is VehicleError) {
+                          return Center(
+                            child: Text(
+                              state.message,
+                              style: const TextStyle(
+                                color: AppColors.urgentReminderText,
                               ),
                             ),
                           );
                         }
-                        return ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: state.vehicles.length,
-                          itemBuilder: (context, index) {
-                            final vehicle = state.vehicles[index];
-                            return _buildVehicleSummaryCardWithPrediction(
-                              context,
-                              vehicle,
-                              allPredictions,
-                            );
-                          },
-                        );
-                      } else if (state is VehicleError) {
-                        return Center(
-                          child: Text(
-                            state.message,
-                            style: const TextStyle(
-                              color: AppColors.urgentReminderText,
+                        return Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: Center(
+                            child: Text(
+                              AppLocalizations.of(context)!.noVehicles,
+                              style: TextStyle(
+                                color: themeExtensions.textColorOnBackground,
+                              ),
                             ),
                           ),
                         );
-                      }
-                      return Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: Center(
-                          child: Text(
-                            AppLocalizations.of(context)!.noVehicles,
-                            style: TextStyle(
-                              color: themeExtensions.textColorOnBackground,
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            );
-          },
+                      },
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+          bottomNavigationBar: const MainBottomNavigationBar(currentIndex: 0),
         ),
-        bottomNavigationBar: const MainBottomNavigationBar(currentIndex: 0),
       ),
     );
   }
