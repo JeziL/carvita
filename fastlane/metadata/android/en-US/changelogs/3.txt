@@ -1,0 +1,1 @@
+- Fix: wrong app bar title color of the license page under light mode.

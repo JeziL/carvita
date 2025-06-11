@@ -46,12 +46,19 @@ jobs:
       - name: Build APK
         run: flutter build apk
 
-      - name: Get Tag Message
-        id: tag_message
+      - name: Get Changelog
+        id: get_change_log
         if: github.event_name == 'push'
         run: |
-          git tag -l --format="%(contents)" ${{ github.ref_name }} > ${{ github.workspace }}-CHANGELOG.txt
-          echo "Tag message saved to RELEASE_NOTES.md"
+          tag=${{ github.ref_name }}
+          version_code="${tag#*+}"
+          changelog_file="fastlane/metadata/android/en-US/changelogs/${version_code}.txt"
+          if [ ! -f "$changelog_file" ]; then
+            echo "Changelog file '$changelog_file' not found!"
+            exit 1
+          fi
+          content=$(cat "$changelog_file")
+          echo "content=$content" >> "$GITHUB_OUTPUT"
 
       - name: Create Release and Upload APK
         uses: softprops/action-gh-release@v2
@@ -60,7 +67,7 @@ jobs:
           files: build/app/outputs/apk/release/app-release.apk
           tag_name: ${{ github.ref_name }}
           name: Release ${{ github.ref_name }}
-          body_path: ${{ github.workspace }}-CHANGELOG.txt
+          body: ${{ steps.get_change_log.outputs.content }}
           draft: false
           prerelease: false
         env:
