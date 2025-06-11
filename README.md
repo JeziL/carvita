@@ -1,5 +1,24 @@
 <p align="center">
-<img src="./assets/icon/icon.png" width="120" title="CarVita">
+  <br/>
+  <a href="https://opensource.org/license/agpl-v3" target="_blank">
+    <img src="https://img.shields.io/github/license/JeziL/carvita?style=for-the-badge&color=39a9db&logoColor=000000&labelColor=ececec">
+  </a>
+  &nbsp;
+  <img src="https://img.shields.io/github/actions/workflow/status/JeziL/carvita/flutter.yml?style=for-the-badge&logoColor=000000&labelColor=ececec">
+  &nbsp;
+  <a href="https://github.com/JeziL/carvita/releases/latest">
+    <img src="https://img.shields.io/github/v/release/JeziL/carvita?style=for-the-badge&color=f39237&logoColor=000000&labelColor=ececec">
+  </a>
+  &nbsp;
+  <a href="https://f-droid.org/packages/com.wangjinli.carvita" target="_blank">
+    <img src="https://img.shields.io/f-droid/v/com.wangjinli.carvita?style=for-the-badge&color=f39237&logoColor=000000&labelColor=ececec">
+  </a>
+  <br/>
+  <br/>
+</p>
+
+<p align="center">
+  <img src="./assets/icon/icon.png" width="120" title="CarVita">
 </p>
 
 <h1 align="center">CarVita</h1>
