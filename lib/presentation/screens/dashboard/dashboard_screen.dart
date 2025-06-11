@@ -186,9 +186,22 @@ class _DashboardScreenState extends State<DashboardScreen>
         localizedTitle: 'Log maintenance',
         icon: 'ic_launcher',
       ),
+      const ShortcutItem(
+        type: 'action_upcoming_list',
+        localizedTitle: 'Upcoming maintenance',
+        icon: 'ic_launcher',
+      ),
     ]);
 
     quickActions.initialize((String shortcutType) {
+      if (shortcutType == "action_upcoming_list") {
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          AppRoutes.upcomingMaintenanceRoute,
+          (_) => false,
+        );
+        return;
+      }
       final vehicleState = context.read<VehicleCubit>().state;
       if (vehicleState is VehicleLoaded) {
         if (_coldStartWithQuickAction) {
