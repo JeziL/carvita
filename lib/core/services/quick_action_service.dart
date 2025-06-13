@@ -28,21 +28,8 @@ class QuickActionService {
     required this.preferencesService,
   });
 
-  void initialize() {
+  void initializeListener() {
     const QuickActions quickActions = QuickActions();
-
-    quickActions.setShortcutItems(<ShortcutItem>[
-      const ShortcutItem(
-        type: 'action_log',
-        localizedTitle: 'Log maintenance',
-        icon: 'ic_launcher',
-      ),
-      const ShortcutItem(
-        type: 'action_upcoming_list',
-        localizedTitle: 'Upcoming maintenance',
-        icon: 'ic_launcher',
-      ),
-    ]);
 
     quickActions.initialize((String shortcutType) {
       if (shortcutType == 'action_log') {
@@ -55,6 +42,24 @@ class QuickActionService {
         );
       }
     });
+  }
+
+  void updateShortcutItems(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    const QuickActions quickActions = QuickActions();
+
+    quickActions.setShortcutItems(<ShortcutItem>[
+      ShortcutItem(
+        type: 'action_log',
+        localizedTitle: l10n.logMaintenance,
+        icon: 'ic_launcher',
+      ),
+      ShortcutItem(
+        type: 'action_upcoming_list',
+        localizedTitle: l10n.upcomingMaintenance,
+        icon: 'ic_launcher',
+      ),
+    ]);
   }
 
   void _navigateToLogMaintenance(

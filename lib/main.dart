@@ -63,7 +63,7 @@ Future<void> main() async {
     maintenanceRepository: maintenanceRepository,
     preferencesService: preferencesService,
   );
-  quickActionService.initialize();
+  quickActionService.initializeListener();
   runApp(
     MultiProvider(
       providers: [
@@ -187,19 +187,67 @@ class CarVitaApp extends StatelessWidget {
 
             builder: (context, child) {
               final MediaQueryData data = MediaQuery.of(context);
-              return MediaQuery(
-                data: data.copyWith(
-                  textScaler: data.textScaler.clamp(
-                    minScaleFactor: 0.8,
-                    maxScaleFactor: 1.2,
-                  ), // restrict text scaling
+              return ShortcutLocalizationWrapper(
+                locale: localeProvider.appLocale,
+                child: MediaQuery(
+                  data: data.copyWith(
+                    textScaler: data.textScaler.clamp(
+                      minScaleFactor: 0.8,
+                      maxScaleFactor: 1.2,
+                    ), // restrict text scaling
+                  ),
+                  child: child!,
                 ),
-                child: child!,
               );
             },
           );
         },
       ),
     );
+  }
+}
+
+class ShortcutLocalizationWrapper extends StatefulWidget {
+  final Widget child;
+  final Locale? locale;
+
+  const ShortcutLocalizationWrapper({
+    super.key,
+    required this.child,
+    required this.locale,
+  });
+
+  @override
+  State<ShortcutLocalizationWrapper> createState() =>
+      _ShortcutLocalizationWrapperState();
+}
+
+class _ShortcutLocalizationWrapperState
+    extends State<ShortcutLocalizationWrapper> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _updateShortcuts();
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant ShortcutLocalizationWrapper oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.locale != oldWidget.locale) {
+      _updateShortcuts();
+    }
+  }
+
+  void _updateShortcuts() {
+    if (mounted) {
+      context.read<QuickActionService>().updateShortcutItems(context);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.child;
   }
 }
