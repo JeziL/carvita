@@ -3,20 +3,17 @@ import 'package:flutter/services.dart';
 
 import 'package:collection/collection.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:quick_actions/quick_actions.dart';
 
 import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/constants/app_routes.dart';
 import 'package:carvita/core/services/preferences_service.dart';
+import 'package:carvita/core/services/quick_action_service.dart';
 import 'package:carvita/core/theme/app_theme.dart';
 import 'package:carvita/core/widgets/gradient_background.dart';
 import 'package:carvita/data/models/predicted_maintenance.dart';
 import 'package:carvita/data/models/vehicle.dart';
-import 'package:carvita/data/repositories/maintenance_repository.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/main.dart';
-import 'package:carvita/presentation/manager/maintenance_plan/maintenance_plan_cubit.dart';
-import 'package:carvita/presentation/manager/service_log/service_log_cubit.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_state.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_cubit.dart';
@@ -24,11 +21,6 @@ import 'package:carvita/presentation/manager/vehicle_list/vehicle_state.dart';
 import 'package:carvita/presentation/screens/common_widgets/main_bottom_navigation_bar.dart';
 import 'package:carvita/presentation/screens/dashboard/widgets/quick_action_button.dart';
 import 'package:carvita/presentation/screens/dashboard/widgets/vehicle_summary_card.dart';
-import 'package:carvita/presentation/screens/maintenance/log_maintenance_screen.dart';
-import 'package:carvita/presentation/screens/vehicle/select_vehicle_screen.dart';
-
-import 'package:carvita/presentation/manager/vehicle_list/vehicle_state.dart'
-    as vehicle_list_state_import;
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -43,103 +35,11 @@ class _DashboardScreenState extends State<DashboardScreen>
   DueReminderThresholdValue _dashboardThreshold =
       DueReminderThresholdValue.month;
   int _dashboardItemCount = 3;
-  String? _pendingShortcutType;
-  bool _coldStartWithQuickAction = false;
-
-  void _handleGlobalLogMaintenance(BuildContext context) async {
-    final vehicleState = context.read<VehicleCubit>().state;
-
-    if (vehicleState is vehicle_list_state_import.VehicleLoaded) {
-      final vehicles = vehicleState.vehicles;
-      if (vehicles.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context)!.errNoVehicleToLog),
-            backgroundColor: AppColors.urgentReminderText,
-          ),
-        );
-        // Optionally navigate to AddVehicleScreen
-        // Navigator.pushNamed(context, AppRouter.addEditVehicleRoute);
-      } else if (vehicles.length == 1) {
-        _navigateToLogMaintenance(
-          context,
-          vehicles.first.id!,
-          vehicles.first.name,
-        );
-      } else {
-        final defaultVehicleId =
-            await _preferencesService.getDefaultVehicleId();
-        if (defaultVehicleId != null) {
-          final defaultVehicle = vehicleState.vehicles.firstWhereOrNull(
-            (v) => v.id == defaultVehicleId,
-          );
-          if (defaultVehicle != null) {
-            // Default vehicle exists and is valid
-            if (context.mounted) {
-              _navigateToLogMaintenance(
-                context,
-                defaultVehicle.id!,
-                defaultVehicle.name,
-              );
-            }
-            return;
-          } else {
-            // Default vehicle ID was stored but vehicle no longer exists, clear it
-            await _preferencesService.setDefaultVehicleId(null);
-          }
-        }
-        if (context.mounted) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => SelectVehicleScreen(vehicles: vehicles),
-            ),
-          );
-        }
-      }
-    }
-  }
-
-  void _navigateToLogMaintenance(
-    BuildContext context,
-    int vehicleId,
-    String vehicleName,
-  ) {
-    final maintenanceRepository = MaintenanceRepository();
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder:
-            (newRouteContext) => MultiBlocProvider(
-              providers: [
-                BlocProvider(
-                  create:
-                      (_) =>
-                          MaintenancePlanCubit(maintenanceRepository, vehicleId)
-                            ..fetchPlanItems(),
-                ),
-                BlocProvider(
-                  create:
-                      (_) =>
-                          ServiceLogCubit(maintenanceRepository, vehicleId)
-                            ..fetchServiceLogs(),
-                ),
-              ],
-              child: LogMaintenanceScreen(
-                vehicleId: vehicleId,
-                vehicleName: vehicleName,
-                logToEdit: null,
-              ),
-            ),
-      ),
-    );
-  }
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _initializeQuickActions();
     _loadDashboardFilterSettings();
   }
 
@@ -175,53 +75,6 @@ class _DashboardScreenState extends State<DashboardScreen>
   @override
   void didPush() {
     _loadDashboardFilterSettings();
-  }
-
-  void _initializeQuickActions() {
-    const QuickActions quickActions = QuickActions();
-
-    quickActions.setShortcutItems(<ShortcutItem>[
-      const ShortcutItem(
-        type: 'action_log',
-        localizedTitle: 'Log maintenance',
-        icon: 'ic_launcher',
-      ),
-      const ShortcutItem(
-        type: 'action_upcoming_list',
-        localizedTitle: 'Upcoming maintenance',
-        icon: 'ic_launcher',
-      ),
-    ]);
-
-    quickActions.initialize((String shortcutType) {
-      if (shortcutType == "action_upcoming_list") {
-        Navigator.pushNamedAndRemoveUntil(
-          context,
-          AppRoutes.upcomingMaintenanceRoute,
-          (_) => false,
-        );
-        return;
-      }
-      final vehicleState = context.read<VehicleCubit>().state;
-      if (vehicleState is VehicleLoaded) {
-        if (_coldStartWithQuickAction) {
-          if (mounted) {
-            setState(() {
-              _coldStartWithQuickAction = false;
-            });
-          }
-        } else {
-          _handleGlobalLogMaintenance(context);
-        }
-      } else {
-        if (mounted) {
-          setState(() {
-            _pendingShortcutType = shortcutType;
-            _coldStartWithQuickAction = false;
-          });
-        }
-      }
-    });
   }
 
   Future<void> _loadDashboardFilterSettings() async {
@@ -420,177 +273,167 @@ class _DashboardScreenState extends State<DashboardScreen>
     );
     final themeExtensions = Theme.of(context).extension<AppThemeExtensions>()!;
 
-    return BlocListener<VehicleCubit, VehicleState>(
-      listener: (context, state) {
-        if (_pendingShortcutType != null && state is VehicleLoaded) {
-          _handleGlobalLogMaintenance(context);
-          setState(() {
-            _pendingShortcutType = null;
-            _coldStartWithQuickAction = true;
-          });
-        }
-      },
-      child: GradientBackground(
-        gradient: themeExtensions.primaryGradient,
-        child: Scaffold(
-          backgroundColor: Colors.transparent,
-          appBar: AppBar(
-            automaticallyImplyLeading: false,
-            title: Text(
-              AppLocalizations.of(context)!.dashboardTitle,
-              style: TextStyle(fontSize: 28),
-            ),
-            backgroundColor: Theme.of(
-              context,
-            ).colorScheme.inverseSurface.withValues(alpha: 0.1),
-            elevation: 0,
-            systemOverlayStyle: const SystemUiOverlayStyle(
-              statusBarIconBrightness: Brightness.light,
-              statusBarBrightness: Brightness.dark,
-            ),
+    return GradientBackground(
+      gradient: themeExtensions.primaryGradient,
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          title: Text(
+            AppLocalizations.of(context)!.dashboardTitle,
+            style: TextStyle(fontSize: 28),
           ),
-          body: BlocBuilder<UpcomingMaintenanceCubit, UpcomingMaintenanceState>(
-            builder: (context, upcomingState) {
-              List<PredictedMaintenanceInfo> allPredictions = [];
-              if (upcomingState is UpcomingMaintenanceLoaded) {
-                allPredictions = upcomingState.allPredictions;
-              }
+          backgroundColor: Theme.of(
+            context,
+          ).colorScheme.inverseSurface.withValues(alpha: 0.1),
+          elevation: 0,
+          systemOverlayStyle: const SystemUiOverlayStyle(
+            statusBarIconBrightness: Brightness.light,
+            statusBarBrightness: Brightness.dark,
+          ),
+        ),
+        body: BlocBuilder<UpcomingMaintenanceCubit, UpcomingMaintenanceState>(
+          builder: (context, upcomingState) {
+            List<PredictedMaintenanceInfo> allPredictions = [];
+            if (upcomingState is UpcomingMaintenanceLoaded) {
+              allPredictions = upcomingState.allPredictions;
+            }
 
-              return SingleChildScrollView(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Quick Actions
-                    Row(
-                      children: [
-                        QuickActionButton(
-                          label: AppLocalizations.of(context)!.addVehicle,
-                          icon: Icons.add_circle_outline,
-                          onPressed: () {
-                            Navigator.pushNamed(
-                              context,
-                              AppRoutes.addVehicleRoute,
-                            );
-                          },
-                        ),
-                        const SizedBox(width: 15),
-                        QuickActionButton(
-                          label: AppLocalizations.of(context)!.logMaintenance,
-                          icon: Icons.edit_calendar_outlined,
-                          onPressed: () {
-                            _handleGlobalLogMaintenance(context);
-                          },
-                        ),
-                      ],
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Quick Actions
+                  Row(
+                    children: [
+                      QuickActionButton(
+                        label: AppLocalizations.of(context)!.addVehicle,
+                        icon: Icons.add_circle_outline,
+                        onPressed: () {
+                          Navigator.pushNamed(
+                            context,
+                            AppRoutes.addVehicleRoute,
+                          );
+                        },
+                      ),
+                      const SizedBox(width: 15),
+                      QuickActionButton(
+                        label: AppLocalizations.of(context)!.logMaintenance,
+                        icon: Icons.edit_calendar_outlined,
+                        onPressed: () {
+                          context
+                              .read<QuickActionService>()
+                              .handleLogMaintenanceRequest(context);
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 25),
+
+                  // Urgent Reminders
+                  Text(
+                    AppLocalizations.of(context)!.urgentReminders,
+                    style: TextStyle(
+                      color: themeExtensions.textColorOnBackground,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
                     ),
-                    const SizedBox(height: 25),
-
-                    // Urgent Reminders
-                    Text(
-                      AppLocalizations.of(context)!.urgentReminders,
-                      style: TextStyle(
-                        color: themeExtensions.textColorOnBackground,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w500,
+                  ),
+                  if (upcomingState is UpcomingMaintenanceLoading)
+                    Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: CircularProgressIndicator(
+                          color: themeExtensions.textColorOnBackground,
+                          strokeWidth: 2,
+                        ),
                       ),
                     ),
-                    if (upcomingState is UpcomingMaintenanceLoading)
-                      Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(8.0),
+                  if (upcomingState is UpcomingMaintenanceLoaded)
+                    _buildDashboardUrgentReminders(context, allPredictions),
+                  if (upcomingState is UpcomingMaintenanceError)
+                    Text(
+                      upcomingState.message,
+                      style: const TextStyle(
+                        color: AppColors.urgentReminderText,
+                      ),
+                    ),
+                  const SizedBox(height: 15),
+
+                  // My Vehicles
+                  Text(
+                    AppLocalizations.of(context)!.myVehicles,
+                    style: TextStyle(
+                      color: themeExtensions.textColorOnBackground,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  BlocBuilder<VehicleCubit, VehicleState>(
+                    builder: (context, state) {
+                      if (state is VehicleLoading) {
+                        return Center(
                           child: CircularProgressIndicator(
                             color: themeExtensions.textColorOnBackground,
-                            strokeWidth: 2,
                           ),
-                        ),
-                      ),
-                    if (upcomingState is UpcomingMaintenanceLoaded)
-                      _buildDashboardUrgentReminders(context, allPredictions),
-                    if (upcomingState is UpcomingMaintenanceError)
-                      Text(
-                        upcomingState.message,
-                        style: const TextStyle(
-                          color: AppColors.urgentReminderText,
-                        ),
-                      ),
-                    const SizedBox(height: 15),
-
-                    // My Vehicles
-                    Text(
-                      AppLocalizations.of(context)!.myVehicles,
-                      style: TextStyle(
-                        color: themeExtensions.textColorOnBackground,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    BlocBuilder<VehicleCubit, VehicleState>(
-                      builder: (context, state) {
-                        if (state is VehicleLoading) {
-                          return Center(
-                            child: CircularProgressIndicator(
-                              color: themeExtensions.textColorOnBackground,
-                            ),
-                          );
-                        } else if (state is VehicleLoaded) {
-                          if (state.vehicles.isEmpty) {
-                            return Padding(
-                              padding: EdgeInsets.all(16.0),
-                              child: Center(
-                                child: Text(
-                                  AppLocalizations.of(context)!.noVehicles,
-                                  style: TextStyle(
-                                    color:
-                                        themeExtensions.textColorOnBackground,
-                                  ),
+                        );
+                      } else if (state is VehicleLoaded) {
+                        if (state.vehicles.isEmpty) {
+                          return Padding(
+                            padding: EdgeInsets.all(16.0),
+                            child: Center(
+                              child: Text(
+                                AppLocalizations.of(context)!.noVehicles,
+                                style: TextStyle(
+                                  color: themeExtensions.textColorOnBackground,
                                 ),
-                              ),
-                            );
-                          }
-                          return ListView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: state.vehicles.length,
-                            itemBuilder: (context, index) {
-                              final vehicle = state.vehicles[index];
-                              return _buildVehicleSummaryCardWithPrediction(
-                                context,
-                                vehicle,
-                                allPredictions,
-                              );
-                            },
-                          );
-                        } else if (state is VehicleError) {
-                          return Center(
-                            child: Text(
-                              state.message,
-                              style: const TextStyle(
-                                color: AppColors.urgentReminderText,
                               ),
                             ),
                           );
                         }
-                        return Padding(
-                          padding: EdgeInsets.all(16.0),
-                          child: Center(
-                            child: Text(
-                              AppLocalizations.of(context)!.noVehicles,
-                              style: TextStyle(
-                                color: themeExtensions.textColorOnBackground,
-                              ),
+                        return ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: state.vehicles.length,
+                          itemBuilder: (context, index) {
+                            final vehicle = state.vehicles[index];
+                            return _buildVehicleSummaryCardWithPrediction(
+                              context,
+                              vehicle,
+                              allPredictions,
+                            );
+                          },
+                        );
+                      } else if (state is VehicleError) {
+                        return Center(
+                          child: Text(
+                            state.message,
+                            style: const TextStyle(
+                              color: AppColors.urgentReminderText,
                             ),
                           ),
                         );
-                      },
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-          bottomNavigationBar: const MainBottomNavigationBar(currentIndex: 0),
+                      }
+                      return Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: Center(
+                          child: Text(
+                            AppLocalizations.of(context)!.noVehicles,
+                            style: TextStyle(
+                              color: themeExtensions.textColorOnBackground,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            );
+          },
         ),
+        bottomNavigationBar: const MainBottomNavigationBar(currentIndex: 0),
       ),
     );
   }
