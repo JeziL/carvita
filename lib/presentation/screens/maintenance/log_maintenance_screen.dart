@@ -137,6 +137,12 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
         _selectedCustomItemNames.add(customName);
         _customItemNameController.clear();
       });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.customItemAddHint),
+        ),
+      );
     }
   }
 
