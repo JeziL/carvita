@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:transparent_image/transparent_image.dart';
+
 import 'package:carvita/data/models/vehicle.dart';
 
 class VehicleSummaryCard extends StatelessWidget {
@@ -32,12 +34,14 @@ class VehicleSummaryCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
                 child:
                     vehicle.image != null && vehicle.image!.isNotEmpty
-                        ? Image.memory(
-                          vehicle.image!,
+                        ? FadeInImage(
+                          placeholder: MemoryImage(kTransparentImage),
+                          image: MemoryImage(vehicle.image!),
+                          fadeInDuration: const Duration(milliseconds: 200),
                           width: 60,
                           height: 60,
                           fit: BoxFit.cover,
-                          errorBuilder:
+                          imageErrorBuilder:
                               (context, error, stackTrace) => Container(
                                 width: 60,
                                 height: 60,

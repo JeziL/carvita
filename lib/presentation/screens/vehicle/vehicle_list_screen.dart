@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:transparent_image/transparent_image.dart';
 
 import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/constants/app_routes.dart';
@@ -165,12 +166,16 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
                         vehicle.image != null && vehicle.image!.isNotEmpty
                             ? ClipRRect(
                               borderRadius: BorderRadius.circular(8.0),
-                              child: Image.memory(
-                                vehicle.image!,
+                              child: FadeInImage(
+                                placeholder: MemoryImage(kTransparentImage),
+                                image: MemoryImage(vehicle.image!),
+                                fadeInDuration: const Duration(
+                                  milliseconds: 200,
+                                ),
                                 width: 70,
                                 height: 70,
                                 fit: BoxFit.cover,
-                                errorBuilder:
+                                imageErrorBuilder:
                                     (context, error, stackTrace) => Container(
                                       width: 70,
                                       height: 70,
