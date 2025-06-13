@@ -57,8 +57,7 @@ jobs:
             echo "Changelog file '$changelog_file' not found!"
             exit 1
           fi
-          content=$(cat "$changelog_file")
-          echo "content=$content" >> "$GITHUB_OUTPUT"
+          echo "path=$changelog_file" >> "$GITHUB_OUTPUT"
 
       - name: Create Release and Upload APK
         uses: softprops/action-gh-release@v2
@@ -67,7 +66,7 @@ jobs:
           files: build/app/outputs/apk/release/app-release.apk
           tag_name: ${{ github.ref_name }}
           name: Release ${{ github.ref_name }}
-          body: ${{ steps.get_change_log.outputs.content }}
+          body_path: ${{ steps.get_change_log.outputs.path }}
           draft: false
           prerelease: false
         env:
