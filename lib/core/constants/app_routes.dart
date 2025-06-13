@@ -1,6 +1,5 @@
 class AppRoutes {
-  static const String splashRoute = '/';
-  static const String dashboardRoute = '/dashboard';
+  static const String dashboardRoute = '/';
   static const String vehicleListRoute = '/vehicle-list';
   static const String addVehicleRoute = '/add-vehicle';
   static const String vehicleDetailsRoute = '/vehicle-details';

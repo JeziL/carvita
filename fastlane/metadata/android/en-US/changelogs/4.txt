@@ -1,0 +1,1 @@
+- Fix: backing to undefined route from the dashboard page.
