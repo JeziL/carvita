@@ -52,12 +52,12 @@ class QuickActionService {
       ShortcutItem(
         type: 'action_log',
         localizedTitle: l10n.logMaintenance,
-        icon: 'ic_launcher',
+        icon: 'ic_action_log',
       ),
       ShortcutItem(
         type: 'action_upcoming_list',
         localizedTitle: l10n.upcomingMaintenance,
-        icon: 'ic_launcher',
+        icon: 'ic_action_list',
       ),
     ]);
   }
