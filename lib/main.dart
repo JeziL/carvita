@@ -7,9 +7,11 @@ import 'package:provider/provider.dart';
 
 import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/constants/app_routes.dart';
+import 'package:carvita/core/services/navigation_service.dart';
 import 'package:carvita/core/services/notification_service.dart';
 import 'package:carvita/core/services/prediction_service.dart';
 import 'package:carvita/core/services/preferences_service.dart';
+import 'package:carvita/core/services/quick_action_service.dart';
 import 'package:carvita/core/theme/app_theme.dart';
 import 'package:carvita/data/repositories/maintenance_repository.dart';
 import 'package:carvita/data/repositories/vehicle_repository.dart';
@@ -51,24 +53,56 @@ Future<void> main() async {
   await notificationService.requestPermissions();
   await findSystemLocale();
   final preferencesService = PreferencesService();
-  runApp(CarVitaApp(preferencesService: preferencesService));
+  final databaseHelper = DatabaseHelper();
+  final vehicleRepository = VehicleRepository(dbHelper: databaseHelper);
+  final maintenanceRepository = MaintenanceRepository(dbHelper: databaseHelper);
+  final predictionService = PredictionService();
+
+  final quickActionService = QuickActionService(
+    vehicleRepository: vehicleRepository,
+    maintenanceRepository: maintenanceRepository,
+    preferencesService: preferencesService,
+  );
+  quickActionService.initializeListener();
+  runApp(
+    MultiProvider(
+      providers: [
+        Provider<QuickActionService>.value(value: quickActionService),
+        ChangeNotifierProvider(
+          create: (_) => LocaleProvider(preferencesService),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => ThemeProvider(preferencesService),
+        ),
+      ],
+      child: CarVitaApp(
+        preferencesService: preferencesService,
+        vehicleRepository: vehicleRepository,
+        maintenanceRepository: maintenanceRepository,
+        predictionService: predictionService,
+        notificationService: notificationService,
+      ),
+    ),
+  );
 }
 
 class CarVitaApp extends StatelessWidget {
   final PreferencesService preferencesService;
-  const CarVitaApp({super.key, required this.preferencesService});
+  final VehicleRepository vehicleRepository;
+  final MaintenanceRepository maintenanceRepository;
+  final PredictionService predictionService;
+  final NotificationService notificationService;
+  const CarVitaApp({
+    super.key,
+    required this.preferencesService,
+    required this.vehicleRepository,
+    required this.maintenanceRepository,
+    required this.predictionService,
+    required this.notificationService,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final databaseHelper = DatabaseHelper();
-    final preferencesService = PreferencesService();
-    final predictionService = PredictionService();
-    final notificationService = NotificationService();
-    final vehicleRepository = VehicleRepository(dbHelper: databaseHelper);
-    final maintenanceRepository = MaintenanceRepository(
-      dbHelper: databaseHelper,
-    );
-
     return MultiBlocProvider(
       providers: [
         BlocProvider<VehicleCubit>(
@@ -89,12 +123,6 @@ class CarVitaApp extends StatelessWidget {
               )..loadAllUpcomingMaintenance(
                 AppLocalizations.of(context),
               ), // load on app start
-        ),
-        ChangeNotifierProvider(
-          create: (_) => LocaleProvider(preferencesService),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => ThemeProvider(preferencesService),
         ),
       ],
       child: Consumer2<LocaleProvider, ThemeProvider>(
@@ -138,6 +166,8 @@ class CarVitaApp extends StatelessWidget {
             themeMode: themeProvider.themeMode,
             debugShowCheckedModeBanner: false,
 
+            navigatorKey: NavigationService.navigatorKey,
+
             // router
             onGenerateRoute: AppRouter.generateRoute,
             initialRoute: AppRoutes.dashboardRoute,
@@ -157,19 +187,67 @@ class CarVitaApp extends StatelessWidget {
 
             builder: (context, child) {
               final MediaQueryData data = MediaQuery.of(context);
-              return MediaQuery(
-                data: data.copyWith(
-                  textScaler: data.textScaler.clamp(
-                    minScaleFactor: 0.8,
-                    maxScaleFactor: 1.2,
-                  ), // restrict text scaling
+              return ShortcutLocalizationWrapper(
+                locale: localeProvider.appLocale,
+                child: MediaQuery(
+                  data: data.copyWith(
+                    textScaler: data.textScaler.clamp(
+                      minScaleFactor: 0.8,
+                      maxScaleFactor: 1.2,
+                    ), // restrict text scaling
+                  ),
+                  child: child!,
                 ),
-                child: child!,
               );
             },
           );
         },
       ),
     );
+  }
+}
+
+class ShortcutLocalizationWrapper extends StatefulWidget {
+  final Widget child;
+  final Locale? locale;
+
+  const ShortcutLocalizationWrapper({
+    super.key,
+    required this.child,
+    required this.locale,
+  });
+
+  @override
+  State<ShortcutLocalizationWrapper> createState() =>
+      _ShortcutLocalizationWrapperState();
+}
+
+class _ShortcutLocalizationWrapperState
+    extends State<ShortcutLocalizationWrapper> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _updateShortcuts();
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant ShortcutLocalizationWrapper oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.locale != oldWidget.locale) {
+      _updateShortcuts();
+    }
+  }
+
+  void _updateShortcuts() {
+    if (mounted) {
+      context.read<QuickActionService>().updateShortcutItems(context);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.child;
   }
 }

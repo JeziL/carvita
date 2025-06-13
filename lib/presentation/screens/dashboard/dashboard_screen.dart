@@ -7,15 +7,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/constants/app_routes.dart';
 import 'package:carvita/core/services/preferences_service.dart';
+import 'package:carvita/core/services/quick_action_service.dart';
 import 'package:carvita/core/theme/app_theme.dart';
 import 'package:carvita/core/widgets/gradient_background.dart';
 import 'package:carvita/data/models/predicted_maintenance.dart';
 import 'package:carvita/data/models/vehicle.dart';
-import 'package:carvita/data/repositories/maintenance_repository.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/main.dart';
-import 'package:carvita/presentation/manager/maintenance_plan/maintenance_plan_cubit.dart';
-import 'package:carvita/presentation/manager/service_log/service_log_cubit.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_state.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_cubit.dart';
@@ -23,11 +21,6 @@ import 'package:carvita/presentation/manager/vehicle_list/vehicle_state.dart';
 import 'package:carvita/presentation/screens/common_widgets/main_bottom_navigation_bar.dart';
 import 'package:carvita/presentation/screens/dashboard/widgets/quick_action_button.dart';
 import 'package:carvita/presentation/screens/dashboard/widgets/vehicle_summary_card.dart';
-import 'package:carvita/presentation/screens/maintenance/log_maintenance_screen.dart';
-import 'package:carvita/presentation/screens/vehicle/select_vehicle_screen.dart';
-
-import 'package:carvita/presentation/manager/vehicle_list/vehicle_state.dart'
-    as vehicle_list_state_import;
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -42,95 +35,6 @@ class _DashboardScreenState extends State<DashboardScreen>
   DueReminderThresholdValue _dashboardThreshold =
       DueReminderThresholdValue.month;
   int _dashboardItemCount = 3;
-
-  void _handleGlobalLogMaintenance(BuildContext context) async {
-    final vehicleState = context.read<VehicleCubit>().state;
-
-    if (vehicleState is vehicle_list_state_import.VehicleLoaded) {
-      final vehicles = vehicleState.vehicles;
-      if (vehicles.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context)!.errNoVehicleToLog),
-            backgroundColor: AppColors.urgentReminderText,
-          ),
-        );
-        // Optionally navigate to AddVehicleScreen
-        // Navigator.pushNamed(context, AppRouter.addEditVehicleRoute);
-      } else if (vehicles.length == 1) {
-        _navigateToLogMaintenance(
-          context,
-          vehicles.first.id!,
-          vehicles.first.name,
-        );
-      } else {
-        final defaultVehicleId =
-            await _preferencesService.getDefaultVehicleId();
-        if (defaultVehicleId != null) {
-          final defaultVehicle = vehicleState.vehicles.firstWhereOrNull(
-            (v) => v.id == defaultVehicleId,
-          );
-          if (defaultVehicle != null) {
-            // Default vehicle exists and is valid
-            if (context.mounted) {
-              _navigateToLogMaintenance(
-                context,
-                defaultVehicle.id!,
-                defaultVehicle.name,
-              );
-            }
-            return;
-          } else {
-            // Default vehicle ID was stored but vehicle no longer exists, clear it
-            await _preferencesService.setDefaultVehicleId(null);
-          }
-        }
-        if (context.mounted) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => SelectVehicleScreen(vehicles: vehicles),
-            ),
-          );
-        }
-      }
-    }
-  }
-
-  void _navigateToLogMaintenance(
-    BuildContext context,
-    int vehicleId,
-    String vehicleName,
-  ) {
-    final maintenanceRepository = MaintenanceRepository();
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder:
-            (newRouteContext) => MultiBlocProvider(
-              providers: [
-                BlocProvider(
-                  create:
-                      (_) =>
-                          MaintenancePlanCubit(maintenanceRepository, vehicleId)
-                            ..fetchPlanItems(),
-                ),
-                BlocProvider(
-                  create:
-                      (_) =>
-                          ServiceLogCubit(maintenanceRepository, vehicleId)
-                            ..fetchServiceLogs(),
-                ),
-              ],
-              child: LogMaintenanceScreen(
-                vehicleId: vehicleId,
-                vehicleName: vehicleName,
-                logToEdit: null,
-              ),
-            ),
-      ),
-    );
-  }
 
   @override
   void initState() {
@@ -418,7 +322,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                         label: AppLocalizations.of(context)!.logMaintenance,
                         icon: Icons.edit_calendar_outlined,
                         onPressed: () {
-                          _handleGlobalLogMaintenance(context);
+                          context
+                              .read<QuickActionService>()
+                              .handleLogMaintenanceRequest(context);
                         },
                       ),
                     ],
