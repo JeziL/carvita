@@ -42,7 +42,10 @@
 
 ## 开始使用
 
-[<img src="https://f-droid.org/badge/get-it-on-zh-cn.png"
+[<img src="../assets/store_badges/gp-cn.png"
+    alt="去 Google Play 商店下载"
+    height="80">](https://play.google.com/store/apps/details?id=com.wangjinli.carvita)
+[<img src="../assets/store_badges/fdroid-cn.png"
     alt="从 F-Droid 下载"
     height="80">](https://f-droid.org/packages/com.wangjinli.carvita)
 
@@ -55,3 +58,5 @@
 ## 许可证
 
 本代码库根据 [GNU AGPLv3 许可证](../../LICENSE.txt)条款开源。
+
+Google Play 是 Google LLC 的商标。
