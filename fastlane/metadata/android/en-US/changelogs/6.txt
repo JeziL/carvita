@@ -1,0 +1,2 @@
+- Adjust launch screen in dark mode.
+- Remove initial interval settings.
