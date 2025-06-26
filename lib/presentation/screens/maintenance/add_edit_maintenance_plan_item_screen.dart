@@ -235,14 +235,17 @@ class _AddEditMaintenancePlanItemScreenState
             color: themeExtensions.textColorOnBackground.withValues(alpha: 0.9),
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 15),
         Row(
           children: [
             Expanded(
               child: TextFormField(
                 controller: timeController,
                 style: TextStyle(color: themeExtensions.textColorOnBackground),
-                decoration: InputDecoration(hintText: timeHint),
+                decoration: InputDecoration(
+                  hintText: timeHint,
+                  labelText: timeHint,
+                ),
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               ),
@@ -252,7 +255,10 @@ class _AddEditMaintenancePlanItemScreenState
               child: TextFormField(
                 controller: mileageController,
                 style: TextStyle(color: themeExtensions.textColorOnBackground),
-                decoration: InputDecoration(hintText: mileageHint),
+                decoration: InputDecoration(
+                  hintText: mileageHint,
+                  labelText: mileageHint,
+                ),
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               ),
@@ -350,17 +356,6 @@ class _AddEditMaintenancePlanItemScreenState
                   mileageHint: AppLocalizations.of(
                     context,
                   )!.mileageHint(localeProvider.mileageUnit),
-                ),
-                const SizedBox(height: 20),
-                _buildIntervalGroup(
-                  title:
-                      "${AppLocalizations.of(context)!.initialInterval} (${AppLocalizations.of(context)!.optionalEntry})",
-                  timeController: _firstIntervalTimeMonthsController,
-                  mileageController: _firstIntervalMileageController,
-                  timeHint: AppLocalizations.of(context)!.firstTimeHint,
-                  mileageHint: AppLocalizations.of(
-                    context,
-                  )!.firstMileageHint(localeProvider.mileageUnit),
                 ),
                 const SizedBox(height: 20),
                 TextFormField(

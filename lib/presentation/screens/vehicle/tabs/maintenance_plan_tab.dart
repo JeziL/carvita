@@ -105,25 +105,6 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
     return "${AppLocalizations.of(context)!.regularInterval}: ${parts.join(' / ')}";
   }
 
-  String _formatFirstInterval(MaintenancePlanItem item) {
-    final localeProvider = context.watch<LocaleProvider>();
-    List<String> parts = [];
-    if (item.firstIntervalMileage != null) {
-      parts.add(
-        AppLocalizations.of(
-          context,
-        )!.nMileage(item.firstIntervalMileage!, localeProvider.mileageUnit),
-      );
-    }
-    if (item.firstIntervalTimeMonths != null) {
-      parts.add(
-        AppLocalizations.of(context)!.nMonth(item.firstIntervalTimeMonths!),
-      );
-    }
-    if (parts.isEmpty) return ""; // No first interval, don't show
-    return "${AppLocalizations.of(context)!.initialInterval}: ${parts.join(' / ')}";
-  }
-
   @override
   Widget build(BuildContext context) {
     final maintenancePlanCubit = BlocProvider.of<MaintenancePlanCubit>(context);
@@ -231,7 +212,6 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
                     itemBuilder: (context, index) {
                       final item = state.planItems[index];
                       final regularIntervalString = _formatInterval(item);
-                      final firstIntervalString = _formatFirstInterval(item);
 
                       return Card(
                         color:
@@ -278,19 +258,6 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
                                             .withValues(alpha: 0.8),
                                       ),
                                     ),
-                                    if (firstIntervalString.isNotEmpty)
-                                      const SizedBox(height: 4),
-                                    if (firstIntervalString.isNotEmpty)
-                                      Text(
-                                        firstIntervalString,
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSurface
-                                              .withValues(alpha: 0.8),
-                                        ),
-                                      ),
                                     if (item.notes != null &&
                                         item.notes!.isNotEmpty)
                                       const SizedBox(height: 4),
