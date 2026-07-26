@@ -145,31 +145,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             ),
                           ),
                         )
-                        : ListView.builder(
-                          shrinkWrap: true,
-                          itemCount: vehicles.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            final vehicle = vehicles[index];
-                            return RadioListTile<int?>(
-                              title: Text(
-                                vehicle.name,
-                                style: TextStyle(
-                                  color:
-                                      Theme.of(context).colorScheme.onSurface,
-                                ),
-                              ),
-                              value: vehicle.id,
-                              groupValue: newSelectedId,
-                              activeColor:
-                                  Theme.of(context).colorScheme.primary,
-                              onChanged: (int? value) {
-                                stfSetState(() {
-                                  newSelectedId = value;
-                                });
-                                Navigator.of(dialogContext).pop(newSelectedId);
-                              },
-                            );
+                        : RadioGroup<int?>(
+                          groupValue: newSelectedId,
+                          onChanged: (int? value) {
+                            stfSetState(() {
+                              newSelectedId = value;
+                            });
+                            Navigator.of(dialogContext).pop(newSelectedId);
                           },
+                          child: ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: vehicles.length,
+                            itemBuilder: (BuildContext context, int index) {
+                              final vehicle = vehicles[index];
+                              return RadioListTile<int?>(
+                                title: Text(
+                                  vehicle.name,
+                                  style: TextStyle(
+                                    color:
+                                        Theme.of(context).colorScheme.onSurface,
+                                  ),
+                                ),
+                                value: vehicle.id,
+                                activeColor:
+                                    Theme.of(context).colorScheme.primary,
+                              );
+                            },
+                          ),
                         ),
               ),
               actionsAlignment: MainAxisAlignment.spaceBetween,
@@ -966,7 +968,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         _triggerNotificationReschedule();
                       }
                     },
-                    activeColor: Theme.of(context).colorScheme.primary,
+                    activeThumbColor: Theme.of(context).colorScheme.primary,
                   ),
                 ),
                 _buildSettingItem(
