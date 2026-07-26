@@ -1,8 +1,7 @@
-import 'dart:async';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:carvita/core/services/notification_service.dart';
+import 'package:carvita/core/services/notification_coordinator.dart';
 import 'package:carvita/core/services/prediction_service.dart';
 import 'package:carvita/core/services/preferences_service.dart';
 import 'package:carvita/data/models/maintenance_plan_item.dart';
@@ -19,14 +18,16 @@ class UpcomingMaintenanceCubit extends Cubit<UpcomingMaintenanceState> {
   final VehicleRepository _vehicleRepository;
   final MaintenanceRepository _maintenanceRepository;
   final PredictionService _predictionService;
-  final NotificationService _notificationService;
+  final NotificationCoordinator _notificationCoordinator;
   final PreferencesService _preferencesService;
+  int _loadRevision = 0;
+  int _notificationRequestRevision = 0;
 
   UpcomingMaintenanceCubit(
     this._vehicleRepository,
     this._maintenanceRepository,
     this._predictionService,
-    this._notificationService,
+    this._notificationCoordinator,
     this._preferencesService,
   ) : super(UpcomingMaintenanceInitial());
 
@@ -34,6 +35,7 @@ class UpcomingMaintenanceCubit extends Cubit<UpcomingMaintenanceState> {
     AppLocalizations? l10n, {
     Duration horizon = const Duration(days: 365),
   }) async {
+    final int loadRevision = ++_loadRevision;
     emit(UpcomingMaintenanceLoading());
     try {
       final List<Vehicle> vehicles = await _vehicleRepository.getVehicles();
@@ -68,64 +70,80 @@ class UpcomingMaintenanceCubit extends Cubit<UpcomingMaintenanceState> {
         allPredictions.addAll(vehiclePredictions);
       }
 
+      if (loadRevision != _loadRevision || isClosed) return;
+
       allPredictions.sort((a, b) => a.compareTo(b)); // Sort all by due date
       emit(UpcomingMaintenanceLoaded(allPredictions));
       if (l10n != null) {
-        await _scheduleNotifications(allPredictions, l10n);
+        try {
+          await _scheduleNotifications(allPredictions, l10n);
+        } catch (error, stackTrace) {
+          debugPrint(
+            'Failed to synchronize maintenance notifications: $error\n'
+            '$stackTrace',
+          );
+        }
       }
     } catch (e) {
+      if (loadRevision != _loadRevision || isClosed) return;
       emit(UpcomingMaintenanceError(e.toString()));
     }
   }
 
   Future<void> _scheduleNotifications(
     List<PredictedMaintenanceInfo> predictions,
-    AppLocalizations? l10n,
+    AppLocalizations l10n,
   ) async {
-    await _notificationService.cancelAllNotifications();
+    final int requestRevision = ++_notificationRequestRevision;
 
     final bool notificationsEnabled =
         await _preferencesService.getNotificationsEnabled();
+    if (requestRevision != _notificationRequestRevision) return;
+
     if (!notificationsEnabled) {
+      await _notificationCoordinator.replaceAll(const []);
       return;
     }
 
     final int leadTimeDays =
         await _preferencesService.getReminderLeadTimeDays();
+    if (requestRevision != _notificationRequestRevision) return;
 
-    for (var prediction in predictions) {
-      DateTime notificationTime = prediction.predictedDueDate
-          .subtract(Duration(days: leadTimeDays))
-          .copyWith(
-            hour: 12,
-            minute: 0,
-            second: 0,
-            millisecond: 0,
-            microsecond: 0,
+    final DateTime now = DateTime.now();
+    final List<NotificationRequest> requests = predictions
+        .map((prediction) {
+          final DateTime notificationTime = prediction.predictedDueDate
+              .subtract(Duration(days: leadTimeDays))
+              .copyWith(
+                hour: 12,
+                minute: 0,
+                second: 0,
+                millisecond: 0,
+                microsecond: 0,
+              );
+          if (!notificationTime.isAfter(now)) return null;
+
+          final int notificationId = maintenanceNotificationId(
+            vehicleId: prediction.vehicle.id!,
+            planItemId: prediction.planItem.id!,
           );
+          return NotificationRequest(
+            id: notificationId,
+            title: '${l10n.notificationPrefix}: ${prediction.vehicle.name}',
+            body: l10n.notificationBody(
+              prediction.planItem.itemName,
+              prediction.predictedDueDate,
+            ),
+            scheduledDateTime: notificationTime,
+            payload:
+                'vehicleId=${prediction.vehicle.id}&planItemId=${prediction.planItem.id}&scheduledDateTime=${notificationTime.toIso8601String()}',
+          );
+        })
+        .whereType<NotificationRequest>()
+        .toList(growable: false);
 
-      final DateTime now = DateTime.now();
-      if (notificationTime.isAfter(now) && l10n != null) {
-        String title = "${l10n.notificationPrefix}: ${prediction.vehicle.name}";
-        String body = l10n.notificationBody(
-          prediction.planItem.itemName,
-          prediction.predictedDueDate,
-        );
-
-        int notificationId =
-            "${prediction.vehicle.id!}|${prediction.planItem.id!}".hashCode;
-
-        await _notificationService.scheduleNotification(
-          id: notificationId,
-          title: title,
-          body: body,
-          scheduledDateTime: notificationTime,
-          payload:
-              'vehicleId=${prediction.vehicle.id}&planItemId=${prediction.planItem.id}&scheduledDateTime=${notificationTime.toIso8601String()}',
-        );
-      }
-    }
-    _notificationService.checkPendingNotifications(); // for debugging
+    if (requestRevision != _notificationRequestRevision) return;
+    await _notificationCoordinator.replaceAll(requests);
   }
 
   Future<void> rescheduleNotificationsBasedOnNewSettings(
@@ -134,9 +152,11 @@ class UpcomingMaintenanceCubit extends Cubit<UpcomingMaintenanceState> {
     if (state is UpcomingMaintenanceLoaded) {
       final currentPredictions =
           (state as UpcomingMaintenanceLoaded).allPredictions;
-      await _scheduleNotifications(currentPredictions, l10n);
+      if (l10n != null) {
+        await _scheduleNotifications(currentPredictions, l10n);
+      }
     } else {
-      loadAllUpcomingMaintenance(l10n);
+      await loadAllUpcomingMaintenance(l10n);
     }
   }
 }

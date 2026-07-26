@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -7,23 +5,19 @@ import 'package:collection/collection.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:path/path.dart' as path;
-import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:sqflite/sqflite.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/constants/app_routes.dart';
+import 'package:carvita/core/services/backup_service.dart';
 import 'package:carvita/core/services/notification_service.dart';
 import 'package:carvita/core/services/preferences_service.dart';
 import 'package:carvita/core/theme/app_theme.dart';
 import 'package:carvita/core/widgets/gradient_background.dart';
 import 'package:carvita/data/models/vehicle.dart';
 import 'package:carvita/data/repositories/vehicle_repository.dart';
-import 'package:carvita/data/sources/local/database_helper.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/main.dart';
 import 'package:carvita/presentation/manager/locale_provider.dart';
@@ -43,6 +37,7 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  final BackupService _backupService = BackupService();
   final PreferencesService _preferencesService = PreferencesService();
   final VehicleRepository _vehicleRepository = VehicleRepository();
 
@@ -314,38 +309,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _exportDatabase() async {
     if (_isExporting) return;
     setState(() => _isExporting = true);
+    String? snapshotPath;
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(AppLocalizations.of(context)!.exportPrepare)),
     );
 
     try {
-      final dbFolder = await getDatabasesPath();
-      final sourceDbPath = path.join(dbFolder, DatabaseHelper.dbName);
-      final sourceDbFile = File(sourceDbPath);
-
-      if (!await sourceDbFile.exists()) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(AppLocalizations.of(context)!.errDBNotFound),
-              backgroundColor: AppColors.urgentReminderText,
-            ),
-          );
-        }
-        return;
-      }
-
-      final tempDir = await getTemporaryDirectory();
-      final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
-      final tempDbPath = path.join(
-        tempDir.path,
-        'carvita_backup_$timestamp.db',
-      );
-      final tempDbFile = await sourceDbFile.copy(tempDbPath);
+      snapshotPath = await _backupService.createExportSnapshot();
 
       final shareResult = await SharePlus.instance.share(
-        ShareParams(files: [XFile(tempDbFile.path)]),
+        ShareParams(files: [XFile(snapshotPath)]),
       );
 
       if (shareResult.status == ShareResultStatus.success) {
@@ -375,6 +349,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
           );
         }
       }
+    } on BackupSourceNotFoundException {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.errDBNotFound),
+            backgroundColor: AppColors.urgentReminderText,
+          ),
+        );
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -385,6 +368,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         );
       }
     } finally {
+      if (snapshotPath != null) {
+        await _backupService.deleteExportSnapshot(snapshotPath);
+      }
       if (mounted) setState(() => _isExporting = false);
     }
   }
@@ -444,55 +430,51 @@ class _SettingsScreenState extends State<SettingsScreen> {
       FilePickerResult? result = await FilePicker.platform.pickFiles();
 
       if (result != null && result.files.single.path != null) {
-        final pickedFile = File(result.files.single.path!);
-
-        await DatabaseHelper().close();
-
-        final dbFolder = await getDatabasesPath();
-        final appDbPath = path.join(dbFolder, DatabaseHelper.dbName);
-        final appDbFile = File(appDbPath);
-
-        if (await appDbFile.exists()) {
-          await appDbFile.delete();
+        await _backupService.restoreDatabase(result.files.single.path!);
+        try {
+          await _notificationService.cancelAllNotifications();
+        } catch (error) {
+          debugPrint(
+            'Database restore succeeded, but old notifications could not be '
+            'cancelled: $error',
+          );
         }
-
-        await pickedFile.copy(appDbPath);
 
         if (mounted) {
           await showDialog<void>(
             context: context,
             barrierDismissible: false,
             builder: (BuildContext dialogContext) {
-              return AlertDialog(
-                backgroundColor:
-                    Theme.of(context).colorScheme.surfaceContainerLowest,
-                title: Text(
-                  AppLocalizations.of(context)!.restoreSuccessTitle,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
+              return PopScope(
+                canPop: false,
+                child: AlertDialog(
+                  backgroundColor:
+                      Theme.of(context).colorScheme.surfaceContainerLowest,
+                  title: Text(
+                    AppLocalizations.of(context)!.restoreSuccessTitle,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                   ),
-                ),
-                content: Text(
-                  AppLocalizations.of(context)!.restoreSuccessBody,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
+                  content: Text(
+                    AppLocalizations.of(context)!.restoreSuccessBody,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                   ),
-                ),
-                actions: <Widget>[
-                  TextButton(
-                    child: Text(
-                      AppLocalizations.of(context)!.exitButton,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.bold,
+                  actions: <Widget>[
+                    TextButton(
+                      onPressed: SystemNavigator.pop,
+                      child: Text(
+                        AppLocalizations.of(context)!.exitButton,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                    onPressed: () {
-                      Navigator.of(dialogContext).pop();
-                      SystemNavigator.pop(); // try exit the app (may not apply to all platforms)
-                    },
-                  ),
-                ],
+                  ],
+                ),
               );
             },
           );
@@ -515,8 +497,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         );
       }
-      // Try to reopen the database connection in case the app is in an unstable state after failure
-      await DatabaseHelper().database;
     } finally {
       if (mounted) setState(() => _isImporting = false);
     }
@@ -579,12 +559,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  void _triggerNotificationReschedule({AppLocalizations? l10n}) {
-    context
-        .read<UpcomingMaintenanceCubit>()
-        .rescheduleNotificationsBasedOnNewSettings(
-          l10n ?? AppLocalizations.of(context),
-        );
+  Future<void> _triggerNotificationReschedule({AppLocalizations? l10n}) async {
+    try {
+      await context
+          .read<UpcomingMaintenanceCubit>()
+          .rescheduleNotificationsBasedOnNewSettings(
+            l10n ?? AppLocalizations.of(context),
+          );
+    } catch (error, stackTrace) {
+      debugPrint(
+        'Failed to reschedule maintenance notifications: $error\n$stackTrace',
+      );
+    }
   }
 
   Future<void> _showSelectMileageUnitDialog(
@@ -941,29 +927,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         await _preferencesService.setNotificationsEnabled(
                           value,
                         );
-                        setState(() => _maintenanceRemindersEnabled = value);
+                        if (mounted) {
+                          setState(() => _maintenanceRemindersEnabled = value);
+                        }
                         await _notificationService.cancelAllNotifications();
                       } else {
                         bool notificationsEnabled =
                             await _notificationService.checkPermissions();
                         if (!notificationsEnabled) {
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  AppLocalizations.of(
-                                    context,
-                                  )!.errNotificationPermission,
-                                ),
-                                backgroundColor: AppColors.urgentReminderText,
+                          notificationsEnabled =
+                              await _notificationService.requestPermissions();
+                        }
+                        if (!context.mounted) return;
+                        if (!notificationsEnabled) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                AppLocalizations.of(
+                                  context,
+                                )!.errNotificationPermission,
                               ),
-                            );
-                          }
+                              backgroundColor: AppColors.urgentReminderText,
+                            ),
+                          );
                           return;
                         }
                         await _preferencesService.setNotificationsEnabled(
                           value,
                         );
+                        if (!mounted) return;
                         setState(() => _maintenanceRemindersEnabled = value);
                         _triggerNotificationReschedule();
                       }

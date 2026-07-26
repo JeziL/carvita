@@ -4,7 +4,19 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
-class NotificationService {
+abstract interface class NotificationGateway {
+  Future<void> scheduleNotification({
+    required int id,
+    required String title,
+    required String body,
+    required DateTime scheduledDateTime,
+    String? payload,
+  });
+
+  Future<void> cancelAllNotifications();
+}
+
+class NotificationService implements NotificationGateway {
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
   NotificationService._internal();
@@ -104,6 +116,7 @@ class NotificationService {
     return true;
   }
 
+  @override
   Future<void> scheduleNotification({
     required int id,
     required String title,
@@ -143,7 +156,8 @@ class NotificationService {
       ),
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       payload: payload,
-      matchDateTimeComponents: DateTimeComponents.dateAndTime,
+      // Intentionally omit matchDateTimeComponents: maintenance reminders are
+      // one-shot notifications and must not repeat every year.
     );
   }
 
@@ -151,6 +165,7 @@ class NotificationService {
     await _notificationsPlugin.cancel(id);
   }
 
+  @override
   Future<void> cancelAllNotifications() async {
     await _notificationsPlugin.cancelAll();
   }

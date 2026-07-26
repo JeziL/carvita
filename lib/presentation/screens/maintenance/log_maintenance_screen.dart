@@ -84,19 +84,12 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
     }
 
     if (_isEditing && widget.logToEdit != null) {
-      for (String displayName in widget.logToEdit!.performedItemDisplayNames) {
-        bool foundAsPredefined = false;
-        if (planState is plan_state.MaintenancePlanLoaded) {
-          for (var planItem in planState.planItems) {
-            if (planItem.itemName == displayName && planItem.id != null) {
-              _selectedPredefinedItemIds.add(planItem.id!);
-              foundAsPredefined = true;
-              break;
-            }
-          }
-        }
-        if (!foundAsPredefined) {
-          _selectedCustomItemNames.add(displayName);
+      for (final performedItem in widget.logToEdit!.performedItems) {
+        final input = PerformedItemInput.fromPerformedItem(performedItem);
+        if (input.maintenancePlanItemId != null) {
+          _selectedPredefinedItemIds.add(input.maintenancePlanItemId!);
+        } else if (input.customItemName != null) {
+          _selectedCustomItemNames.add(input.customItemName!);
         }
       }
     }
@@ -325,10 +318,32 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
                 ),
               );
             }
+            final activePlanItemIds =
+                _availablePlanItems
+                    .map((item) => item.id)
+                    .whereType<int>()
+                    .toSet();
+            final unavailableSelectedItems =
+                widget.logToEdit?.performedItems
+                    .where(
+                      (item) =>
+                          item.maintenancePlanItemId != null &&
+                          _selectedPredefinedItemIds.contains(
+                            item.maintenancePlanItemId,
+                          ) &&
+                          !activePlanItemIds.contains(
+                            item.maintenancePlanItemId,
+                          ),
+                    )
+                    .toList(growable: false) ??
+                const <ServiceLogPerformedItem>[];
+            final hasPlanSelections =
+                _availablePlanItems.isNotEmpty ||
+                unavailableSelectedItems.isNotEmpty;
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (_availablePlanItems.isNotEmpty)
+                if (hasPlanSelections)
                   Text(
                     "${AppLocalizations.of(context)!.chooseFromPlan}:",
                     style: TextStyle(
@@ -338,69 +353,93 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
                       fontSize: 13,
                     ),
                   ),
-                if (_availablePlanItems.isNotEmpty)
+                if (hasPlanSelections)
                   Wrap(
                     spacing: 8.0,
                     runSpacing: 4.0,
-                    children:
-                        _availablePlanItems.map((item) {
-                          final isSelected = _selectedPredefinedItemIds
-                              .contains(item.id);
-                          return Theme(
-                            data: Theme.of(
-                              context,
-                            ).copyWith(canvasColor: Colors.transparent),
-                            child: ChoiceChip(
-                              label: Text(
-                                item.itemName,
-                                style: TextStyle(
-                                  color:
-                                      isSelected
-                                          ? Theme.of(
-                                            context,
-                                          ).colorScheme.primary
-                                          : themeExtensions
-                                              .textColorOnBackground
-                                              .withValues(alpha: 0.9),
-                                ),
-                              ),
-                              selected: isSelected,
-                              onSelected: (selected) {
-                                setState(() {
-                                  if (selected) {
-                                    _selectedPredefinedItemIds.add(item.id!);
-                                  } else {
-                                    _selectedPredefinedItemIds.remove(item.id);
-                                  }
-                                });
-                              },
-                              backgroundColor: Colors.transparent,
-                              selectedColor:
-                                  Theme.of(context).colorScheme.onPrimary,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                                side: BorderSide(
-                                  color:
-                                      isSelected
-                                          ? Theme.of(
-                                            context,
-                                          ).colorScheme.primary
-                                          : themeExtensions
-                                              .textColorOnBackground
-                                              .withValues(alpha: 0.3),
-                                ),
-                              ),
-                              labelPadding: const EdgeInsets.symmetric(
-                                horizontal: 6.0,
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6.0,
+                    children: [
+                      ..._availablePlanItems.map((item) {
+                        final isSelected = _selectedPredefinedItemIds.contains(
+                          item.id,
+                        );
+                        return Theme(
+                          data: Theme.of(
+                            context,
+                          ).copyWith(canvasColor: Colors.transparent),
+                          child: ChoiceChip(
+                            label: Text(
+                              item.itemName,
+                              style: TextStyle(
+                                color:
+                                    isSelected
+                                        ? Theme.of(context).colorScheme.primary
+                                        : themeExtensions.textColorOnBackground
+                                            .withValues(alpha: 0.9),
                               ),
                             ),
-                          );
-                        }).toList(),
+                            selected: isSelected,
+                            onSelected: (selected) {
+                              setState(() {
+                                if (selected) {
+                                  _selectedPredefinedItemIds.add(item.id!);
+                                } else {
+                                  _selectedPredefinedItemIds.remove(item.id);
+                                }
+                              });
+                            },
+                            backgroundColor: Colors.transparent,
+                            selectedColor:
+                                Theme.of(context).colorScheme.onPrimary,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                              side: BorderSide(
+                                color:
+                                    isSelected
+                                        ? Theme.of(context).colorScheme.primary
+                                        : themeExtensions.textColorOnBackground
+                                            .withValues(alpha: 0.3),
+                              ),
+                            ),
+                            labelPadding: const EdgeInsets.symmetric(
+                              horizontal: 6.0,
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6.0,
+                            ),
+                          ),
+                        );
+                      }),
+                      ...unavailableSelectedItems.map(
+                        (item) => Chip(
+                          label: Text(
+                            item.displayName,
+                            style: TextStyle(
+                              color: themeExtensions.textColorOnBackground
+                                  .withValues(alpha: 0.9),
+                            ),
+                          ),
+                          deleteIconColor:
+                              themeExtensions.textColorOnBackground,
+                          onDeleted: () {
+                            setState(() {
+                              _selectedPredefinedItemIds.remove(
+                                item.maintenancePlanItemId,
+                              );
+                            });
+                          },
+                          backgroundColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                            side: BorderSide(
+                              color: themeExtensions.textColorOnBackground
+                                  .withValues(alpha: 0.3),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                if (_availablePlanItems.isNotEmpty) const SizedBox(height: 15),
+                if (hasPlanSelections) const SizedBox(height: 15),
 
                 if (_selectedCustomItemNames.isNotEmpty)
                   Text(
