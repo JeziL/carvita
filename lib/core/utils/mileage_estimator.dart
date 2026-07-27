@@ -35,10 +35,9 @@ class MileageEstimator {
 
     final double mileageDiff =
         entryList.last['mileage'] - entryList.first['mileage'];
-    final int daysDiff =
-        (entryList.last['time'] as DateTime)
-            .difference(entryList.first['time'])
-            .inDays;
+    final int daysDiff = (entryList.last['time'] as DateTime)
+        .difference(entryList.first['time'])
+        .inDays;
 
     if (daysDiff <= 0 || mileageDiff <= 0) {
       return fallback;

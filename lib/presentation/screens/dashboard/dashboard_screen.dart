@@ -110,13 +110,10 @@ class _DashboardScreenState extends State<DashboardScreen>
       );
     }
     final now = DateTime.now();
-    final filteredPredictions =
-        allPredictions.where((prediction) {
-          final dueDate = prediction.predictedDueDate;
-          return dueDate.isBefore(
-            now.add(Duration(days: currentThreshold.days)),
-          );
-        }).toList();
+    final filteredPredictions = allPredictions.where((prediction) {
+      final dueDate = prediction.predictedDueDate;
+      return dueDate.isBefore(now.add(Duration(days: currentThreshold.days)));
+    }).toList();
 
     final urgentItems = filteredPredictions.take(currentItemCount).toList();
 
@@ -156,14 +153,12 @@ class _DashboardScreenState extends State<DashboardScreen>
             ...urgentItems.map((prediction) {
               final vehicleName = prediction.vehicle.name;
               final itemName = prediction.planItem.itemName;
-              final daysRemaining =
-                  prediction.predictedDueDate.difference(DateTime.now()).inDays;
-              String dueText =
-                  daysRemaining >= 0
-                      ? AppLocalizations.of(context)!.daysLater(daysRemaining)
-                      : AppLocalizations.of(
-                        context,
-                      )!.daysOverdue(-daysRemaining);
+              final daysRemaining = prediction.predictedDueDate
+                  .difference(DateTime.now())
+                  .inDays;
+              String dueText = daysRemaining >= 0
+                  ? AppLocalizations.of(context)!.daysLater(daysRemaining)
+                  : AppLocalizations.of(context)!.daysOverdue(-daysRemaining);
 
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -197,10 +192,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                     Text(
                       dueText,
                       style: TextStyle(
-                        color:
-                            daysRemaining <= 30
-                                ? AppColors.urgentReminderText
-                                : Theme.of(context).colorScheme.primary,
+                        color: daysRemaining <= 30
+                            ? AppColors.urgentReminderText
+                            : Theme.of(context).colorScheme.primary,
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                       ),
@@ -213,11 +207,10 @@ class _DashboardScreenState extends State<DashboardScreen>
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
-                  onPressed:
-                      () => Navigator.pushNamed(
-                        context,
-                        AppRoutes.upcomingMaintenanceRoute,
-                      ),
+                  onPressed: () => Navigator.pushNamed(
+                    context,
+                    AppRoutes.upcomingMaintenanceRoute,
+                  ),
                   child: Text(
                     "${AppLocalizations.of(context)!.viewAll} >>",
                     style: TextStyle(
@@ -237,14 +230,14 @@ class _DashboardScreenState extends State<DashboardScreen>
     Vehicle vehicle,
     List<PredictedMaintenanceInfo> allPredictions,
   ) {
-    final nextServiceForThisVehicle =
-        allPredictions
-            .where((p) => p.vehicle.id == vehicle.id)
-            .sorted((a, b) => a.predictedDueDate.compareTo(b.predictedDueDate))
-            .firstOrNull;
+    final nextServiceForThisVehicle = allPredictions
+        .where((p) => p.vehicle.id == vehicle.id)
+        .sorted((a, b) => a.predictedDueDate.compareTo(b.predictedDueDate))
+        .firstOrNull;
 
-    String nextMaintenanceDisplay =
-        AppLocalizations.of(context)!.noNextMaintenance;
+    String nextMaintenanceDisplay = AppLocalizations.of(
+      context,
+    )!.noNextMaintenance;
     if (nextServiceForThisVehicle != null) {
       nextMaintenanceDisplay = nextServiceForThisVehicle.displayInfo(context);
     }

@@ -71,14 +71,12 @@ class ServiceLogEntry extends Equatable {
 }
 
 class ServiceLogPerformedItem extends Equatable {
-  final int?
-  id; // ID of the entry in the linking table (service_log_performed_items)
+  final int? id; // ID in service_log_performed_items
   final int serviceLogId;
   final int? maintenancePlanItemId; // FK to maintenance_plan_items
   final String? customItemName; // Name if it's a custom item for this log
 
-  final String
-  displayName; // will be itemName from MaintenancePlanItem or customItemName
+  final String displayName;
 
   const ServiceLogPerformedItem({
     this.id,
@@ -90,6 +88,19 @@ class ServiceLogPerformedItem extends Equatable {
          maintenancePlanItemId != null || customItemName != null,
          'Either maintenancePlanItemId or customItemName must be provided.',
        );
+
+  factory ServiceLogPerformedItem.fromJoinedMap(Map<String, dynamic> map) {
+    final customItemName = map['customItemName'] as String?;
+    final predefinedItemName = map['predefinedItemName'] as String?;
+
+    return ServiceLogPerformedItem(
+      id: map['id'] as int?,
+      serviceLogId: map['serviceLogId'] as int,
+      maintenancePlanItemId: map['maintenancePlanItemId'] as int?,
+      customItemName: customItemName,
+      displayName: customItemName ?? predefinedItemName ?? 'Unknown Item',
+    );
+  }
 
   Map<String, dynamic> toMapForDb() {
     return {
@@ -113,15 +124,18 @@ class ServiceLogPerformedItem extends Equatable {
 // Class to hold a service log entry along with its performed items (for UI)
 class ServiceLogWithItems extends Equatable {
   final ServiceLogEntry entry;
-  final List<String> performedItemDisplayNames; // List of names for display
+  final List<ServiceLogPerformedItem> performedItems;
 
   const ServiceLogWithItems({
     required this.entry,
-    required this.performedItemDisplayNames,
+    required this.performedItems,
   });
 
+  List<String> get performedItemDisplayNames =>
+      performedItems.map((item) => item.displayName).toList(growable: false);
+
   @override
-  List<Object?> get props => [entry, performedItemDisplayNames];
+  List<Object?> get props => [entry, performedItems];
 }
 
 // Helper class for input when adding/updating a service log
@@ -134,6 +148,15 @@ class PerformedItemInput extends Equatable {
         maintenancePlanItemId != null || customItemName != null,
         'Either maintenancePlanItemId or a non-empty customItemName must be provided.',
       );
+
+  factory PerformedItemInput.fromPerformedItem(
+    ServiceLogPerformedItem performedItem,
+  ) {
+    return PerformedItemInput(
+      maintenancePlanItemId: performedItem.maintenancePlanItemId,
+      customItemName: performedItem.customItemName,
+    );
+  }
 
   @override
   List<Object?> get props => [maintenancePlanItemId, customItemName];

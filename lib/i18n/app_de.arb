@@ -81,6 +81,8 @@
   "chooseDefaultVehicle": "Standardfahrzeug wählen",
   "clearDefault": "Löschen",
   "cancel": "Abbrechen",
+  "back": "Zurück",
+  "retry": "Erneut versuchen",
   "chooseThreshold": "Schwelle wählen",
   "chooseDisplayItemCount": "Anzahl Elemente wählen",
   "itemCount": "{count, plural, =1{1 Element} other{{count} Elemente}}",

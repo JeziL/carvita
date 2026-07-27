@@ -11,8 +11,19 @@ plugins {
 val keystoreProperties = Properties()
 val keystorePropertiesFile = rootProject.file("key.properties")
 if (keystorePropertiesFile.exists()) {
-    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+    FileInputStream(keystorePropertiesFile).use(keystoreProperties::load)
 }
+val releaseSigningPropertyNames =
+    listOf("storeFile", "storePassword", "keyAlias", "keyPassword")
+val missingReleaseSigningProperties =
+    releaseSigningPropertyNames.filter { keystoreProperties.getProperty(it).isNullOrBlank() }
+val releaseStoreFilePath = keystoreProperties.getProperty("storeFile")
+val releaseStoreFile =
+    releaseStoreFilePath?.takeIf { it.isNotBlank() }?.let { project.file(it) }
+val hasReleaseSigning =
+    keystorePropertiesFile.exists() &&
+        missingReleaseSigningProperties.isEmpty() &&
+        releaseStoreFile?.isFile == true
 
 android {
     namespace = "com.wangjinli.carvita"
@@ -37,27 +48,52 @@ android {
     }
 
     signingConfigs {
-        create("release") {
-            keyAlias = keystoreProperties["keyAlias"] as String
-            keyPassword = keystoreProperties["keyPassword"] as String
-            storeFile = keystoreProperties["storeFile"]?.let { file(it) }
-            storePassword = keystoreProperties["storePassword"] as String
+        if (hasReleaseSigning) {
+            create("release") {
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+                storeFile = releaseStoreFile
+                storePassword = keystoreProperties.getProperty("storePassword")
+            }
         }
     }
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
-        }
-        debug {
-            // use release key also for signing debug apk to avoid conflict
-            signingConfig = signingConfigs.getByName("release")
+            if (hasReleaseSigning) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 
     dependenciesInfo {
         includeInApk = false
         includeInBundle = false
+    }
+}
+
+gradle.taskGraph.whenReady {
+    val requestsReleaseArtifact =
+        allTasks.any {
+            it.project == project &&
+                (it.name.contains("Release", ignoreCase = true) ||
+                    it.name == "bundle" ||
+                    it.name == "assemble")
+        }
+    if (requestsReleaseArtifact && !hasReleaseSigning) {
+        val reason =
+            when {
+                !keystorePropertiesFile.exists() ->
+                    "android/key.properties does not exist"
+                missingReleaseSigningProperties.isNotEmpty() ->
+                    "missing properties: ${missingReleaseSigningProperties.joinToString()}"
+                else ->
+                    "storeFile does not point to an existing keystore"
+            }
+        throw GradleException(
+            "Release signing is not configured ($reason). " +
+                "Debug builds use the standard Android debug key and do not require release secrets."
+        )
     }
 }
 

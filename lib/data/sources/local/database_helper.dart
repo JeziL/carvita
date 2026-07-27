@@ -14,23 +14,98 @@ class DatabaseHelper {
   DatabaseHelper._internal();
 
   static Database? _database;
+  static Future<Database>? _openingDatabase;
+  static Completer<void>? _exclusiveOperation;
   static const String dbName = 'carvita_v1.db';
-  static const int _dbVersion = 1;
+  static const int schemaVersion = 1;
 
   Future<Database> get database async {
-    if (_database != null) return _database!;
-    _database = await _initDB();
-    return _database!;
+    while (true) {
+      final exclusiveOperation = _exclusiveOperation;
+      if (exclusiveOperation != null) {
+        await exclusiveOperation.future;
+        continue;
+      }
+
+      final currentDatabase = _database;
+      if (currentDatabase != null && currentDatabase.isOpen) {
+        return currentDatabase;
+      }
+
+      final openedDatabase = await _openDatabase();
+      final operationAfterOpen = _exclusiveOperation;
+      if (operationAfterOpen != null) {
+        await operationAfterOpen.future;
+        continue;
+      }
+      if (openedDatabase.isOpen && identical(_database, openedDatabase)) {
+        return openedDatabase;
+      }
+    }
   }
 
   Future<Database> _initDB() async {
     String path = join(await getDatabasesPath(), dbName);
     return await openDatabase(
       path,
-      version: _dbVersion,
+      version: schemaVersion,
       onCreate: _onCreate,
       // onUpgrade: _onUpgrade,
     );
+  }
+
+  Future<Database> _openDatabase() async {
+    final currentDatabase = _database;
+    if (currentDatabase != null && currentDatabase.isOpen) {
+      return currentDatabase;
+    }
+
+    final openingDatabase = _openingDatabase ??= _initDB();
+    try {
+      final database = await openingDatabase;
+      _database = database;
+      return database;
+    } finally {
+      if (identical(_openingDatabase, openingDatabase)) {
+        _openingDatabase = null;
+      }
+    }
+  }
+
+  /// Runs a database-file maintenance operation while preventing new callers
+  /// from opening or obtaining this helper's shared connection.
+  ///
+  /// The provided connection deliberately bypasses the gate so the maintenance
+  /// operation can close and reopen the database before releasing other callers.
+  Future<T> runExclusiveMaintenance<T>(
+    Future<T> Function(DatabaseMaintenanceConnection connection) operation,
+  ) async {
+    late Completer<void> operationCompleter;
+
+    while (true) {
+      final activeOperation = _exclusiveOperation;
+      if (activeOperation != null) {
+        await activeOperation.future;
+        continue;
+      }
+
+      operationCompleter = Completer<void>();
+      _exclusiveOperation = operationCompleter;
+      break;
+    }
+
+    try {
+      final openingDatabase = _openingDatabase;
+      if (openingDatabase != null) {
+        await openingDatabase;
+      }
+      return await operation(DatabaseMaintenanceConnection._(this));
+    } finally {
+      if (identical(_exclusiveOperation, operationCompleter)) {
+        _exclusiveOperation = null;
+        operationCompleter.complete();
+      }
+    }
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -263,18 +338,12 @@ class DatabaseHelper {
         [entry.id],
       );
 
-      List<String> displayNames =
-          performedItemMaps.map((map) {
-            return map['customItemName'] as String? ??
-                map['predefinedItemName'] as String? ??
-                'Unkonwn Item';
-          }).toList();
+      final performedItems = performedItemMaps
+          .map(ServiceLogPerformedItem.fromJoinedMap)
+          .toList(growable: false);
 
       logsWithItems.add(
-        ServiceLogWithItems(
-          entry: entry,
-          performedItemDisplayNames: displayNames,
-        ),
+        ServiceLogWithItems(entry: entry, performedItems: performedItems),
       );
     }
     return logsWithItems;
@@ -306,17 +375,11 @@ class DatabaseHelper {
       [entry.id],
     );
 
-    List<String> displayNames =
-        performedItemMaps.map((map) {
-          return map['customItemName'] as String? ??
-              map['predefinedItemName'] as String? ??
-              'Unknown Item';
-        }).toList();
+    final performedItems = performedItemMaps
+        .map(ServiceLogPerformedItem.fromJoinedMap)
+        .toList(growable: false);
 
-    return ServiceLogWithItems(
-      entry: entry,
-      performedItemDisplayNames: displayNames,
-    );
+    return ServiceLogWithItems(entry: entry, performedItems: performedItems);
   }
 
   Future<int> updateServiceLog(
@@ -386,10 +449,31 @@ class DatabaseHelper {
   }
 
   Future<void> close() async {
+    await runExclusiveMaintenance((connection) => connection.close());
+  }
+
+  Future<void> _closeDatabase() async {
+    final openingDatabase = _openingDatabase;
+    if (openingDatabase != null) {
+      await openingDatabase;
+    }
+
     final db = _database;
     if (db != null && db.isOpen) {
       await db.close();
-      _database = null;
     }
+    _database = null;
   }
+}
+
+/// Restricted connection lifecycle access for an exclusive database-file
+/// maintenance operation.
+class DatabaseMaintenanceConnection {
+  DatabaseMaintenanceConnection._(this._databaseHelper);
+
+  final DatabaseHelper _databaseHelper;
+
+  Future<void> close() => _databaseHelper._closeDatabase();
+
+  Future<Database> open() => _databaseHelper._openDatabase();
 }

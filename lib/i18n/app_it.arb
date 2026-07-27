@@ -81,6 +81,8 @@
   "chooseDefaultVehicle": "Scegli veicolo predefinito",
   "clearDefault": "Cancella",
   "cancel": "Annulla",
+  "back": "Indietro",
+  "retry": "Riprova",
   "chooseThreshold": "Scegli soglia",
   "chooseDisplayItemCount": "Scegli numero voci",
   "itemCount": "{count, plural, =1{1 voce} other{{count} voci}}",

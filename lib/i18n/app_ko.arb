@@ -81,6 +81,8 @@
   "chooseDefaultVehicle": "기본 차량 선택",
   "clearDefault": "지우기",
   "cancel": "취소",
+  "back": "뒤로",
+  "retry": "다시 시도",
   "chooseThreshold": "임계값 선택",
   "chooseDisplayItemCount": "항목 수 선택",
   "itemCount": "{count}개 항목",

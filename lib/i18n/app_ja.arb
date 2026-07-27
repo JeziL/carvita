@@ -81,6 +81,8 @@
   "chooseDefaultVehicle": "デフォルト車両を選択",
   "clearDefault": "クリア",
   "cancel": "キャンセル",
+  "back": "戻る",
+  "retry": "再試行",
   "chooseThreshold": "しきい値を選択",
   "chooseDisplayItemCount": "表示項目数を選択",
   "itemCount": "{count}件",

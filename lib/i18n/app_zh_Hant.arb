@@ -81,6 +81,8 @@
   "chooseDefaultVehicle": "選擇預設車輛",
   "clearDefault": "清除預設",
   "cancel": "取消",
+  "back": "返回",
+  "retry": "重試",
   "chooseThreshold": "選擇閾值",
   "chooseDisplayItemCount": "選擇顯示項目數",
   "itemCount": "{count} 個",

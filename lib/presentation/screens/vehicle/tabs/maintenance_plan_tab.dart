@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/constants/app_routes.dart';
+import 'package:carvita/core/utils/operation_result.dart';
 import 'package:carvita/data/models/maintenance_plan_item.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/presentation/manager/locale_provider.dart';
@@ -74,14 +75,20 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
 
     if (confirmed == true && item.id != null && context.mounted) {
       final cubit = context.read<MaintenancePlanCubit>();
-      await cubit.deletePlanItem(item.id!);
-      if (context.mounted &&
-          (cubit.state is MaintenancePlanOperationSuccess ||
-              cubit.state is MaintenancePlanLoaded)) {
+      final result = await cubit.deletePlanItem(item.id!);
+      if (!context.mounted) return;
+      if (result is OperationSuccess) {
         context.read<UpcomingMaintenanceCubit>().loadAllUpcomingMaintenance(
           AppLocalizations.of(context),
         );
         context.read<ServiceLogCubit>().fetchServiceLogs();
+      } else if (result is OperationFailure) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result.error.toString()),
+            backgroundColor: AppColors.urgentReminderText,
+          ),
+        );
       }
     }
   }
@@ -120,6 +127,14 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
                   color: Theme.of(context).colorScheme.onPrimary,
                 ),
               ),
+              backgroundColor: AppColors.urgentReminderText,
+            ),
+          );
+        } else if (state is MaintenancePlanLoaded &&
+            state.refreshError != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.refreshError!),
               backgroundColor: AppColors.urgentReminderText,
             ),
           );
@@ -214,10 +229,9 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
                       final regularIntervalString = _formatInterval(item);
 
                       return Card(
-                        color:
-                            Theme.of(
-                              context,
-                            ).colorScheme.surfaceContainerLowest,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerLowest,
                         elevation: 1,
                         margin: const EdgeInsets.only(bottom: 12),
                         shape: RoundedRectangleBorder(
@@ -241,10 +255,9 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
                                       style: TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.w500,
-                                        color:
-                                            Theme.of(
-                                              context,
-                                            ).colorScheme.onSurface,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurface,
                                       ),
                                     ),
                                     const SizedBox(height: 8),
@@ -292,28 +305,25 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
                                         'vehicleName': widget.vehicleName,
                                         'planItem': item,
                                         'cubitInstance': maintenancePlanCubit,
-                                        'serviceLogCubit':
-                                            context.read<ServiceLogCubit>(),
+                                        'serviceLogCubit': context
+                                            .read<ServiceLogCubit>(),
                                       },
                                     );
                                   } else if (value == 'delete') {
                                     _confirmDeleteItem(context, item);
                                   }
                                 },
-                                itemBuilder:
-                                    (
-                                      BuildContext context,
-                                    ) => <PopupMenuEntry<String>>[
+                                itemBuilder: (BuildContext context) =>
+                                    <PopupMenuEntry<String>>[
                                       PopupMenuItem<String>(
                                         value: 'edit',
                                         child: Row(
                                           children: [
                                             Icon(
                                               Icons.edit_outlined,
-                                              color:
-                                                  Theme.of(
-                                                    context,
-                                                  ).colorScheme.primary,
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.primary,
                                               size: 20,
                                             ),
                                             SizedBox(width: 8),
@@ -322,10 +332,9 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
                                                 context,
                                               )!.edit,
                                               style: TextStyle(
-                                                color:
-                                                    Theme.of(
-                                                      context,
-                                                    ).colorScheme.onSurface,
+                                                color: Theme.of(
+                                                  context,
+                                                ).colorScheme.onSurface,
                                               ),
                                             ),
                                           ],
@@ -347,10 +356,9 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
                                                 context,
                                               )!.delete,
                                               style: TextStyle(
-                                                color:
-                                                    Theme.of(
-                                                      context,
-                                                    ).colorScheme.onSurface,
+                                                color: Theme.of(
+                                                  context,
+                                                ).colorScheme.onSurface,
                                               ),
                                             ),
                                           ],

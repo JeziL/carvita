@@ -8,13 +8,13 @@ import 'package:intl/intl.dart';
 
 import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/theme/app_theme.dart';
+import 'package:carvita/core/utils/operation_result.dart';
 import 'package:carvita/core/widgets/gradient_background.dart';
 import 'package:carvita/data/models/vehicle.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/presentation/manager/locale_provider.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_cubit.dart';
-import 'package:carvita/presentation/manager/vehicle_list/vehicle_state.dart';
 
 class AddEditVehicleScreen extends StatefulWidget {
   final Vehicle? vehicle;
@@ -37,6 +37,7 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
 
   Uint8List? _selectedImageBytes;
   DateTime? _selectedBoughtDate;
+  bool _isSubmitting = false;
 
   bool get _isEditing => widget.vehicle != null;
 
@@ -83,6 +84,7 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
 
     if (imageFile != null) {
       final bytes = await imageFile.readAsBytes();
+      if (!mounted) return;
       setState(() {
         _selectedImageBytes = bytes;
       });
@@ -163,6 +165,7 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
       ), // Cannot be in future
       builder: (_, child) => child!,
     );
+    if (!context.mounted) return;
     if (picked != null && picked != _selectedBoughtDate) {
       setState(() {
         _selectedBoughtDate = picked;
@@ -174,6 +177,7 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
   }
 
   void _submitForm() async {
+    if (_isSubmitting) return;
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
@@ -206,40 +210,46 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
         mileageLastUpdated: mileageLastUpdated,
         boughtDate: _selectedBoughtDate!,
         image: _selectedImageBytes,
-        model:
-            _modelController.text.trim().isNotEmpty
-                ? _modelController.text.trim()
-                : null,
-        plateNumber:
-            _plateNumberController.text.trim().isNotEmpty
-                ? _plateNumberController.text.trim()
-                : null,
-        vin:
-            _vinController.text.trim().isNotEmpty
-                ? _vinController.text.trim()
-                : null,
-        engineNumber:
-            _engineNumberController.text.trim().isNotEmpty
-                ? _engineNumberController.text.trim()
-                : null,
+        model: _modelController.text.trim().isNotEmpty
+            ? _modelController.text.trim()
+            : null,
+        plateNumber: _plateNumberController.text.trim().isNotEmpty
+            ? _plateNumberController.text.trim()
+            : null,
+        vin: _vinController.text.trim().isNotEmpty
+            ? _vinController.text.trim()
+            : null,
+        engineNumber: _engineNumberController.text.trim().isNotEmpty
+            ? _engineNumberController.text.trim()
+            : null,
       );
 
+      setState(() {
+        _isSubmitting = true;
+      });
       final cubit = context.read<VehicleCubit>();
-      if (_isEditing) {
-        await cubit.updateVehicle(vehicleData);
-      } else {
-        await cubit.addVehicle(vehicleData);
-      }
-
-      if (mounted &&
-          (cubit.state is VehicleOperationSuccess ||
-              cubit.state is VehicleLoaded)) {
-        context.read<UpcomingMaintenanceCubit>().loadAllUpcomingMaintenance(
-          AppLocalizations.of(context),
+      final OperationResult result = _isEditing
+          ? await cubit.updateVehicle(vehicleData)
+          : await cubit.addVehicle(vehicleData);
+      if (!mounted) return;
+      if (result is OperationFailure) {
+        setState(() {
+          _isSubmitting = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result.error.toString()),
+            backgroundColor: AppColors.urgentReminderText,
+          ),
         );
+        return;
       }
 
-      if (mounted) Navigator.of(context).pop(true);
+      await context.read<UpcomingMaintenanceCubit>().loadAllUpcomingMaintenance(
+        AppLocalizations.of(context),
+      );
+      if (!mounted) return;
+      Navigator.of(context).pop(true);
     }
   }
 
@@ -248,10 +258,9 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
     final localeProvider = context.watch<LocaleProvider>();
     final themeExtensions = Theme.of(context).extension<AppThemeExtensions>()!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor =
-        isDark
-            ? Theme.of(context).colorScheme.onPrimaryContainer
-            : Theme.of(context).colorScheme.onPrimary;
+    final bgColor = isDark
+        ? Theme.of(context).colorScheme.onPrimaryContainer
+        : Theme.of(context).colorScheme.onPrimary;
 
     Widget formField(
       TextEditingController controller,
@@ -314,35 +323,33 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(color: bgColor.withValues(alpha: 0.3)),
                     ),
-                    child:
-                        _selectedImageBytes != null
-                            ? ClipRRect(
-                              borderRadius: BorderRadius.circular(9),
-                              child: Image.memory(
-                                _selectedImageBytes!,
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-                                height: 150,
+                    child: _selectedImageBytes != null
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(9),
+                            child: Image.memory(
+                              _selectedImageBytes!,
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: 150,
+                            ),
+                          )
+                        : Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.add_a_photo_outlined,
+                                size: 36,
+                                color: themeExtensions.textColorOnBackground,
                               ),
-                            )
-                            : Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.add_a_photo_outlined,
-                                  size: 36,
+                              SizedBox(height: 8),
+                              Text(
+                                "${AppLocalizations.of(context)!.uploadVehicleImage} (${AppLocalizations.of(context)!.optionalEntry})",
+                                style: TextStyle(
                                   color: themeExtensions.textColorOnBackground,
                                 ),
-                                SizedBox(height: 8),
-                                Text(
-                                  "${AppLocalizations.of(context)!.uploadVehicleImage} (${AppLocalizations.of(context)!.optionalEntry})",
-                                  style: TextStyle(
-                                    color:
-                                        themeExtensions.textColorOnBackground,
-                                  ),
-                                ),
-                              ],
-                            ),
+                              ),
+                            ],
+                          ),
                   ),
                 ),
 
@@ -421,7 +428,7 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
 
                 const SizedBox(height: 20),
                 ElevatedButton(
-                  onPressed: _submitForm,
+                  onPressed: _isSubmitting ? null : _submitForm,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: bgColor,
                     padding: const EdgeInsets.symmetric(vertical: 15),
@@ -433,17 +440,27 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  child: Text(
-                    AppLocalizations.of(
-                      context,
-                    )!.addEditButtonText(_isEditing ? 'edit' : 'add'),
-                    style: TextStyle(
-                      color:
-                          isDark
-                              ? Theme.of(context).colorScheme.onPrimary
-                              : Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
+                  child: _isSubmitting
+                      ? SizedBox.square(
+                          key: const ValueKey('vehicle-submit-progress'),
+                          dimension: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: isDark
+                                ? Theme.of(context).colorScheme.onPrimary
+                                : Theme.of(context).colorScheme.primary,
+                          ),
+                        )
+                      : Text(
+                          AppLocalizations.of(
+                            context,
+                          )!.addEditButtonText(_isEditing ? 'edit' : 'add'),
+                          style: TextStyle(
+                            color: isDark
+                                ? Theme.of(context).colorScheme.onPrimary
+                                : Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
                 ),
               ],
             ),

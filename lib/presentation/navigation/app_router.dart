@@ -62,18 +62,17 @@ class AppRouter {
             vehicleName != null &&
             serviceLogCubit != null) {
           return MaterialPageRoute(
-            builder:
-                (_) => MultiBlocProvider(
-                  providers: [
-                    BlocProvider.value(value: cubitInstance),
-                    BlocProvider.value(value: serviceLogCubit),
-                  ],
-                  child: AddEditMaintenancePlanItemScreen(
-                    vehicleId: vehicleId,
-                    planItemToEdit: planItem,
-                    vehicleName: vehicleName,
-                  ),
-                ),
+            builder: (_) => MultiBlocProvider(
+              providers: [
+                BlocProvider.value(value: cubitInstance),
+                BlocProvider.value(value: serviceLogCubit),
+              ],
+              child: AddEditMaintenancePlanItemScreen(
+                vehicleId: vehicleId,
+                planItemToEdit: planItem,
+                vehicleName: vehicleName,
+              ),
+            ),
           );
         }
         return _errorRoute(
@@ -92,18 +91,17 @@ class AppRouter {
 
         if (vehicleId != null && vehicleName != null) {
           return MaterialPageRoute(
-            builder:
-                (_) => MultiBlocProvider(
-                  providers: [
-                    BlocProvider.value(value: serviceLogCubit),
-                    BlocProvider.value(value: maintenancePlanCubit),
-                  ],
-                  child: LogMaintenanceScreen(
-                    vehicleId: vehicleId,
-                    vehicleName: vehicleName,
-                    logToEdit: logToEdit,
-                  ),
-                ),
+            builder: (_) => MultiBlocProvider(
+              providers: [
+                BlocProvider.value(value: serviceLogCubit),
+                BlocProvider.value(value: maintenancePlanCubit),
+              ],
+              child: LogMaintenanceScreen(
+                vehicleId: vehicleId,
+                vehicleName: vehicleName,
+                logToEdit: logToEdit,
+              ),
+            ),
           );
         }
         return _errorRoute("Missing arguments for LogMaintenanceScreen");
@@ -114,11 +112,10 @@ class AppRouter {
 
   static Route<dynamic> _errorRoute(String message) {
     return MaterialPageRoute(
-      builder:
-          (_) => Scaffold(
-            appBar: AppBar(title: const Text('Error')),
-            body: Center(child: Text(message)),
-          ),
+      builder: (_) => Scaffold(
+        appBar: AppBar(title: const Text('Error')),
+        body: Center(child: Text(message)),
+      ),
     );
   }
 }

@@ -27,13 +27,10 @@ class OverviewTab extends StatelessWidget {
         if (upcomingState is UpcomingMaintenanceLoaded) {
           allPredictions = upcomingState.allPredictions;
         }
-        final nextServiceForThisVehicle =
-            allPredictions
-                .where((p) => p.vehicle.id == vehicle.id)
-                .sorted(
-                  (a, b) => a.predictedDueDate.compareTo(b.predictedDueDate),
-                )
-                .firstOrNull;
+        final nextServiceForThisVehicle = allPredictions
+            .where((p) => p.vehicle.id == vehicle.id)
+            .sorted((a, b) => a.predictedDueDate.compareTo(b.predictedDueDate))
+            .firstOrNull;
         return SingleChildScrollView(
           padding: const EdgeInsets.all(20.0),
           child: Column(
@@ -115,18 +112,18 @@ class OverviewTab extends StatelessWidget {
               const SizedBox(height: 10),
               nextServiceForThisVehicle != null
                   ? MaintenanceListItemCard.planItem(
-                    context,
-                    nextServiceForThisVehicle,
-                  )
+                      context,
+                      nextServiceForThisVehicle,
+                    )
                   : Text(
-                    AppLocalizations.of(context)!.noNextMaintenance,
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurface.withValues(alpha: 0.7),
+                      AppLocalizations.of(context)!.noNextMaintenance,
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withValues(alpha: 0.7),
+                      ),
                     ),
-                  ),
             ],
           ),
         );

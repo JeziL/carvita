@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/constants/app_routes.dart';
 import 'package:carvita/core/services/navigation_service.dart';
+import 'package:carvita/core/services/notification_coordinator.dart';
 import 'package:carvita/core/services/notification_service.dart';
 import 'package:carvita/core/services/prediction_service.dart';
 import 'package:carvita/core/services/preferences_service.dart';
@@ -50,13 +51,13 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final notificationService = NotificationService();
   await notificationService.initialize();
-  await notificationService.requestPermissions();
   await findSystemLocale();
   final preferencesService = PreferencesService();
   final databaseHelper = DatabaseHelper();
   final vehicleRepository = VehicleRepository(dbHelper: databaseHelper);
   final maintenanceRepository = MaintenanceRepository(dbHelper: databaseHelper);
   final predictionService = PredictionService();
+  final notificationCoordinator = NotificationCoordinator(notificationService);
 
   final quickActionService = QuickActionService(
     vehicleRepository: vehicleRepository,
@@ -80,7 +81,7 @@ Future<void> main() async {
         vehicleRepository: vehicleRepository,
         maintenanceRepository: maintenanceRepository,
         predictionService: predictionService,
-        notificationService: notificationService,
+        notificationCoordinator: notificationCoordinator,
       ),
     ),
   );
@@ -91,14 +92,14 @@ class CarVitaApp extends StatelessWidget {
   final VehicleRepository vehicleRepository;
   final MaintenanceRepository maintenanceRepository;
   final PredictionService predictionService;
-  final NotificationService notificationService;
+  final NotificationCoordinator notificationCoordinator;
   const CarVitaApp({
     super.key,
     required this.preferencesService,
     required this.vehicleRepository,
     required this.maintenanceRepository,
     required this.predictionService,
-    required this.notificationService,
+    required this.notificationCoordinator,
   });
 
   @override
@@ -106,23 +107,19 @@ class CarVitaApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider<VehicleCubit>(
-          create:
-              (context) => VehicleCubit(
-                vehicleRepository,
-                preferencesService: preferencesService,
-              )..fetchVehicles(),
+          create: (context) => VehicleCubit(
+            vehicleRepository,
+            preferencesService: preferencesService,
+          )..fetchVehicles(),
         ),
         BlocProvider<UpcomingMaintenanceCubit>(
-          create:
-              (context) => UpcomingMaintenanceCubit(
-                vehicleRepository,
-                maintenanceRepository,
-                predictionService,
-                notificationService,
-                preferencesService,
-              )..loadAllUpcomingMaintenance(
-                AppLocalizations.of(context),
-              ), // load on app start
+          create: (context) => UpcomingMaintenanceCubit(
+            vehicleRepository,
+            maintenanceRepository,
+            predictionService,
+            notificationCoordinator,
+            preferencesService,
+          ),
         ),
       ],
       child: Consumer2<LocaleProvider, ThemeProvider>(
@@ -188,7 +185,6 @@ class CarVitaApp extends StatelessWidget {
             builder: (context, child) {
               final MediaQueryData data = MediaQuery.of(context);
               return ShortcutLocalizationWrapper(
-                locale: localeProvider.appLocale,
                 child: MediaQuery(
                   data: data.copyWith(
                     textScaler: data.textScaler.clamp(
@@ -209,13 +205,8 @@ class CarVitaApp extends StatelessWidget {
 
 class ShortcutLocalizationWrapper extends StatefulWidget {
   final Widget child;
-  final Locale? locale;
 
-  const ShortcutLocalizationWrapper({
-    super.key,
-    required this.child,
-    required this.locale,
-  });
+  const ShortcutLocalizationWrapper({super.key, required this.child});
 
   @override
   State<ShortcutLocalizationWrapper> createState() =>
@@ -224,25 +215,58 @@ class ShortcutLocalizationWrapper extends StatefulWidget {
 
 class _ShortcutLocalizationWrapperState
     extends State<ShortcutLocalizationWrapper> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _updateShortcuts();
-    });
-  }
+  Locale? _lastResolvedLocale;
+  bool _initialRefreshScheduled = false;
 
   @override
-  void didUpdateWidget(covariant ShortcutLocalizationWrapper oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.locale != oldWidget.locale) {
-      _updateShortcuts();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final Locale resolvedLocale = Localizations.localeOf(context);
+    if (!_initialRefreshScheduled) {
+      _initialRefreshScheduled = true;
+      _lastResolvedLocale = resolvedLocale;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _refreshLocalizedServices(loadPredictions: true);
+      });
+    } else if (_lastResolvedLocale != resolvedLocale) {
+      _lastResolvedLocale = resolvedLocale;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _refreshLocalizedServices(loadPredictions: false);
+      });
     }
   }
 
-  void _updateShortcuts() {
-    if (mounted) {
-      context.read<QuickActionService>().updateShortcutItems(context);
+  Future<void> _refreshLocalizedServices({
+    required bool loadPredictions,
+  }) async {
+    if (!mounted) return;
+    final AppLocalizations? l10n = AppLocalizations.of(context);
+    if (l10n == null) return;
+
+    final quickActionService = context.read<QuickActionService>();
+    quickActionService.navigatorReady();
+    try {
+      await quickActionService.updateShortcutItems(context);
+    } catch (error, stackTrace) {
+      debugPrint(
+        'Failed to update localized quick actions: $error\n$stackTrace',
+      );
+    }
+    if (!mounted) return;
+
+    try {
+      final upcomingMaintenanceCubit = context.read<UpcomingMaintenanceCubit>();
+      if (loadPredictions) {
+        await upcomingMaintenanceCubit.loadAllUpcomingMaintenance(l10n);
+      } else {
+        await upcomingMaintenanceCubit
+            .rescheduleNotificationsBasedOnNewSettings(l10n);
+      }
+    } catch (error, stackTrace) {
+      debugPrint(
+        'Failed to refresh localized maintenance services: '
+        '$error\n$stackTrace',
+      );
     }
   }
 

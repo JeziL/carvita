@@ -5,6 +5,7 @@ import 'package:transparent_image/transparent_image.dart';
 
 import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/constants/app_routes.dart';
+import 'package:carvita/core/utils/operation_result.dart';
 import 'package:carvita/data/models/vehicle.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
@@ -20,14 +21,6 @@ class VehicleListScreen extends StatefulWidget {
 }
 
 class _VehicleListScreenState extends State<VehicleListScreen> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<VehicleCubit>().fetchVehicles();
-    });
-  }
-
   Future<void> _confirmDelete(BuildContext context, Vehicle vehicle) async {
     final bool? confirmed = await showDialog<bool>(
       context: context,
@@ -71,12 +64,18 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
 
     if (confirmed == true && vehicle.id != null && context.mounted) {
       final cubit = context.read<VehicleCubit>();
-      await cubit.deleteVehicle(vehicle.id!);
-      if (context.mounted &&
-          (cubit.state is VehicleOperationSuccess ||
-              cubit.state is VehicleLoaded)) {
+      final result = await cubit.deleteVehicle(vehicle.id!);
+      if (!context.mounted) return;
+      if (result is OperationSuccess) {
         context.read<UpcomingMaintenanceCubit>().loadAllUpcomingMaintenance(
           AppLocalizations.of(context),
+        );
+      } else if (result is OperationFailure) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result.error.toString()),
+            backgroundColor: AppColors.urgentReminderText,
+          ),
         );
       }
     }
@@ -109,6 +108,13 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
                     color: Theme.of(context).colorScheme.onPrimary,
                   ),
                 ),
+                backgroundColor: AppColors.urgentReminderText,
+              ),
+            );
+          } else if (state is VehicleLoaded && state.refreshError != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.refreshError!),
                 backgroundColor: AppColors.urgentReminderText,
               ),
             );
@@ -162,45 +168,42 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
                       horizontal: 16,
                       vertical: 10,
                     ),
-                    leading:
-                        vehicle.image != null && vehicle.image!.isNotEmpty
-                            ? ClipRRect(
-                              borderRadius: BorderRadius.circular(8.0),
-                              child: FadeInImage(
-                                placeholder: MemoryImage(kTransparentImage),
-                                image: MemoryImage(vehicle.image!),
-                                fadeInDuration: const Duration(
-                                  milliseconds: 200,
-                                ),
-                                width: 70,
-                                height: 70,
-                                fit: BoxFit.cover,
-                                imageErrorBuilder:
-                                    (context, error, stackTrace) => Container(
-                                      width: 70,
-                                      height: 70,
-                                      color: Colors.grey[200],
-                                      child: const Icon(
-                                        Icons.directions_car,
-                                        size: 30,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                              ),
-                            )
-                            : Container(
+                    leading: vehicle.image != null && vehicle.image!.isNotEmpty
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(8.0),
+                            child: FadeInImage(
+                              placeholder: MemoryImage(kTransparentImage),
+                              image: MemoryImage(vehicle.image!),
+                              fadeInDuration: const Duration(milliseconds: 200),
                               width: 70,
                               height: 70,
-                              decoration: BoxDecoration(
-                                color: Colors.grey[200],
-                                borderRadius: BorderRadius.circular(8.0),
-                              ),
-                              child: const Icon(
-                                Icons.directions_car,
-                                size: 35,
-                                color: Colors.grey,
-                              ),
+                              fit: BoxFit.cover,
+                              imageErrorBuilder: (context, error, stackTrace) =>
+                                  Container(
+                                    width: 70,
+                                    height: 70,
+                                    color: Colors.grey[200],
+                                    child: const Icon(
+                                      Icons.directions_car,
+                                      size: 30,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
                             ),
+                          )
+                        : Container(
+                            width: 70,
+                            height: 70,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[200],
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                            child: const Icon(
+                              Icons.directions_car,
+                              size: 35,
+                              color: Colors.grey,
+                            ),
+                          ),
                     title: Text(
                       vehicle.name,
                       style: TextStyle(
@@ -214,23 +217,21 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
                       children: [
                         (vehicle.model != null && vehicle.model!.isNotEmpty)
                             ? Text(
-                              "${AppLocalizations.of(context)!.vehicleModel}: ${vehicle.model!}",
-                              style: TextStyle(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurface.withValues(alpha: 0.7),
-                                fontSize: 13,
-                              ),
-                            )
+                                "${AppLocalizations.of(context)!.vehicleModel}: ${vehicle.model!}",
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.onSurface
+                                      .withValues(alpha: 0.7),
+                                  fontSize: 13,
+                                ),
+                              )
                             : Text(
-                              AppLocalizations.of(context)!.unknownModel,
-                              style: TextStyle(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurface.withValues(alpha: 0.7),
-                                fontSize: 13,
+                                AppLocalizations.of(context)!.unknownModel,
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.onSurface
+                                      .withValues(alpha: 0.7),
+                                  fontSize: 13,
+                                ),
                               ),
-                            ),
                       ],
                     ),
                     trailing: Row(
