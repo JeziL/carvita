@@ -81,6 +81,8 @@
   "chooseDefaultVehicle": "选择默认车辆",
   "clearDefault": "清除默认",
   "cancel": "取消",
+  "back": "返回",
+  "retry": "重试",
   "chooseThreshold": "选择阈值",
   "chooseDisplayItemCount": "选择显示项目数",
   "itemCount": "{count} 个",

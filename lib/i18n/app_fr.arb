@@ -81,6 +81,8 @@
   "chooseDefaultVehicle": "Choisir le véhicule par défaut",
   "clearDefault": "Effacer",
   "cancel": "Annuler",
+  "back": "Retour",
+  "retry": "Réessayer",
   "chooseThreshold": "Choisir le seuil",
   "chooseDisplayItemCount": "Choisir le nombre d'éléments",
   "itemCount": "{count, plural, =1{1 élément} other{{count} éléments}}",

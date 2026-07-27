@@ -81,6 +81,8 @@
   "chooseDefaultVehicle": "Выбрать авто по умолчанию",
   "clearDefault": "Очистить",
   "cancel": "Отмена",
+  "back": "Назад",
+  "retry": "Повторить",
   "chooseThreshold": "Выбрать порог",
   "chooseDisplayItemCount": "Выбрать кол-во",
   "itemCount": "{count, plural, =1{1 пункт} few{{count} пункта} many{{count} пунктов} other{{count} пункта}}",

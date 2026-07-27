@@ -81,6 +81,8 @@
   "chooseDefaultVehicle": "Escolher veículo padrão",
   "clearDefault": "Limpar",
   "cancel": "Cancelar",
+  "back": "Voltar",
+  "retry": "Tentar novamente",
   "chooseThreshold": "Escolher limite",
   "chooseDisplayItemCount": "Escolher número de itens",
   "itemCount": "{count, plural, =1{1 item} other{{count} itens}}",

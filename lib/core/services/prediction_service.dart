@@ -23,10 +23,9 @@ class PredictionService {
     // 1. Look for the last service log entry for this planItem on this vehicle
     ServiceLogEntry? lastServiceLogForItem;
     // Find all performedItem records for this planItem
-    final performedInstancesOfThisItem =
-        allPerformedItemsForVehicle
-            .where((link) => link.maintenancePlanItemId == planItem.id)
-            .toList();
+    final performedInstancesOfThisItem = allPerformedItemsForVehicle
+        .where((link) => link.maintenancePlanItemId == planItem.id)
+        .toList();
 
     if (performedInstancesOfThisItem.isNotEmpty) {
       // Find the latest serviceLogId from these performedItem records
@@ -76,8 +75,8 @@ class PredictionService {
           timeNotes = "first time period";
         }
         if (planItem.firstIntervalMileage != null) {
-          targetMileageForPrediction =
-              planItem.firstIntervalMileage!.toDouble();
+          targetMileageForPrediction = planItem.firstIntervalMileage!
+              .toDouble();
           nextDateByMileage = MileageEstimator.predictDateForTargetMileage(
             currentMileage: vehicle.mileage,
             targetMileage: targetMileageForPrediction,

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -20,22 +22,33 @@ class UpcomingMaintenanceCubit extends Cubit<UpcomingMaintenanceState> {
   final PredictionService _predictionService;
   final NotificationCoordinator _notificationCoordinator;
   final PreferencesService _preferencesService;
+  final DateTime Function() _now;
   int _loadRevision = 0;
+  final Map<int, Completer<void>> _loadWaiters = {};
   int _notificationRequestRevision = 0;
+  final Map<int, Completer<void>> _notificationWaiters = {};
+  _NotificationSyncInput? _latestNotificationInput;
+  bool _isSynchronizingNotifications = false;
 
   UpcomingMaintenanceCubit(
     this._vehicleRepository,
     this._maintenanceRepository,
     this._predictionService,
     this._notificationCoordinator,
-    this._preferencesService,
-  ) : super(UpcomingMaintenanceInitial());
+    this._preferencesService, {
+    DateTime Function()? now,
+  }) : _now = now ?? DateTime.now,
+       super(UpcomingMaintenanceInitial());
 
   Future<void> loadAllUpcomingMaintenance(
     AppLocalizations? l10n, {
     Duration horizon = const Duration(days: 365),
   }) async {
+    if (isClosed) return;
     final int loadRevision = ++_loadRevision;
+    final loadCompleter = Completer<void>();
+    _loadWaiters[loadRevision] = loadCompleter;
+    final currentDate = _now();
     emit(UpcomingMaintenanceLoading());
     try {
       final List<Vehicle> vehicles = await _vehicleRepository.getVehicles();
@@ -49,8 +62,9 @@ class UpcomingMaintenanceCubit extends Cubit<UpcomingMaintenanceState> {
             await _maintenanceRepository.getServiceLogs(vehicle.id!);
 
         // Convert ServiceLogWithItems to List<ServiceLogEntry> for MileageEstimator
-        final List<ServiceLogEntry> serviceEntries =
-            logsWithItems.map((lwi) => lwi.entry).toList();
+        final List<ServiceLogEntry> serviceEntries = logsWithItems
+            .map((lwi) => lwi.entry)
+            .toList();
 
         // Fetch ServiceLogPerformedItemLink list
         final List<ServiceLogPerformedItemLink> performedItemLinks =
@@ -66,11 +80,19 @@ class UpcomingMaintenanceCubit extends Cubit<UpcomingMaintenanceState> {
                   serviceEntries, // Pass all entries for rate calculation
               allPerformedItemsForVehicle: performedItemLinks,
               horizon: horizon,
+              currentDateOverride: currentDate,
             );
         allPredictions.addAll(vehiclePredictions);
       }
 
-      if (loadRevision != _loadRevision || isClosed) return;
+      if (isClosed) {
+        _completeLoadWaitersThrough(_loadRevision);
+        return;
+      }
+      if (loadRevision != _loadRevision) {
+        await loadCompleter.future;
+        return;
+      }
 
       allPredictions.sort((a, b) => a.compareTo(b)); // Sort all by due date
       emit(UpcomingMaintenanceLoaded(allPredictions));
@@ -84,66 +106,151 @@ class UpcomingMaintenanceCubit extends Cubit<UpcomingMaintenanceState> {
           );
         }
       }
-    } catch (e) {
-      if (loadRevision != _loadRevision || isClosed) return;
-      emit(UpcomingMaintenanceError(e.toString()));
+      if (isClosed) {
+        _completeLoadWaitersThrough(_loadRevision);
+        return;
+      }
+      if (loadRevision != _loadRevision) {
+        await loadCompleter.future;
+        return;
+      }
+      _completeLoadWaitersThrough(loadRevision);
+    } catch (error) {
+      if (isClosed) {
+        _completeLoadWaitersThrough(_loadRevision);
+        return;
+      }
+      if (loadRevision != _loadRevision) {
+        await loadCompleter.future;
+        return;
+      }
+      emit(UpcomingMaintenanceError(error.toString()));
+      _completeLoadWaitersThrough(loadRevision);
+    }
+  }
+
+  void _completeLoadWaitersThrough(int loadRevision) {
+    final completedRevisions = _loadWaiters.keys
+        .where((revision) => revision <= loadRevision)
+        .toList(growable: false);
+    for (final revision in completedRevisions) {
+      _loadWaiters.remove(revision)?.complete();
     }
   }
 
   Future<void> _scheduleNotifications(
     List<PredictedMaintenanceInfo> predictions,
     AppLocalizations l10n,
-  ) async {
+  ) {
     final int requestRevision = ++_notificationRequestRevision;
+    final completer = Completer<void>();
+    _notificationWaiters[requestRevision] = completer;
+    _latestNotificationInput = _NotificationSyncInput(
+      predictions: List<PredictedMaintenanceInfo>.unmodifiable(predictions),
+      l10n: l10n,
+    );
 
-    final bool notificationsEnabled =
-        await _preferencesService.getNotificationsEnabled();
-    if (requestRevision != _notificationRequestRevision) return;
-
-    if (!notificationsEnabled) {
-      await _notificationCoordinator.replaceAll(const []);
-      return;
+    if (!_isSynchronizingNotifications) {
+      _isSynchronizingNotifications = true;
+      unawaited(_drainNotificationSynchronization());
     }
+    return completer.future;
+  }
 
-    final int leadTimeDays =
-        await _preferencesService.getReminderLeadTimeDays();
-    if (requestRevision != _notificationRequestRevision) return;
+  Future<void> _drainNotificationSynchronization() async {
+    while (true) {
+      final int requestRevision = _notificationRequestRevision;
+      final input = _latestNotificationInput!;
 
-    final DateTime now = DateTime.now();
-    final List<NotificationRequest> requests = predictions
-        .map((prediction) {
-          final DateTime notificationTime = prediction.predictedDueDate
-              .subtract(Duration(days: leadTimeDays))
-              .copyWith(
-                hour: 12,
-                minute: 0,
-                second: 0,
-                millisecond: 0,
-                microsecond: 0,
-              );
-          if (!notificationTime.isAfter(now)) return null;
+      try {
+        final bool notificationsEnabled = await _preferencesService
+            .getNotificationsEnabled();
+        if (requestRevision != _notificationRequestRevision) continue;
 
-          final int notificationId = maintenanceNotificationId(
-            vehicleId: prediction.vehicle.id!,
-            planItemId: prediction.planItem.id!,
-          );
-          return NotificationRequest(
-            id: notificationId,
-            title: '${l10n.notificationPrefix}: ${prediction.vehicle.name}',
-            body: l10n.notificationBody(
-              prediction.planItem.itemName,
-              prediction.predictedDueDate,
-            ),
-            scheduledDateTime: notificationTime,
-            payload:
-                'vehicleId=${prediction.vehicle.id}&planItemId=${prediction.planItem.id}&scheduledDateTime=${notificationTime.toIso8601String()}',
-          );
-        })
-        .whereType<NotificationRequest>()
+        var requests = const <NotificationRequest>[];
+        if (notificationsEnabled) {
+          final int leadTimeDays = await _preferencesService
+              .getReminderLeadTimeDays();
+          if (requestRevision != _notificationRequestRevision) continue;
+
+          final DateTime now = _now();
+          requests = input.predictions
+              .map((prediction) {
+                final DateTime notificationTime = prediction.predictedDueDate
+                    .subtract(Duration(days: leadTimeDays))
+                    .copyWith(
+                      hour: 12,
+                      minute: 0,
+                      second: 0,
+                      millisecond: 0,
+                      microsecond: 0,
+                    );
+                if (!notificationTime.isAfter(now)) return null;
+
+                final int notificationId = maintenanceNotificationId(
+                  vehicleId: prediction.vehicle.id!,
+                  planItemId: prediction.planItem.id!,
+                );
+                return NotificationRequest(
+                  id: notificationId,
+                  title:
+                      '${input.l10n.notificationPrefix}: '
+                      '${prediction.vehicle.name}',
+                  body: input.l10n.notificationBody(
+                    prediction.planItem.itemName,
+                    prediction.predictedDueDate,
+                  ),
+                  scheduledDateTime: notificationTime,
+                  payload:
+                      'vehicleId=${prediction.vehicle.id}'
+                      '&planItemId=${prediction.planItem.id}'
+                      '&scheduledDateTime=${notificationTime.toIso8601String()}',
+                );
+              })
+              .whereType<NotificationRequest>()
+              .toList(growable: false);
+        }
+
+        if (requestRevision != _notificationRequestRevision) continue;
+        await _notificationCoordinator.replaceAll(requests);
+        if (requestRevision != _notificationRequestRevision) continue;
+
+        _completeNotificationWaitersThrough(requestRevision);
+        _isSynchronizingNotifications = false;
+        return;
+      } catch (error, stackTrace) {
+        if (requestRevision != _notificationRequestRevision) continue;
+        _completeNotificationWaitersWithErrorThrough(
+          requestRevision,
+          error,
+          stackTrace,
+        );
+        _isSynchronizingNotifications = false;
+        return;
+      }
+    }
+  }
+
+  void _completeNotificationWaitersThrough(int requestRevision) {
+    final completedRevisions = _notificationWaiters.keys
+        .where((revision) => revision <= requestRevision)
         .toList(growable: false);
+    for (final revision in completedRevisions) {
+      _notificationWaiters.remove(revision)?.complete();
+    }
+  }
 
-    if (requestRevision != _notificationRequestRevision) return;
-    await _notificationCoordinator.replaceAll(requests);
+  void _completeNotificationWaitersWithErrorThrough(
+    int requestRevision,
+    Object error,
+    StackTrace stackTrace,
+  ) {
+    final completedRevisions = _notificationWaiters.keys
+        .where((revision) => revision <= requestRevision)
+        .toList(growable: false);
+    for (final revision in completedRevisions) {
+      _notificationWaiters.remove(revision)?.completeError(error, stackTrace);
+    }
   }
 
   Future<void> rescheduleNotificationsBasedOnNewSettings(
@@ -159,4 +266,11 @@ class UpcomingMaintenanceCubit extends Cubit<UpcomingMaintenanceState> {
       await loadAllUpcomingMaintenance(l10n);
     }
   }
+}
+
+final class _NotificationSyncInput {
+  final List<PredictedMaintenanceInfo> predictions;
+  final AppLocalizations l10n;
+
+  const _NotificationSyncInput({required this.predictions, required this.l10n});
 }

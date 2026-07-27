@@ -15,6 +15,7 @@ import 'package:carvita/core/services/backup_service.dart';
 import 'package:carvita/core/services/notification_service.dart';
 import 'package:carvita/core/services/preferences_service.dart';
 import 'package:carvita/core/theme/app_theme.dart';
+import 'package:carvita/core/utils/preference_selection.dart';
 import 'package:carvita/core/widgets/gradient_background.dart';
 import 'package:carvita/data/models/vehicle.dart';
 import 'package:carvita/data/repositories/vehicle_repository.dart';
@@ -25,6 +26,7 @@ import 'package:carvita/presentation/manager/theme_provider.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_cubit.dart';
 import 'package:carvita/presentation/screens/common_widgets/main_bottom_navigation_bar.dart';
+import 'package:carvita/presentation/screens/settings/preference_dialogs.dart';
 
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_state.dart'
     as vehicle_list_state_import;
@@ -106,105 +108,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
     BuildContext context,
     List<Vehicle> vehicles,
   ) async {
-    int? newSelectedId = _currentDefaultVehicleId;
-
-    final result = await showDialog<int?>(
+    final result = await showDefaultVehicleSelectionDialog(
       context: context,
-      builder: (BuildContext dialogContext) {
-        return StatefulBuilder(
-          builder: (stfContext, stfSetState) {
-            return AlertDialog(
-              backgroundColor:
-                  Theme.of(context).colorScheme.surfaceContainerLowest,
-              title: Text(
-                AppLocalizations.of(context)!.chooseDefaultVehicle,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface,
-                  fontSize: 20,
-                ),
-              ),
-              contentPadding: const EdgeInsets.only(top: 10.0, bottom: 0),
-              content: SizedBox(
-                width: double.maxFinite,
-                child:
-                    vehicles.isEmpty
-                        ? Padding(
-                          padding: EdgeInsets.symmetric(
-                            vertical: 20.0,
-                            horizontal: 24.0,
-                          ),
-                          child: Text(
-                            AppLocalizations.of(context)!.noVehicles,
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.onSurface,
-                            ),
-                          ),
-                        )
-                        : RadioGroup<int?>(
-                          groupValue: newSelectedId,
-                          onChanged: (int? value) {
-                            stfSetState(() {
-                              newSelectedId = value;
-                            });
-                            Navigator.of(dialogContext).pop(newSelectedId);
-                          },
-                          child: ListView.builder(
-                            shrinkWrap: true,
-                            itemCount: vehicles.length,
-                            itemBuilder: (BuildContext context, int index) {
-                              final vehicle = vehicles[index];
-                              return RadioListTile<int?>(
-                                title: Text(
-                                  vehicle.name,
-                                  style: TextStyle(
-                                    color:
-                                        Theme.of(context).colorScheme.onSurface,
-                                  ),
-                                ),
-                                value: vehicle.id,
-                                activeColor:
-                                    Theme.of(context).colorScheme.primary,
-                              );
-                            },
-                          ),
-                        ),
-              ),
-              actionsAlignment: MainAxisAlignment.spaceBetween,
-              actionsPadding: const EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical: 8.0,
-              ),
-              actions: <Widget>[
-                TextButton(
-                  child: Text(
-                    AppLocalizations.of(context)!.clearDefault,
-                    style: TextStyle(color: AppColors.urgentReminderText),
-                  ),
-                  onPressed: () {
-                    Navigator.of(dialogContext).pop(null);
-                  },
-                ),
-                TextButton(
-                  child: Text(
-                    AppLocalizations.of(context)!.cancel,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.of(dialogContext).pop(_currentDefaultVehicleId);
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      },
+      vehicles: vehicles,
+      currentVehicleId: _currentDefaultVehicleId,
     );
+    if (!mounted || result == null) return;
 
-    if (result != _currentDefaultVehicleId) {
-      await _preferencesService.setDefaultVehicleId(result);
-      _loadDefaultVehicleInfo();
+    final newVehicleId = switch (result) {
+      PreferenceSelected<int>(:final value) => value,
+      PreferenceCleared<int>() => null,
+    };
+    if (newVehicleId != _currentDefaultVehicleId) {
+      await _preferencesService.setDefaultVehicleId(newVehicleId);
+      if (!mounted) return;
+      await _loadDefaultVehicleInfo();
     }
   }
 
@@ -225,8 +143,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           context: context,
           builder: (BuildContext dialogContext) {
             return SimpleDialog(
-              backgroundColor:
-                  Theme.of(context).colorScheme.surfaceContainerLowest,
+              backgroundColor: Theme.of(
+                context,
+              ).colorScheme.surfaceContainerLowest,
               title: Text(
                 AppLocalizations.of(context)!.chooseThreshold,
                 style: TextStyle(
@@ -235,22 +154,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              children:
-                  DueReminderThresholdValue.values.map((threshold) {
-                    return SimpleDialogOption(
-                      onPressed: () => Navigator.pop(dialogContext, threshold),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 12.0),
-                        child: Text(
-                          threshold.displayString(context),
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface,
-                            fontSize: 16,
-                          ),
-                        ),
+              children: DueReminderThresholdValue.values.map((threshold) {
+                return SimpleDialogOption(
+                  onPressed: () => Navigator.pop(dialogContext, threshold),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12.0),
+                    child: Text(
+                      threshold.displayString(context),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                        fontSize: 16,
                       ),
-                    );
-                  }).toList(),
+                    ),
+                  ),
+                );
+              }).toList(),
             );
           },
         );
@@ -278,22 +196,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
               fontWeight: FontWeight.w500,
             ),
           ),
-          children:
-              counts.map((count) {
-                return SimpleDialogOption(
-                  onPressed: () => Navigator.pop(dialogContext, count),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12.0),
-                    child: Text(
-                      AppLocalizations.of(context)!.itemCount(count),
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface,
-                        fontSize: 16,
-                      ),
-                    ),
+          children: counts.map((count) {
+            return SimpleDialogOption(
+              onPressed: () => Navigator.pop(dialogContext, count),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12.0),
+                child: Text(
+                  AppLocalizations.of(context)!.itemCount(count),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontSize: 16,
                   ),
-                );
-              }).toList(),
+                ),
+              ),
+            );
+          }).toList(),
         );
       },
     );
@@ -416,7 +333,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       },
     );
 
-    if (confirmed != true) return;
+    if (!mounted || confirmed != true) return;
     if (_isImporting) return;
 
     setState(() => _isImporting = true);
@@ -448,8 +365,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               return PopScope(
                 canPop: false,
                 child: AlertDialog(
-                  backgroundColor:
-                      Theme.of(context).colorScheme.surfaceContainerLowest,
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.surfaceContainerLowest,
                   title: Text(
                     AppLocalizations.of(context)!.restoreSuccessTitle,
                     style: TextStyle(
@@ -530,22 +448,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
               fontWeight: FontWeight.w500,
             ),
           ),
-          children:
-              leadTimeOptions.map((days) {
-                return SimpleDialogOption(
-                  onPressed: () => Navigator.pop(dialogContext, days),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12.0),
-                    child: Text(
-                      AppLocalizations.of(context)!.notificationLeadTime(days),
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface,
-                        fontSize: 16,
-                      ),
-                    ),
+          children: leadTimeOptions.map((days) {
+            return SimpleDialogOption(
+              onPressed: () => Navigator.pop(dialogContext, days),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12.0),
+                child: Text(
+                  AppLocalizations.of(context)!.notificationLeadTime(days),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontSize: 16,
                   ),
-                );
-              }).toList(),
+                ),
+              ),
+            );
+          }).toList(),
         );
       },
     );
@@ -560,6 +477,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _triggerNotificationReschedule({AppLocalizations? l10n}) async {
+    if (!mounted) return;
     try {
       await context
           .read<UpcomingMaintenanceCubit>()
@@ -593,36 +511,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
               fontWeight: FontWeight.w500,
             ),
           ),
-          children:
-              units.map((unit) {
-                return SimpleDialogOption(
-                  onPressed: () => Navigator.pop(dialogContext, unit),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12.0),
-                    child: Text(
-                      AppLocalizations.of(context)!.mileageUnit(unit),
-                      style: TextStyle(
-                        color:
-                            (currentSelection == unit)
-                                ? Theme.of(context).colorScheme.primary
-                                : Theme.of(context).colorScheme.onSurface,
-                        fontSize: 16,
-                        fontWeight:
-                            (currentSelection == unit)
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                      ),
-                    ),
+          children: units.map((unit) {
+            return SimpleDialogOption(
+              onPressed: () => Navigator.pop(dialogContext, unit),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12.0),
+                child: Text(
+                  AppLocalizations.of(context)!.mileageUnit(unit),
+                  style: TextStyle(
+                    color: (currentSelection == unit)
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(context).colorScheme.onSurface,
+                    fontSize: 16,
+                    fontWeight: (currentSelection == unit)
+                        ? FontWeight.bold
+                        : FontWeight.normal,
                   ),
-                );
-              }).toList(),
+                ),
+              ),
+            );
+          }).toList(),
         );
       },
     );
 
     if (result != localeProvider.mileageUnit && result != null) {
       await localeProvider.setMileageUnit(result);
-      _loadDefaultVehicleInfo();
+      if (!mounted) return;
+      await _loadDefaultVehicleInfo();
     }
   }
 
@@ -687,27 +603,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
           color: Theme.of(context).colorScheme.onSurface,
         ),
       ),
-      subtitle:
-          value != null
-              ? Text(
-                value,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurface.withValues(alpha: 0.7),
-                ),
-              )
-              : null,
+      subtitle: value != null
+          ? Text(
+              value,
+              style: TextStyle(
+                fontSize: 14,
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.7),
+              ),
+            )
+          : null,
       trailing:
           trailing ??
           (onTap != null
               ? Icon(
-                Icons.chevron_right,
-                color: Theme.of(
-                  context,
-                ).colorScheme.onSurface.withValues(alpha: 0.5),
-              )
+                  Icons.chevron_right,
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.5),
+                )
               : null),
       onTap: onTap,
     );
@@ -725,58 +640,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ...appSupportedLocales,
     ];
 
-    Locale? currentSelection = localeProvider.appLocale;
-
-    final Locale? result = await showDialog<Locale?>(
+    final result = await showLanguageSelectionDialog(
       context: context,
-      builder: (BuildContext dialogContext) {
-        return SimpleDialog(
-          backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
-          title: Text(
-            AppLocalizations.of(context)!.chooseLanguage,
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurface,
-              fontSize: 20,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          children:
-              supportedLanguages.map((lang) {
-                Locale? langLocale = lang['locale'] as Locale?;
-                String langName = lang['name'] as String;
-                return SimpleDialogOption(
-                  onPressed: () => Navigator.pop(dialogContext, langLocale),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12.0),
-                    child: Text(
-                      langName,
-                      style: TextStyle(
-                        color:
-                            (currentSelection?.toLanguageTag() ==
-                                        langLocale?.toLanguageTag()) ||
-                                    (currentSelection == null &&
-                                        langLocale == null)
-                                ? Theme.of(context).colorScheme.primary
-                                : Theme.of(context).colorScheme.onSurface,
-                        fontSize: 16,
-                        fontWeight:
-                            (currentSelection?.toLanguageTag() ==
-                                        langLocale?.toLanguageTag()) ||
-                                    (currentSelection == null &&
-                                        langLocale == null)
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
-        );
-      },
+      supportedLanguages: supportedLanguages,
+      currentLocale: localeProvider.appLocale,
     );
+    if (!mounted || result == null) return;
 
-    if (result != localeProvider.appLocale) {
-      await localeProvider.setLocale(result);
+    final selectedLocale = switch (result) {
+      PreferenceSelected<Locale>(:final value) => value,
+      PreferenceCleared<Locale>() => null,
+    };
+    if (selectedLocale != localeProvider.appLocale) {
+      await localeProvider.setLocale(selectedLocale);
       if (mounted) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {
@@ -788,10 +664,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _initPackageInfo() async {
-    final info = await PackageInfo.fromPlatform();
-    setState(() {
-      _packageInfo = info;
-    });
+    try {
+      final info = await PackageInfo.fromPlatform();
+      if (!mounted) return;
+      setState(() {
+        _packageInfo = info;
+      });
+    } catch (error, stackTrace) {
+      debugPrint('Failed to load package information: $error\n$stackTrace');
+    }
   }
 
   void _showColorPicker(BuildContext context, ThemeProvider themeProvider) {
@@ -854,29 +735,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
               fontWeight: FontWeight.w500,
             ),
           ),
-          children:
-              AppThemePreference.values.map((preference) {
-                return SimpleDialogOption(
-                  onPressed: () => Navigator.pop(dialogContext, preference),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12.0),
-                    child: Text(
-                      preference.displayString(context),
-                      style: TextStyle(
-                        color:
-                            themeProvider.themePreference == preference
-                                ? Theme.of(context).colorScheme.primary
-                                : Theme.of(context).colorScheme.onSurface,
-                        fontSize: 16,
-                        fontWeight:
-                            themeProvider.themePreference == preference
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                      ),
-                    ),
+          children: AppThemePreference.values.map((preference) {
+            return SimpleDialogOption(
+              onPressed: () => Navigator.pop(dialogContext, preference),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12.0),
+                child: Text(
+                  preference.displayString(context),
+                  style: TextStyle(
+                    color: themeProvider.themePreference == preference
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(context).colorScheme.onSurface,
+                    fontSize: 16,
+                    fontWeight: themeProvider.themePreference == preference
+                        ? FontWeight.bold
+                        : FontWeight.normal,
                   ),
-                );
-              }).toList(),
+                ),
+              ),
+            );
+          }).toList(),
         );
       },
     );
@@ -886,7 +764,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (result == AppThemePreference.custom &&
           themeProvider.customSeedColor == null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          _showColorPicker(context, themeProvider);
+          if (mounted) {
+            _showColorPicker(context, themeProvider);
+          }
         });
       }
     }
@@ -932,11 +812,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         }
                         await _notificationService.cancelAllNotifications();
                       } else {
-                        bool notificationsEnabled =
-                            await _notificationService.checkPermissions();
+                        bool notificationsEnabled = await _notificationService
+                            .checkPermissions();
                         if (!notificationsEnabled) {
-                          notificationsEnabled =
-                              await _notificationService.requestPermissions();
+                          notificationsEnabled = await _notificationService
+                              .requestPermissions();
                         }
                         if (!context.mounted) return;
                         if (!notificationsEnabled) {
@@ -965,8 +845,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 _buildSettingItem(
                   icon: Icons.schedule_outlined,
-                  label:
-                      AppLocalizations.of(context)!.notificationLeadTimeLabel,
+                  label: AppLocalizations.of(
+                    context,
+                  )!.notificationLeadTimeLabel,
                   value: AppLocalizations.of(
                     context,
                   )!.notificationLeadTime(_selectedLeadTimeDays),
@@ -980,10 +861,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _buildSettingItem(
                   icon: Icons.star_border_purple500_outlined,
                   label: AppLocalizations.of(context)!.defaultVehicle,
-                  value:
-                      _currentDefaultVehicleId == null
-                          ? AppLocalizations.of(context)!.notSet
-                          : _defaultVehicleName,
+                  value: _currentDefaultVehicleId == null
+                      ? AppLocalizations.of(context)!.notSet
+                      : _defaultVehicleName,
                   onTap: () {
                     if (vehicleState
                         is vehicle_list_state_import.VehicleLoaded) {
@@ -998,8 +878,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             content: Text(
                               AppLocalizations.of(context)!.noVehicles,
                             ),
-                            backgroundColor:
-                                Theme.of(context).colorScheme.primary,
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.primary,
                           ),
                         );
                       }
@@ -1007,8 +888,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(AppLocalizations.of(context)!.loading),
-                          backgroundColor:
-                              Theme.of(context).colorScheme.primary,
+                          backgroundColor: Theme.of(
+                            context,
+                          ).colorScheme.primary,
                         ),
                       );
                       context.read<VehicleCubit>().fetchVehicles();
@@ -1038,8 +920,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   icon: Icons.language_outlined,
                   label: AppLocalizations.of(context)!.language,
                   value: localeProvider.getCurrentLocaleDisplayString(context),
-                  onTap:
-                      () => _showSelectLanguageDialog(context, localeProvider),
+                  onTap: () =>
+                      _showSelectLanguageDialog(context, localeProvider),
                 ),
                 _buildSettingItem(
                   icon: Icons.straighten_outlined,
@@ -1047,9 +929,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   value: AppLocalizations.of(
                     context,
                   )!.mileageUnit(localeProvider.mileageUnit),
-                  onTap:
-                      () =>
-                          _showSelectMileageUnitDialog(context, localeProvider),
+                  onTap: () =>
+                      _showSelectMileageUnitDialog(context, localeProvider),
                 ),
                 _buildSettingItem(
                   icon: Icons.brightness_6_outlined,
@@ -1085,43 +966,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   icon: Icons.cloud_download_outlined,
                   label: AppLocalizations.of(context)!.restoreData,
                   onTap: _isImporting ? null : _importDatabase,
-                  trailing:
-                      _isImporting
-                          ? SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                          )
-                          : Icon(
-                            Icons.chevron_right,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurface.withValues(alpha: 0.5),
+                  trailing: _isImporting
+                      ? SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Theme.of(context).colorScheme.primary,
                           ),
+                        )
+                      : Icon(
+                          Icons.chevron_right,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withValues(alpha: 0.5),
+                        ),
                 ),
                 _buildSettingItem(
                   icon: Icons.ios_share_outlined,
                   label: AppLocalizations.of(context)!.exportData,
                   onTap: _isExporting ? null : _exportDatabase,
-                  trailing:
-                      _isExporting
-                          ? SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                          )
-                          : Icon(
-                            Icons.chevron_right,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurface.withValues(alpha: 0.5),
+                  trailing: _isExporting
+                      ? SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Theme.of(context).colorScheme.primary,
                           ),
+                        )
+                      : Icon(
+                          Icons.chevron_right,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withValues(alpha: 0.5),
+                        ),
                 ),
               ],
             ),
@@ -1155,26 +1034,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ThemeData theme = Theme.of(context);
                     Navigator.of(context).push(
                       MaterialPageRoute<void>(
-                        builder:
-                            (context) => Theme(
-                              data: theme.copyWith(
-                                appBarTheme: theme.appBarTheme.copyWith(
-                                  titleTextStyle: theme
-                                      .appBarTheme
-                                      .titleTextStyle
-                                      ?.copyWith(
-                                        color: theme.colorScheme.onSurface,
-                                      ),
-                                  iconTheme: IconThemeData(
-                                    color:
-                                        Theme.of(context).colorScheme.onSurface,
+                        builder: (context) => Theme(
+                          data: theme.copyWith(
+                            appBarTheme: theme.appBarTheme.copyWith(
+                              titleTextStyle: theme.appBarTheme.titleTextStyle
+                                  ?.copyWith(
+                                    color: theme.colorScheme.onSurface,
                                   ),
-                                ),
-                              ),
-                              child: LicensePage(
-                                applicationVersion: _packageInfo.version,
+                              iconTheme: IconThemeData(
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
+                          ),
+                          child: LicensePage(
+                            applicationVersion: _packageInfo.version,
+                          ),
+                        ),
                       ),
                     );
                   },

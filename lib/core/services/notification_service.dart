@@ -83,8 +83,8 @@ class NotificationService implements NotificationGateway {
               .resolvePlatformSpecificImplementation<
                 AndroidFlutterLocalNotificationsPlugin
               >();
-      final bool? result =
-          await androidImplementation?.requestNotificationsPermission();
+      final bool? result = await androidImplementation
+          ?.requestNotificationsPermission();
       // final bool? resultExact = await androidImplementation?.requestExactAlarmsPermission();
       return (result ?? false); // && (resultExact ?? false);
     }
@@ -95,12 +95,11 @@ class NotificationService implements NotificationGateway {
   Future<bool> checkPermissions() async {
     if (defaultTargetPlatform == TargetPlatform.iOS ||
         defaultTargetPlatform == TargetPlatform.macOS) {
-      final NotificationsEnabledOptions? result =
-          await _notificationsPlugin
-              .resolvePlatformSpecificImplementation<
-                IOSFlutterLocalNotificationsPlugin
-              >()
-              ?.checkPermissions();
+      final NotificationsEnabledOptions? result = await _notificationsPlugin
+          .resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin
+          >()
+          ?.checkPermissions();
       return result?.isEnabled ?? false;
     }
     if (defaultTargetPlatform == TargetPlatform.android) {
@@ -109,8 +108,8 @@ class NotificationService implements NotificationGateway {
               .resolvePlatformSpecificImplementation<
                 AndroidFlutterLocalNotificationsPlugin
               >();
-      final bool? result =
-          await androidImplementation?.areNotificationsEnabled();
+      final bool? result = await androidImplementation
+          ?.areNotificationsEnabled();
       return result ?? false;
     }
     return true;

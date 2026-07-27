@@ -6,8 +6,9 @@ class AppTheme {
     Brightness brightness,
   ) {
     final isDark = brightness == Brightness.dark;
-    final textColorOnBackground =
-        isDark ? colorScheme.onPrimaryContainer : colorScheme.onPrimary;
+    final textColorOnBackground = isDark
+        ? colorScheme.onPrimaryContainer
+        : colorScheme.onPrimary;
 
     final Gradient primaryGradient = LinearGradient(
       colors: [
@@ -27,12 +28,14 @@ class AppTheme {
         elevation: 0,
         backgroundColor: colorScheme.surfaceContainer,
         iconTheme: IconThemeData(
-          color:
-              isDark ? colorScheme.onPrimaryContainer : colorScheme.onPrimary,
+          color: isDark
+              ? colorScheme.onPrimaryContainer
+              : colorScheme.onPrimary,
         ),
         titleTextStyle: TextStyle(
-          color:
-              isDark ? colorScheme.onPrimaryContainer : colorScheme.onPrimary,
+          color: isDark
+              ? colorScheme.onPrimaryContainer
+              : colorScheme.onPrimary,
           fontSize: 20,
           fontWeight: FontWeight.w500,
         ),
@@ -83,29 +86,30 @@ class AppTheme {
           vertical: 13,
         ),
       ),
-      textTheme: TextTheme(
-        bodyLarge: TextStyle(color: colorScheme.onSurface),
-        bodyMedium: TextStyle(color: colorScheme.onSurface),
-        titleLarge: TextStyle(color: colorScheme.onSurface),
-        headlineSmall: TextStyle(
-          color: colorScheme.onSurface,
-          fontSize: 28,
-          fontWeight: FontWeight.w500,
-        ),
-        headlineMedium: TextStyle(
-          color: colorScheme.onSurface,
-          fontSize: 22,
-          fontWeight: FontWeight.w500,
-        ),
-        titleMedium: TextStyle(
-          color: colorScheme.onSurface,
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-        ),
-      ).apply(
-        bodyColor: colorScheme.onSurface,
-        displayColor: colorScheme.onSurface,
-      ),
+      textTheme:
+          TextTheme(
+            bodyLarge: TextStyle(color: colorScheme.onSurface),
+            bodyMedium: TextStyle(color: colorScheme.onSurface),
+            titleLarge: TextStyle(color: colorScheme.onSurface),
+            headlineSmall: TextStyle(
+              color: colorScheme.onSurface,
+              fontSize: 28,
+              fontWeight: FontWeight.w500,
+            ),
+            headlineMedium: TextStyle(
+              color: colorScheme.onSurface,
+              fontSize: 22,
+              fontWeight: FontWeight.w500,
+            ),
+            titleMedium: TextStyle(
+              color: colorScheme.onSurface,
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
+          ).apply(
+            bodyColor: colorScheme.onSurface,
+            displayColor: colorScheme.onSurface,
+          ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: colorScheme.surfaceContainer,
         selectedItemColor: colorScheme.primary,
@@ -150,10 +154,16 @@ class AppThemeExtensions extends ThemeExtension<AppThemeExtensions> {
       return this;
     }
     return AppThemeExtensions(
-      primaryGradient:
-          Gradient.lerp(primaryGradient, other.primaryGradient, t)!,
-      textColorOnBackground:
-          Color.lerp(textColorOnBackground, other.textColorOnBackground, t)!,
+      primaryGradient: Gradient.lerp(
+        primaryGradient,
+        other.primaryGradient,
+        t,
+      )!,
+      textColorOnBackground: Color.lerp(
+        textColorOnBackground,
+        other.textColorOnBackground,
+        t,
+      )!,
     );
   }
 }

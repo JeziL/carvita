@@ -2,12 +2,64 @@ name: Flutter
 
 on:
   workflow_dispatch:
+  pull_request:
   push:
+    branches:
+      - main
     tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+\+[0-9]+'
+      - 'v*.*.*+*'
+
+concurrency:
+  group: flutter-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref_type != 'tag' }}
+
+permissions:
+  contents: read
 
 jobs:
-  build:
+  quality:
+    name: Quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.44.8
+          cache: true
+
+      - name: Verify toolchain
+        run: |
+          flutter --version
+          dart --version
+          test "$(flutter --version --machine | jq -r .frameworkVersion)" = "3.44.8"
+          test "$(dart --version 2>&1 | awk '{print $4}')" = "3.12.2"
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Generate localizations
+        run: flutter gen-l10n
+
+      - name: Check formatting
+        run: dart format --output=none --set-exit-if-changed lib test tool
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
+
+      - name: Build debug APK without release secrets
+        run: flutter build apk --debug
+
+  release:
+    name: Release
+    if: github.event_name == 'workflow_dispatch' || github.ref_type == 'tag'
+    needs: quality
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -22,59 +74,98 @@ jobs:
         with:
           channel: stable
           flutter-version: 3.44.8
-      
-      - name: Decode Keystore
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Validate release metadata
         env:
-          APP_KEYSTORE_BASE64: ${{ secrets.APP_KEYSTORE_BASE64 }}
+          RELEASE_TAG: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
         run: |
-          echo $APP_KEYSTORE_BASE64 | base64 --decode > android/app/app-keystore.jks
-      
-      - name: Create key.properties
+          if [ -n "$RELEASE_TAG" ]; then
+            dart run tool/validate_release.dart --tag "$RELEASE_TAG"
+          else
+            dart run tool/validate_release.dart
+          fi
+
+      - name: Validate signing secrets
         env:
+          APP_CERT_SHA256: ${{ secrets.APP_CERT_SHA256 }}
+          APP_KEYSTORE_BASE64: ${{ secrets.APP_KEYSTORE_BASE64 }}
           APP_KEY_ALIAS: ${{ secrets.APP_KEY_ALIAS }}
           APP_KEY_PASSWORD: ${{ secrets.APP_KEY_PASSWORD }}
           APP_KEYSTORE_PASSWORD: ${{ secrets.APP_KEYSTORE_PASSWORD }}
         run: |
-          echo "storePassword=$APP_KEYSTORE_PASSWORD" > android/key.properties
-          echo "keyPassword=$APP_KEY_PASSWORD" >> android/key.properties
-          echo "keyAlias=$APP_KEY_ALIAS" >> android/key.properties
-          echo "storeFile=app-keystore.jks" >> android/key.properties
+          : "${APP_CERT_SHA256:?APP_CERT_SHA256 is required}"
+          : "${APP_KEYSTORE_BASE64:?APP_KEYSTORE_BASE64 is required}"
+          : "${APP_KEY_ALIAS:?APP_KEY_ALIAS is required}"
+          : "${APP_KEY_PASSWORD:?APP_KEY_PASSWORD is required}"
+          : "${APP_KEYSTORE_PASSWORD:?APP_KEYSTORE_PASSWORD is required}"
 
-      - name: Run Flutter pub get
-        run: flutter pub get
-
-      - name: Build APK
-        run: flutter build apk
-
-      - name: Get Changelog
-        id: get_change_log
-        if: github.event_name == 'push'
+      - name: Configure release signing
+        env:
+          APP_KEYSTORE_BASE64: ${{ secrets.APP_KEYSTORE_BASE64 }}
+          APP_KEY_ALIAS: ${{ secrets.APP_KEY_ALIAS }}
+          APP_KEY_PASSWORD: ${{ secrets.APP_KEY_PASSWORD }}
+          APP_KEYSTORE_PASSWORD: ${{ secrets.APP_KEYSTORE_PASSWORD }}
         run: |
-          tag=${{ github.ref_name }}
-          version_code="${tag#*+}"
-          changelog_file="fastlane/metadata/android/en-US/changelogs/${version_code}.txt"
-          if [ ! -f "$changelog_file" ]; then
-            echo "Changelog file '$changelog_file' not found!"
-            exit 1
-          fi
-          echo "path=$changelog_file" >> "$GITHUB_OUTPUT"
+          printf '%s' "$APP_KEYSTORE_BASE64" | base64 --decode > android/app/app-keystore.jks
+          {
+            printf 'storePassword=%s\n' "$APP_KEYSTORE_PASSWORD"
+            printf 'keyPassword=%s\n' "$APP_KEY_PASSWORD"
+            printf 'keyAlias=%s\n' "$APP_KEY_ALIAS"
+            printf 'storeFile=app-keystore.jks\n'
+          } > android/key.properties
 
-      - name: Create Release and Upload APK
+      - name: Build signed release APK
+        run: flutter build apk --release
+
+      - name: Verify APK identity
+        env:
+          APP_CERT_SHA256: ${{ secrets.APP_CERT_SHA256 }}
+        run: |
+          apk_path="build/app/outputs/flutter-apk/app-release.apk"
+          test -s "$apk_path"
+          apksigner_path="$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -n 1)"
+          test -x "$apksigner_path"
+          "$apksigner_path" verify --print-certs "$apk_path" | tee apksigner-output.txt
+          actual_fingerprint="$(awk -F': ' '/Signer #1 certificate SHA-256 digest/ {print $2}' apksigner-output.txt | tr -d ':[:space:]' | tr '[:lower:]' '[:upper:]')"
+          expected_fingerprint="$(printf '%s' "$APP_CERT_SHA256" | tr -d ':[:space:]' | tr '[:lower:]' '[:upper:]')"
+          test -n "$actual_fingerprint"
+          test "$actual_fingerprint" = "$expected_fingerprint"
+
+      - name: Create checksum
+        run: |
+          cd build/app/outputs/flutter-apk
+          sha256sum app-release.apk > app-release.apk.sha256
+
+      - name: Resolve changelog
+        id: changelog
+        run: |
+          version_code="$(sed -nE 's/^version: [0-9]+\.[0-9]+\.[0-9]+\+([0-9]+)$/\1/p' pubspec.yaml)"
+          changelog_file="fastlane/metadata/android/en-US/changelogs/${version_code}.txt"
+          test -s "$changelog_file"
+          printf 'path=%s\n' "$changelog_file" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub release
+        if: github.ref_type == 'tag'
         uses: softprops/action-gh-release@v2
-        if: github.event_name == 'push'
         with:
-          files: build/app/outputs/apk/release/app-release.apk
+          files: |
+            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/flutter-apk/app-release.apk.sha256
           tag_name: ${{ github.ref_name }}
           name: Release ${{ github.ref_name }}
-          body_path: ${{ steps.get_change_log.outputs.path }}
+          body_path: ${{ steps.changelog.outputs.path }}
           draft: false
           prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
+      - name: Upload manual release artifacts
         if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
         with:
-          name: carvita-release-universal.apk
-          path: build/app/outputs/apk/release/app-release.apk
+          name: carvita-release-universal
+          path: |
+            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/flutter-apk/app-release.apk.sha256

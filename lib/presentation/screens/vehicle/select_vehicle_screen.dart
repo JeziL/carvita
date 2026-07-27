@@ -27,28 +27,25 @@ class SelectVehicleScreen extends StatelessWidget {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder:
-            (newRouteContext) => MultiBlocProvider(
-              providers: [
-                BlocProvider(
-                  create:
-                      (_) =>
-                          MaintenancePlanCubit(maintenanceRepository, vehicleId)
-                            ..fetchPlanItems(),
-                ),
-                BlocProvider(
-                  create:
-                      (_) =>
-                          ServiceLogCubit(maintenanceRepository, vehicleId)
-                            ..fetchServiceLogs(),
-                ),
-              ],
-              child: LogMaintenanceScreen(
-                vehicleId: vehicleId,
-                vehicleName: vehicleName,
-                logToEdit: null,
-              ),
+        builder: (newRouteContext) => MultiBlocProvider(
+          providers: [
+            BlocProvider(
+              create: (_) =>
+                  MaintenancePlanCubit(maintenanceRepository, vehicleId)
+                    ..fetchPlanItems(),
             ),
+            BlocProvider(
+              create: (_) =>
+                  ServiceLogCubit(maintenanceRepository, vehicleId)
+                    ..fetchServiceLogs(),
+            ),
+          ],
+          child: LogMaintenanceScreen(
+            vehicleId: vehicleId,
+            vehicleName: vehicleName,
+            logToEdit: null,
+          ),
+        ),
       ),
     );
   }
@@ -78,32 +75,31 @@ class SelectVehicleScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: ListTile(
-                leading:
-                    vehicle.image != null && vehicle.image!.isNotEmpty
-                        ? ClipRRect(
-                          borderRadius: BorderRadius.circular(8.0),
-                          child: FadeInImage(
-                            placeholder: MemoryImage(kTransparentImage),
-                            image: MemoryImage(vehicle.image!),
-                            fadeInDuration: const Duration(milliseconds: 200),
-                            width: 50,
-                            height: 50,
-                            fit: BoxFit.cover,
-                          ),
-                        )
-                        : Container(
+                leading: vehicle.image != null && vehicle.image!.isNotEmpty
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(8.0),
+                        child: FadeInImage(
+                          placeholder: MemoryImage(kTransparentImage),
+                          image: MemoryImage(vehicle.image!),
+                          fadeInDuration: const Duration(milliseconds: 200),
                           width: 50,
                           height: 50,
-                          decoration: BoxDecoration(
-                            color: Colors.grey[200],
-                            borderRadius: BorderRadius.circular(8.0),
-                          ),
-                          child: const Icon(
-                            Icons.directions_car,
-                            size: 30,
-                            color: Colors.grey,
-                          ),
+                          fit: BoxFit.cover,
                         ),
+                      )
+                    : Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        child: const Icon(
+                          Icons.directions_car,
+                          size: 30,
+                          color: Colors.grey,
+                        ),
+                      ),
                 title: Text(
                   vehicle.name,
                   style: TextStyle(

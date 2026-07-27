@@ -6,7 +6,7 @@ abstract class MaintenancePlanState extends Equatable {
   const MaintenancePlanState();
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
 class MaintenancePlanInitial extends MaintenancePlanState {}
@@ -15,11 +15,17 @@ class MaintenancePlanLoading extends MaintenancePlanState {}
 
 class MaintenancePlanLoaded extends MaintenancePlanState {
   final List<MaintenancePlanItem> planItems;
+  final bool isRefreshing;
+  final String? refreshError;
 
-  const MaintenancePlanLoaded(this.planItems);
+  const MaintenancePlanLoaded(
+    this.planItems, {
+    this.isRefreshing = false,
+    this.refreshError,
+  });
 
   @override
-  List<Object> get props => [planItems];
+  List<Object?> get props => [planItems, isRefreshing, refreshError];
 }
 
 class MaintenancePlanError extends MaintenancePlanState {
@@ -27,13 +33,6 @@ class MaintenancePlanError extends MaintenancePlanState {
 
   const MaintenancePlanError(this.message);
 
-  @override
-  List<Object> get props => [message];
-}
-
-class MaintenancePlanOperationSuccess extends MaintenancePlanState {
-  final String message;
-  const MaintenancePlanOperationSuccess(this.message);
   @override
   List<Object> get props => [message];
 }

@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/constants/app_routes.dart';
+import 'package:carvita/core/utils/operation_result.dart';
 import 'package:carvita/data/models/service_log_entry.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/presentation/manager/locale_provider.dart';
@@ -74,12 +75,18 @@ class _ServiceHistoryTabState extends State<ServiceHistoryTab> {
 
     if (confirmed == true && logWithItems.entry.id != null && context.mounted) {
       final cubit = context.read<ServiceLogCubit>();
-      await cubit.deleteServiceLog(logWithItems.entry.id!);
-      if (context.mounted &&
-          (cubit.state is ServiceLogOperationSuccess ||
-              cubit.state is ServiceLogLoaded)) {
+      final result = await cubit.deleteServiceLog(logWithItems.entry.id!);
+      if (!context.mounted) return;
+      if (result is OperationSuccess) {
         context.read<UpcomingMaintenanceCubit>().loadAllUpcomingMaintenance(
           AppLocalizations.of(context),
+        );
+      } else if (result is OperationFailure) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result.error.toString()),
+            backgroundColor: AppColors.urgentReminderText,
+          ),
         );
       }
     }
@@ -102,6 +109,13 @@ class _ServiceHistoryTabState extends State<ServiceHistoryTab> {
                   color: Theme.of(context).colorScheme.onPrimary,
                 ),
               ),
+              backgroundColor: AppColors.urgentReminderText,
+            ),
+          );
+        } else if (state is ServiceLogLoaded && state.refreshError != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.refreshError!),
               backgroundColor: AppColors.urgentReminderText,
             ),
           );
@@ -196,10 +210,9 @@ class _ServiceHistoryTabState extends State<ServiceHistoryTab> {
                       final entry = logWithItems.entry;
 
                       return Card(
-                        color:
-                            Theme.of(
-                              context,
-                            ).colorScheme.surfaceContainerLowest,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerLowest,
                         elevation: 1,
                         margin: const EdgeInsets.only(bottom: 12),
                         shape: RoundedRectangleBorder(
@@ -228,10 +241,9 @@ class _ServiceHistoryTabState extends State<ServiceHistoryTab> {
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w500,
-                                        color:
-                                            Theme.of(
-                                              context,
-                                            ).colorScheme.onSurface,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurface,
                                       ),
                                     ),
                                     const SizedBox(height: 8),
@@ -310,20 +322,17 @@ class _ServiceHistoryTabState extends State<ServiceHistoryTab> {
                                     _confirmDeleteLog(context, logWithItems);
                                   }
                                 },
-                                itemBuilder:
-                                    (
-                                      BuildContext bc,
-                                    ) => <PopupMenuEntry<String>>[
+                                itemBuilder: (BuildContext bc) =>
+                                    <PopupMenuEntry<String>>[
                                       PopupMenuItem<String>(
                                         value: 'edit',
                                         child: Row(
                                           children: [
                                             Icon(
                                               Icons.edit_outlined,
-                                              color:
-                                                  Theme.of(
-                                                    context,
-                                                  ).colorScheme.primary,
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.primary,
                                               size: 20,
                                             ),
                                             SizedBox(width: 8),
@@ -332,10 +341,9 @@ class _ServiceHistoryTabState extends State<ServiceHistoryTab> {
                                                 context,
                                               )!.edit,
                                               style: TextStyle(
-                                                color:
-                                                    Theme.of(
-                                                      context,
-                                                    ).colorScheme.onSurface,
+                                                color: Theme.of(
+                                                  context,
+                                                ).colorScheme.onSurface,
                                               ),
                                             ),
                                           ],
@@ -357,10 +365,9 @@ class _ServiceHistoryTabState extends State<ServiceHistoryTab> {
                                                 context,
                                               )!.delete,
                                               style: TextStyle(
-                                                color:
-                                                    Theme.of(
-                                                      context,
-                                                    ).colorScheme.onSurface,
+                                                color: Theme.of(
+                                                  context,
+                                                ).colorScheme.onSurface,
                                               ),
                                             ),
                                           ],

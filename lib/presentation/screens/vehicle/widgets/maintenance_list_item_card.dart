@@ -22,16 +22,16 @@ class MaintenanceListItemCard extends StatelessWidget {
     BuildContext context,
     PredictedMaintenanceInfo item,
   ) {
-    final daysRemaining =
-        item.predictedDueDate.difference(DateTime.now()).inDays;
+    final daysRemaining = item.predictedDueDate
+        .difference(DateTime.now())
+        .inDays;
     bool isUrgent = daysRemaining <= 30;
     final dueDate = DateFormat.MMMd(
       Localizations.localeOf(context).toLanguageTag(),
     ).format(item.predictedDueDate);
-    String daysRemainingText =
-        daysRemaining >= 0
-            ? AppLocalizations.of(context)!.daysLater(daysRemaining)
-            : AppLocalizations.of(context)!.daysOverdue(-daysRemaining);
+    String daysRemainingText = daysRemaining >= 0
+        ? AppLocalizations.of(context)!.daysLater(daysRemaining)
+        : AppLocalizations.of(context)!.daysOverdue(-daysRemaining);
     String dueText = "$dueDate ($daysRemainingText)";
     return MaintenanceListItemCard(
       title: item.planItem.itemName,
@@ -41,10 +41,9 @@ class MaintenanceListItemCard extends StatelessWidget {
           dueText,
           style: TextStyle(
             fontWeight: FontWeight.w500,
-            color:
-                isUrgent
-                    ? AppColors.urgentReminderText
-                    : Theme.of(context).colorScheme.primary,
+            color: isUrgent
+                ? AppColors.urgentReminderText
+                : Theme.of(context).colorScheme.primary,
           ),
         ),
       ],

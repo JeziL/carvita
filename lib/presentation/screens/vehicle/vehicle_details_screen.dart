@@ -26,8 +26,15 @@ import 'package:carvita/presentation/manager/vehicle_list/vehicle_state.dart'
 
 class VehicleDetailsScreen extends StatefulWidget {
   final int vehicleId;
+  final VehicleRepository? vehicleRepository;
+  final MaintenanceRepository? maintenanceRepository;
 
-  const VehicleDetailsScreen({super.key, required this.vehicleId});
+  const VehicleDetailsScreen({
+    super.key,
+    required this.vehicleId,
+    this.vehicleRepository,
+    this.maintenanceRepository,
+  });
 
   @override
   State<VehicleDetailsScreen> createState() => _VehicleDetailsScreenState();
@@ -40,11 +47,15 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
   bool _isLoading = true;
   String _error = '';
 
-  final VehicleRepository _vehicleRepository = VehicleRepository();
+  late final VehicleRepository _vehicleRepository;
+  late final MaintenanceRepository _maintenanceRepository;
 
   @override
   void initState() {
     super.initState();
+    _vehicleRepository = widget.vehicleRepository ?? VehicleRepository();
+    _maintenanceRepository =
+        widget.maintenanceRepository ?? MaintenanceRepository();
     _tabController = TabController(length: 3, vsync: this);
     _fetchVehicleDetails();
   }
@@ -112,27 +123,27 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
                 width: 100,
                 height: 100,
                 fit: BoxFit.cover,
-                imageErrorBuilder:
-                    (context, error, stackTrace) => Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        color: themeExtensions.textColorOnBackground.withValues(
-                          alpha: 0.2,
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: themeExtensions.textColorOnBackground
-                              .withValues(alpha: 0.5),
-                          width: 3,
-                        ),
-                      ),
-                      child: Icon(
-                        Icons.directions_car,
-                        size: 50,
-                        color: themeExtensions.textColorOnBackground,
-                      ),
+                imageErrorBuilder: (context, error, stackTrace) => Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    color: themeExtensions.textColorOnBackground.withValues(
+                      alpha: 0.2,
                     ),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: themeExtensions.textColorOnBackground.withValues(
+                        alpha: 0.5,
+                      ),
+                      width: 3,
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.directions_car,
+                    size: 50,
+                    color: themeExtensions.textColorOnBackground,
+                  ),
+                ),
               ),
             )
           else
@@ -186,10 +197,9 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
   Widget _buildTabBar() {
     final themeExtensions = Theme.of(context).extension<AppThemeExtensions>()!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor =
-        isDark
-            ? Theme.of(context).colorScheme.onPrimaryContainer
-            : Theme.of(context).colorScheme.onPrimary;
+    final bgColor = isDark
+        ? Theme.of(context).colorScheme.onPrimaryContainer
+        : Theme.of(context).colorScheme.onPrimary;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
       padding: const EdgeInsets.all(5),
@@ -222,6 +232,127 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
     );
   }
 
+  Widget _buildUnavailableState({
+    required BuildContext context,
+    required String message,
+  }) {
+    final themeExtensions = Theme.of(context).extension<AppThemeExtensions>()!;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              message,
+              style: TextStyle(color: themeExtensions.textColorOnBackground),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 12,
+              children: [
+                OutlinedButton.icon(
+                  onPressed: () => Navigator.of(context).maybePop(),
+                  icon: const Icon(Icons.arrow_back),
+                  label: Text(AppLocalizations.of(context)!.back),
+                ),
+                FilledButton.icon(
+                  onPressed: _fetchVehicleDetails,
+                  icon: const Icon(Icons.refresh),
+                  label: Text(AppLocalizations.of(context)!.retry),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildReadyPage(
+    BuildContext context,
+    AppThemeExtensions themeExtensions,
+  ) {
+    final vehicle = _vehicle!;
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<MaintenancePlanCubit>(
+          create: (_) =>
+              MaintenancePlanCubit(_maintenanceRepository, vehicle.id!)
+                ..fetchPlanItems(),
+        ),
+        BlocProvider<ServiceLogCubit>(
+          create: (_) =>
+              ServiceLogCubit(_maintenanceRepository, vehicle.id!)
+                ..fetchServiceLogs(),
+        ),
+      ],
+      child: Builder(
+        builder: (builderContext) {
+          return Scaffold(
+            backgroundColor: Colors.transparent,
+            body: Column(
+              children: [
+                _buildVehicleHeader(builderContext, vehicle),
+                _buildTabBar(),
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerLowest,
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(24),
+                        topRight: Radius.circular(24),
+                      ),
+                    ),
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        OverviewTab(vehicle: vehicle),
+                        MaintenancePlanTab(
+                          vehicleId: vehicle.id!,
+                          vehicleName: vehicle.name,
+                        ),
+                        ServiceHistoryTab(
+                          vehicleId: vehicle.id!,
+                          vehicleName: vehicle.name,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            floatingActionButton: FloatingActionButton(
+              onPressed: () {
+                Navigator.pushNamed(
+                  builderContext,
+                  AppRoutes.logMaintenanceRoute,
+                  arguments: {
+                    'vehicleId': vehicle.id!,
+                    'vehicleName': vehicle.name,
+                    'logToEdit': null,
+                    'serviceLogCubit': builderContext.read<ServiceLogCubit>(),
+                    'maintenancePlanCubit': builderContext
+                        .read<MaintenancePlanCubit>(),
+                  },
+                );
+              },
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              shape: const CircleBorder(),
+              child: Icon(
+                Icons.edit_calendar_outlined,
+                color: Theme.of(context).colorScheme.onPrimary,
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(
@@ -232,7 +363,6 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
       ),
     );
 
-    final maintenanceRepository = MaintenanceRepository();
     final themeExtensions = Theme.of(context).extension<AppThemeExtensions>()!;
 
     return BlocListener<VehicleCubit, vehicle_list_state_import.VehicleState>(
@@ -259,119 +389,31 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
           }
         }
       },
-      child: MultiBlocProvider(
-        providers: [
-          BlocProvider<MaintenancePlanCubit>(
-            create:
-                (context) =>
-                    MaintenancePlanCubit(maintenanceRepository, _vehicle!.id!)
-                      ..fetchPlanItems(),
-          ),
-          BlocProvider<ServiceLogCubit>(
-            create:
-                (context) =>
-                    ServiceLogCubit(maintenanceRepository, _vehicle!.id!)
-                      ..fetchServiceLogs(),
-          ),
-        ],
-        child: Builder(
-          builder: (builderContext) {
-            return GradientBackground(
-              gradient: themeExtensions.primaryGradient,
-              child: Scaffold(
+      child: GradientBackground(
+        gradient: themeExtensions.primaryGradient,
+        child: _isLoading
+            ? Scaffold(
                 backgroundColor: Colors.transparent,
-                body:
-                    _isLoading
-                        ? Center(
-                          child: CircularProgressIndicator(
-                            color: themeExtensions.textColorOnBackground,
-                          ),
-                        )
-                        : _error.isNotEmpty
-                        ? Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(20.0),
-                            child: Text(
-                              _error,
-                              style: TextStyle(
-                                color: themeExtensions.textColorOnBackground,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        )
-                        : _vehicle == null
-                        ? Center(
-                          child: Text(
-                            AppLocalizations.of(context)!.errVehDeleted,
-                            style: TextStyle(
-                              color: themeExtensions.textColorOnBackground,
-                            ),
-                          ),
-                        )
-                        : Column(
-                          children: [
-                            _buildVehicleHeader(builderContext, _vehicle!),
-                            _buildTabBar(),
-                            Expanded(
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color:
-                                      Theme.of(
-                                        context,
-                                      ).colorScheme.surfaceContainerLowest,
-                                  borderRadius: BorderRadius.only(
-                                    topLeft: Radius.circular(24),
-                                    topRight: Radius.circular(24),
-                                  ),
-                                ),
-                                child: TabBarView(
-                                  controller: _tabController,
-                                  children: [
-                                    OverviewTab(vehicle: _vehicle!),
-                                    MaintenancePlanTab(
-                                      vehicleId: _vehicle!.id!,
-                                      vehicleName: _vehicle!.name,
-                                    ),
-                                    ServiceHistoryTab(
-                                      vehicleId: _vehicle!.id!,
-                                      vehicleName: _vehicle!.name,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                floatingActionButton: FloatingActionButton(
-                  onPressed: () {
-                    final serviceLogCubit =
-                        builderContext.read<ServiceLogCubit>();
-                    final maintenancePlanCubit =
-                        builderContext.read<MaintenancePlanCubit>();
-                    Navigator.pushNamed(
-                      builderContext,
-                      AppRoutes.logMaintenanceRoute,
-                      arguments: {
-                        'vehicleId': _vehicle!.id!,
-                        'vehicleName': _vehicle!.name,
-                        'logToEdit': null,
-                        'serviceLogCubit': serviceLogCubit,
-                        'maintenancePlanCubit': maintenancePlanCubit,
-                      },
-                    );
-                  },
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  shape: const CircleBorder(),
-                  child: Icon(
-                    Icons.edit_calendar_outlined,
-                    color: Theme.of(context).colorScheme.onPrimary,
+                body: Center(
+                  child: CircularProgressIndicator(
+                    color: themeExtensions.textColorOnBackground,
                   ),
                 ),
-              ),
-            );
-          },
-        ),
+              )
+            : _error.isNotEmpty
+            ? Scaffold(
+                backgroundColor: Colors.transparent,
+                body: _buildUnavailableState(context: context, message: _error),
+              )
+            : _vehicle?.id == null
+            ? Scaffold(
+                backgroundColor: Colors.transparent,
+                body: _buildUnavailableState(
+                  context: context,
+                  message: AppLocalizations.of(context)!.errVehDeleted,
+                ),
+              )
+            : _buildReadyPage(context, themeExtensions),
       ),
     );
   }

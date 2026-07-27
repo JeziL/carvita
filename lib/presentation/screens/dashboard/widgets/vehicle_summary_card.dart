@@ -32,35 +32,34 @@ class VehicleSummaryCard extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child:
-                    vehicle.image != null && vehicle.image!.isNotEmpty
-                        ? FadeInImage(
-                          placeholder: MemoryImage(kTransparentImage),
-                          image: MemoryImage(vehicle.image!),
-                          fadeInDuration: const Duration(milliseconds: 200),
-                          width: 60,
-                          height: 60,
-                          fit: BoxFit.cover,
-                          imageErrorBuilder:
-                              (context, error, stackTrace) => Container(
-                                width: 60,
-                                height: 60,
-                                color: Colors.grey[300],
-                                child: const Icon(
-                                  Icons.directions_car,
-                                  color: Colors.grey,
-                                ),
+                child: vehicle.image != null && vehicle.image!.isNotEmpty
+                    ? FadeInImage(
+                        placeholder: MemoryImage(kTransparentImage),
+                        image: MemoryImage(vehicle.image!),
+                        fadeInDuration: const Duration(milliseconds: 200),
+                        width: 60,
+                        height: 60,
+                        fit: BoxFit.cover,
+                        imageErrorBuilder: (context, error, stackTrace) =>
+                            Container(
+                              width: 60,
+                              height: 60,
+                              color: Colors.grey[300],
+                              child: const Icon(
+                                Icons.directions_car,
+                                color: Colors.grey,
                               ),
-                        )
-                        : Container(
-                          width: 60,
-                          height: 60,
-                          color: Colors.grey[300],
-                          child: const Icon(
-                            Icons.directions_car,
-                            color: Colors.grey,
-                          ),
+                            ),
+                      )
+                    : Container(
+                        width: 60,
+                        height: 60,
+                        color: Colors.grey[300],
+                        child: const Icon(
+                          Icons.directions_car,
+                          color: Colors.grey,
                         ),
+                      ),
               ),
               const SizedBox(width: 15),
               Expanded(

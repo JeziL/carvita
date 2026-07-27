@@ -178,9 +178,9 @@ class BackupService {
             BackupException(
               exportFailure == null
                   ? 'The database snapshot was created, but the app database '
-                      'could not be reopened.'
+                        'could not be reopened.'
                   : 'Database export failed and the app database could not be '
-                      'reopened.',
+                        'reopened.',
               cause: reopenFailure,
             ),
             reopenStackTrace!,
@@ -356,7 +356,7 @@ class BackupService {
         BackupRestoreException(
           rollbackCreated
               ? 'The selected backup could not be restored. The previous '
-                  'database was restored.'
+                    'database was restored.'
               : 'The selected backup could not be restored.',
           cause: error,
         ),
@@ -453,8 +453,9 @@ class BackupService {
     }
 
     final versionRows = await database.rawQuery('PRAGMA user_version');
-    final schemaVersion =
-        versionRows.isEmpty ? null : versionRows.first.values.first as int?;
+    final schemaVersion = versionRows.isEmpty
+        ? null
+        : versionRows.first.values.first as int?;
     if (schemaVersion != supportedSchemaVersion) {
       throw InvalidBackupException(
         'Unsupported database schema version: '
@@ -465,12 +466,11 @@ class BackupService {
     final schemaRows = await database.rawQuery(
       "SELECT type, name FROM sqlite_master WHERE name NOT LIKE 'sqlite_%'",
     );
-    final tableNames =
-        schemaRows
-            .where((row) => row['type'] == 'table')
-            .map((row) => row['name'])
-            .whereType<String>()
-            .toSet();
+    final tableNames = schemaRows
+        .where((row) => row['type'] == 'table')
+        .map((row) => row['name'])
+        .whereType<String>()
+        .toSet();
     final applicationTableNames = tableNames.difference(_allowedPlatformTables);
     if (!_setsEqual(applicationTableNames, _requiredSchema.keys.toSet())) {
       throw const InvalidBackupException(
@@ -489,8 +489,10 @@ class BackupService {
       final columnRows = await database.rawQuery(
         'PRAGMA table_info("${schemaEntry.key}")',
       );
-      final columnNames =
-          columnRows.map((row) => row['name']).whereType<String>().toSet();
+      final columnNames = columnRows
+          .map((row) => row['name'])
+          .whereType<String>()
+          .toSet();
       if (!_setsEqual(columnNames, schemaEntry.value)) {
         throw InvalidBackupException(
           'The selected database has an incompatible ${schemaEntry.key} '
@@ -536,10 +538,9 @@ class BackupService {
   ) async {
     var suffix = 0;
     while (true) {
-      final candidateName =
-          suffix == 0
-              ? '$fileNamePrefix$extension'
-              : '${fileNamePrefix}_$suffix$extension';
+      final candidateName = suffix == 0
+          ? '$fileNamePrefix$extension'
+          : '${fileNamePrefix}_$suffix$extension';
       final candidatePath = path.join(directory, candidateName);
       if (!await File(candidatePath).exists() &&
           !await Directory(candidatePath).exists()) {

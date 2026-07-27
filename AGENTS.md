@@ -26,7 +26,7 @@ CarVita 用于：
 ## 技术栈与工具链
 
 - CI 固定使用 Flutter `3.44.8`；当前对应 Dart `3.12.2`。
-- `pubspec.yaml` 的 Dart SDK 约束为 `^3.7.2`。
+- `pubspec.yaml` 的最低工具链约束为 Dart `>=3.12.2 <4.0.0`、Flutter `>=3.44.8`，与 CI 固定版本一致。
 - 状态管理同时使用：
   - `flutter_bloc` / Cubit：车辆、保养计划、保养记录、全局到期预测；
   - `provider` / `ChangeNotifier`：语言、里程单位和主题；
@@ -184,7 +184,7 @@ assets/icon/                       主图标及其 Cairo 生成脚本
 
 `ar`、`de`、`en`、`es`、`fr`、`it`、`ja`、`ko`、`pt`、`ru`、`zh`（简体）和 `zh_Hant`（繁体）。
 
-所有 ARB 当前均有 165 个消息 key。新增用户可见文本时：
+所有 ARB 当前均有 167 个消息 key。新增用户可见文本时：
 
 1. 先在 `app_en.arb` 添加消息和 `@message` 描述/placeholder 类型；
 2. 同步补齐另外 11 个 ARB，保持 placeholder 名称和 ICU 类型一致；
@@ -223,7 +223,9 @@ Android Manifest 注册了：
 - `*.jks` / `*.keystore`；
 - 密码、base64 keystore 或 CI secret。
 
-CI 会从 GitHub secrets 生成 keystore 和 `key.properties`。如果本地只需分析 Dart 代码，不应为了绕过签名而修改已跟踪的 Gradle 配置。
+CI 会从 GitHub secrets 生成 keystore 和 `key.properties`，并使用
+`APP_CERT_SHA256` 校验产物证书指纹。该指纹 secret 必须与发布证书一致。
+如果本地只需分析 Dart 代码，不应为了绕过签名而修改已跟踪的 Gradle 配置。
 
 ## 常用命令与验证
 

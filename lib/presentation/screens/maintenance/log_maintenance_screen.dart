@@ -5,7 +5,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
+import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/theme/app_theme.dart';
+import 'package:carvita/core/utils/operation_result.dart';
 import 'package:carvita/core/widgets/gradient_background.dart';
 import 'package:carvita/data/models/maintenance_plan_item.dart';
 import 'package:carvita/data/models/service_log_entry.dart';
@@ -15,7 +17,6 @@ import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/presentation/manager/locale_provider.dart';
 import 'package:carvita/presentation/manager/maintenance_plan/maintenance_plan_cubit.dart';
 import 'package:carvita/presentation/manager/service_log/service_log_cubit.dart';
-import 'package:carvita/presentation/manager/service_log/service_log_state.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_cubit.dart';
 
@@ -53,6 +54,7 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
   List<MaintenancePlanItem> _availablePlanItems = [];
   final Set<int> _selectedPredefinedItemIds = <int>{};
   final Set<String> _selectedCustomItemNames = <String>{};
+  bool _isSubmitting = false;
 
   bool get _isEditing => widget.logToEdit != null;
   String get _vehicleName => widget.vehicleName;
@@ -113,6 +115,7 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
       lastDate: DateTime.now().add(const Duration(days: 1)),
       builder: (_, child) => child!,
     );
+    if (!context.mounted) return;
     if (picked != null && picked != _selectedServiceDate) {
       setState(() {
         _selectedServiceDate = picked;
@@ -140,6 +143,7 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
   }
 
   void _submitForm() async {
+    if (_isSubmitting) return;
     final localeProvider = Provider.of<LocaleProvider>(context, listen: false);
     if (!_formKey.currentState!.validate()) return;
     if (_selectedServiceDate == null) {
@@ -182,47 +186,51 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
       vehicleId: widget.vehicleId,
       serviceDate: _selectedServiceDate!,
       mileageAtService: newMileageAtService,
-      cost:
-          _costController.text.trim().isEmpty
-              ? null
-              : double.tryParse(_costController.text.trim()),
-      notes:
-          _notesController.text.trim().isEmpty
-              ? null
-              : _notesController.text.trim(),
+      cost: _costController.text.trim().isEmpty
+          ? null
+          : double.tryParse(_costController.text.trim()),
+      notes: _notesController.text.trim().isEmpty
+          ? null
+          : _notesController.text.trim(),
     );
 
+    setState(() {
+      _isSubmitting = true;
+    });
     final serviceLogCubit = context.read<ServiceLogCubit>();
-    bool submissionSuccess = false;
-    if (_isEditing) {
-      await serviceLogCubit.updateServiceLog(logEntry, performedItems);
-      if (serviceLogCubit.state is ServiceLogOperationSuccess ||
-          serviceLogCubit.state is ServiceLogLoaded) {
-        submissionSuccess = true;
-      }
-    } else {
-      await serviceLogCubit.addServiceLog(logEntry, performedItems);
-      if (serviceLogCubit.state is ServiceLogOperationSuccess ||
-          serviceLogCubit.state is ServiceLogLoaded) {
-        submissionSuccess = true;
-      }
+    final OperationResult result = _isEditing
+        ? await serviceLogCubit.updateServiceLog(logEntry, performedItems)
+        : await serviceLogCubit.addServiceLog(logEntry, performedItems);
+    if (!mounted) return;
+    if (result is OperationFailure) {
+      setState(() {
+        _isSubmitting = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result.error.toString()),
+          backgroundColor: AppColors.urgentReminderText,
+        ),
+      );
+      return;
     }
 
-    if (submissionSuccess && mounted) {
+    if (result is OperationSuccess) {
       Vehicle? currentVehicle = await _vehicleRepository.getVehicleById(
         widget.vehicleId,
       );
+      if (!mounted) return;
 
       if (currentVehicle != null &&
-          newMileageAtService > currentVehicle.mileage &&
-          mounted) {
+          newMileageAtService > currentVehicle.mileage) {
         final bool? confirmUpdate = await showDialog<bool>(
           context: context,
           barrierDismissible: false,
           builder: (BuildContext dialogContext) {
             return AlertDialog(
-              backgroundColor:
-                  Theme.of(context).colorScheme.surfaceContainerLowest,
+              backgroundColor: Theme.of(
+                context,
+              ).colorScheme.surfaceContainerLowest,
               title: Text(
                 AppLocalizations.of(context)!.updateMileageTitle,
                 style: TextStyle(
@@ -265,32 +273,31 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
             );
           },
         );
+        if (!mounted) return;
 
         if (confirmUpdate == true) {
           final updatedVehicle = currentVehicle.copyWith(
             mileage: newMileageAtService,
             mileageLastUpdated: _selectedServiceDate!,
           );
-          // ignore: use_build_context_synchronously
           await context.read<VehicleCubit>().updateVehicle(updatedVehicle);
+          if (!mounted) return;
         }
       }
-      if (mounted) {
-        context.read<UpcomingMaintenanceCubit>().loadAllUpcomingMaintenance(
-          AppLocalizations.of(context),
-        );
-      }
-      if (mounted) Navigator.of(context).pop();
+      await context.read<UpcomingMaintenanceCubit>().loadAllUpcomingMaintenance(
+        AppLocalizations.of(context),
+      );
+      if (!mounted) return;
+      Navigator.of(context).pop();
     }
   }
 
   Widget _buildItemSelectionSection() {
     final themeExtensions = Theme.of(context).extension<AppThemeExtensions>()!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor =
-        isDark
-            ? Theme.of(context).colorScheme.onPrimaryContainer
-            : Theme.of(context).colorScheme.onPrimary;
+    final bgColor = isDark
+        ? Theme.of(context).colorScheme.onPrimaryContainer
+        : Theme.of(context).colorScheme.onPrimary;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -318,11 +325,10 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
                 ),
               );
             }
-            final activePlanItemIds =
-                _availablePlanItems
-                    .map((item) => item.id)
-                    .whereType<int>()
-                    .toSet();
+            final activePlanItemIds = _availablePlanItems
+                .map((item) => item.id)
+                .whereType<int>()
+                .toSet();
             final unavailableSelectedItems =
                 widget.logToEdit?.performedItems
                     .where(
@@ -370,11 +376,10 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
                             label: Text(
                               item.itemName,
                               style: TextStyle(
-                                color:
-                                    isSelected
-                                        ? Theme.of(context).colorScheme.primary
-                                        : themeExtensions.textColorOnBackground
-                                            .withValues(alpha: 0.9),
+                                color: isSelected
+                                    ? Theme.of(context).colorScheme.primary
+                                    : themeExtensions.textColorOnBackground
+                                          .withValues(alpha: 0.9),
                               ),
                             ),
                             selected: isSelected,
@@ -388,16 +393,16 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
                               });
                             },
                             backgroundColor: Colors.transparent,
-                            selectedColor:
-                                Theme.of(context).colorScheme.onPrimary,
+                            selectedColor: Theme.of(
+                              context,
+                            ).colorScheme.onPrimary,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(20),
                               side: BorderSide(
-                                color:
-                                    isSelected
-                                        ? Theme.of(context).colorScheme.primary
-                                        : themeExtensions.textColorOnBackground
-                                            .withValues(alpha: 0.3),
+                                color: isSelected
+                                    ? Theme.of(context).colorScheme.primary
+                                    : themeExtensions.textColorOnBackground
+                                          .withValues(alpha: 0.3),
                               ),
                             ),
                             labelPadding: const EdgeInsets.symmetric(
@@ -455,32 +460,29 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
                   Wrap(
                     spacing: 8.0,
                     runSpacing: 4.0,
-                    children:
-                        _selectedCustomItemNames
-                            .map(
-                              (name) => Chip(
-                                label: Text(
-                                  name,
-                                  style: TextStyle(
-                                    color:
-                                        themeExtensions
-                                            .primaryGradient
-                                            .colors[0],
-                                  ),
-                                ),
-                                backgroundColor: bgColor.withValues(alpha: 0.9),
-                                deleteIconColor: themeExtensions
-                                    .primaryGradient
-                                    .colors[0]
-                                    .withValues(alpha: 0.7),
-                                onDeleted: () {
-                                  setState(() {
-                                    _selectedCustomItemNames.remove(name);
-                                  });
-                                },
+                    children: _selectedCustomItemNames
+                        .map(
+                          (name) => Chip(
+                            label: Text(
+                              name,
+                              style: TextStyle(
+                                color:
+                                    themeExtensions.primaryGradient.colors[0],
                               ),
-                            )
-                            .toList(),
+                            ),
+                            backgroundColor: bgColor.withValues(alpha: 0.9),
+                            deleteIconColor: themeExtensions
+                                .primaryGradient
+                                .colors[0]
+                                .withValues(alpha: 0.7),
+                            onDeleted: () {
+                              setState(() {
+                                _selectedCustomItemNames.remove(name);
+                              });
+                            },
+                          ),
+                        )
+                        .toList(),
                   ),
                 if (_selectedCustomItemNames.isNotEmpty)
                   const SizedBox(height: 15),
@@ -495,12 +497,12 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
                           color: themeExtensions.textColorOnBackground,
                         ),
                         decoration: InputDecoration(
-                          hintText:
-                              AppLocalizations.of(context)!.customItemAddHint,
+                          hintText: AppLocalizations.of(
+                            context,
+                          )!.customItemAddHint,
                         ),
-                        onFieldSubmitted:
-                            (_) =>
-                                _addCustomItem(), // Allow submitting with enter key
+                        onFieldSubmitted: (_) =>
+                            _addCustomItem(), // Allow submitting with enter key
                       ),
                     ),
                     IconButton(
@@ -525,10 +527,9 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
     final localeProvider = context.watch<LocaleProvider>();
     final themeExtensions = Theme.of(context).extension<AppThemeExtensions>()!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor =
-        isDark
-            ? Theme.of(context).colorScheme.onPrimaryContainer
-            : Theme.of(context).colorScheme.onPrimary;
+    final bgColor = isDark
+        ? Theme.of(context).colorScheme.onPrimaryContainer
+        : Theme.of(context).colorScheme.onPrimary;
 
     return GradientBackground(
       gradient: themeExtensions.primaryGradient,
@@ -587,13 +588,11 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
                   ),
                   readOnly: true,
                   onTap: () => _selectServiceDate(context),
-                  validator:
-                      (value) =>
-                          (value == null || value.isEmpty)
-                              ? AppLocalizations.of(context)!.invalidEmptyEntry(
-                                AppLocalizations.of(context)!.maintenanceDate,
-                              )
-                              : null,
+                  validator: (value) => (value == null || value.isEmpty)
+                      ? AppLocalizations.of(context)!.invalidEmptyEntry(
+                          AppLocalizations.of(context)!.maintenanceDate,
+                        )
+                      : null,
                 ),
                 const SizedBox(height: 20),
 
@@ -672,7 +671,7 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
                 const SizedBox(height: 30),
 
                 ElevatedButton(
-                  onPressed: _submitForm,
+                  onPressed: _isSubmitting ? null : _submitForm,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: bgColor,
                     padding: const EdgeInsets.symmetric(vertical: 15),
@@ -684,17 +683,27 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  child: Text(
-                    AppLocalizations.of(
-                      context,
-                    )!.addEditButtonText(_isEditing ? 'edit' : 'add'),
-                    style: TextStyle(
-                      color:
-                          isDark
-                              ? Theme.of(context).colorScheme.onPrimary
-                              : Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
+                  child: _isSubmitting
+                      ? SizedBox.square(
+                          key: const ValueKey('log-submit-progress'),
+                          dimension: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: isDark
+                                ? Theme.of(context).colorScheme.onPrimary
+                                : Theme.of(context).colorScheme.primary,
+                          ),
+                        )
+                      : Text(
+                          AppLocalizations.of(
+                            context,
+                          )!.addEditButtonText(_isEditing ? 'edit' : 'add'),
+                          style: TextStyle(
+                            color: isDark
+                                ? Theme.of(context).colorScheme.onPrimary
+                                : Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
                 ),
               ],
             ),

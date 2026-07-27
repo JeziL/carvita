@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as path;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'package:carvita/core/services/backup_service.dart';
@@ -18,6 +19,17 @@ void main() {
   late BackupService backupService;
 
   setUp(() async {
+    SharedPreferences.setMockInitialValues({
+      'locale_language_code': 'de',
+      'theme_preference': 'dark',
+      'custom_theme_seed_color': 0xff123456,
+      'mileage_unit': 'mi',
+      'default_vehicle_id': 42,
+      'notifications_enabled': true,
+      'reminder_lead_time_days': 14,
+      'due_reminder_threshold': 'month',
+      'due_reminder_item_count': 5,
+    });
     testDirectory = await Directory.systemTemp.createTemp(
       'carvita_backup_service_test_',
     );
@@ -105,6 +117,7 @@ void main() {
             ),
         isEmpty,
       );
+      await _expectPreferencesUnchanged();
     },
   );
 
@@ -182,6 +195,7 @@ void main() {
       expect(await _vehicleNames(await controller.open()), ['Current vehicle']);
       expect(File('$liveDatabasePath-wal').existsSync(), isFalse);
       expect(File('$liveDatabasePath-shm').existsSync(), isFalse);
+      await _expectPreferencesUnchanged();
     },
   );
 
@@ -293,6 +307,19 @@ void main() {
       completes,
     );
   });
+}
+
+Future<void> _expectPreferencesUnchanged() async {
+  final preferences = await SharedPreferences.getInstance();
+  expect(preferences.getString('locale_language_code'), 'de');
+  expect(preferences.getString('theme_preference'), 'dark');
+  expect(preferences.getInt('custom_theme_seed_color'), 0xff123456);
+  expect(preferences.getString('mileage_unit'), 'mi');
+  expect(preferences.getInt('default_vehicle_id'), 42);
+  expect(preferences.getBool('notifications_enabled'), isTrue);
+  expect(preferences.getInt('reminder_lead_time_days'), 14);
+  expect(preferences.getString('due_reminder_threshold'), 'month');
+  expect(preferences.getInt('due_reminder_item_count'), 5);
 }
 
 class _TestDatabaseController

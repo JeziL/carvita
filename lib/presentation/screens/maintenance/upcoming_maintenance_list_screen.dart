@@ -68,10 +68,9 @@ class _UpcomingMaintenanceListScreenState
 
     // 1. Filter by selected vehicle
     if (_selectedVehicleFilter != null) {
-      filtered =
-          filtered
-              .where((p) => p.vehicle.id == _selectedVehicleFilter!.id)
-              .toList();
+      filtered = filtered
+          .where((p) => p.vehicle.id == _selectedVehicleFilter!.id)
+          .toList();
     }
 
     // 2. Filter by date tab
@@ -86,14 +85,13 @@ class _UpcomingMaintenanceListScreenState
       final endOfWeek = startOfWeek.add(
         const Duration(days: 6, hours: 23, minutes: 59),
       );
-      filtered =
-          filtered
-              .where(
-                (p) =>
-                    !p.predictedDueDate.isBefore(startOfWeek) &&
-                    !p.predictedDueDate.isAfter(endOfWeek),
-              )
-              .toList();
+      filtered = filtered
+          .where(
+            (p) =>
+                !p.predictedDueDate.isBefore(startOfWeek) &&
+                !p.predictedDueDate.isAfter(endOfWeek),
+          )
+          .toList();
     } else if (_tabController.index == 2) {
       // This Month
       final startOfMonth = DateTime(now.year, now.month, 1);
@@ -104,14 +102,13 @@ class _UpcomingMaintenanceListScreenState
         23,
         59,
       ); // Last day of current month
-      filtered =
-          filtered
-              .where(
-                (p) =>
-                    !p.predictedDueDate.isBefore(startOfMonth) &&
-                    !p.predictedDueDate.isAfter(endOfMonth),
-              )
-              .toList();
+      filtered = filtered
+          .where(
+            (p) =>
+                !p.predictedDueDate.isBefore(startOfMonth) &&
+                !p.predictedDueDate.isAfter(endOfMonth),
+          )
+          .toList();
     }
 
     return filtered;
@@ -240,8 +237,8 @@ class _UpcomingMaintenanceListScreenState
                     _selectedVehicleFilter == null && _tabController.index == 0
                         ? AppLocalizations.of(context)!.maintenanceListEmpty
                         : AppLocalizations.of(
-                          context,
-                        )!.maintenanceListEmptyAfterFilter,
+                            context,
+                          )!.maintenanceListEmptyAfterFilter,
                     style: TextStyle(
                       color: Theme.of(
                         context,
@@ -264,16 +261,12 @@ class _UpcomingMaintenanceListScreenState
                 final dueDate = DateFormat.yMMMd(
                   Localizations.localeOf(context).toLanguageTag(),
                 ).format(prediction.predictedDueDate);
-                final daysRemaining =
-                    prediction.predictedDueDate
-                        .difference(DateTime.now())
-                        .inDays;
-                String dueText =
-                    daysRemaining >= 0
-                        ? AppLocalizations.of(context)!.daysLater(daysRemaining)
-                        : AppLocalizations.of(
-                          context,
-                        )!.daysOverdue(-daysRemaining);
+                final daysRemaining = prediction.predictedDueDate
+                    .difference(DateTime.now())
+                    .inDays;
+                String dueText = daysRemaining >= 0
+                    ? AppLocalizations.of(context)!.daysLater(daysRemaining)
+                    : AppLocalizations.of(context)!.daysOverdue(-daysRemaining);
 
                 return Card(
                   elevation: 1.5,
@@ -308,10 +301,9 @@ class _UpcomingMaintenanceListScreenState
                           "${AppLocalizations.of(context)!.status}: $dueText",
                           style: TextStyle(
                             fontWeight: FontWeight.w500,
-                            color:
-                                daysRemaining <= 30
-                                    ? AppColors.urgentReminderText
-                                    : Theme.of(context).colorScheme.primary,
+                            color: daysRemaining <= 30
+                                ? AppColors.urgentReminderText
+                                : Theme.of(context).colorScheme.primary,
                           ),
                         ),
                         Text(

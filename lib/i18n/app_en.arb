@@ -426,6 +426,14 @@
   "@cancel": {
     "description": "The label for the cancel button in dialogs"
   },
+  "back": "Back",
+  "@back": {
+    "description": "The label for returning to the previous screen"
+  },
+  "retry": "Retry",
+  "@retry": {
+    "description": "The label for retrying a failed operation"
+  },
   "chooseThreshold": "Choose threshold",
   "@chooseThreshold": {
     "description": "The title for the choose reminder threshold dialog in the settings screen"

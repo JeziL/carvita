@@ -5,12 +5,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/theme/app_theme.dart';
+import 'package:carvita/core/utils/operation_result.dart';
 import 'package:carvita/core/widgets/gradient_background.dart';
 import 'package:carvita/data/models/maintenance_plan_item.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/presentation/manager/locale_provider.dart';
 import 'package:carvita/presentation/manager/maintenance_plan/maintenance_plan_cubit.dart';
-import 'package:carvita/presentation/manager/maintenance_plan/maintenance_plan_state.dart';
 import 'package:carvita/presentation/manager/service_log/service_log_cubit.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
 
@@ -41,6 +41,7 @@ class _AddEditMaintenancePlanItemScreenState
   late TextEditingController _firstIntervalTimeMonthsController;
   late TextEditingController _firstIntervalMileageController;
   late TextEditingController _notesController;
+  bool _isSubmitting = false;
 
   bool get _isEditing => widget.planItemToEdit != null;
   String get _vehicleName => widget.vehicleName;
@@ -77,6 +78,7 @@ class _AddEditMaintenancePlanItemScreenState
   }
 
   void _submitForm() async {
+    if (_isSubmitting) return;
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
@@ -87,10 +89,10 @@ class _AddEditMaintenancePlanItemScreenState
       final int? intervalTimeMonths = int.tryParse(regularTimeText);
       final int? intervalMileage = int.tryParse(regularMileageText);
 
-      final String firstTimeText =
-          _firstIntervalTimeMonthsController.text.trim();
-      final String firstMileageText =
-          _firstIntervalMileageController.text.trim();
+      final String firstTimeText = _firstIntervalTimeMonthsController.text
+          .trim();
+      final String firstMileageText = _firstIntervalMileageController.text
+          .trim();
       final int? firstIntervalTimeMonths = int.tryParse(firstTimeText);
       final int? firstIntervalMileage = int.tryParse(firstMileageText);
 
@@ -195,23 +197,34 @@ class _AddEditMaintenancePlanItemScreenState
         notes: notes.isNotEmpty ? notes : null,
       );
 
+      setState(() {
+        _isSubmitting = true;
+      });
       final cubit = context.read<MaintenancePlanCubit>();
-      if (_isEditing) {
-        await cubit.updatePlanItem(planItem);
-      } else {
-        await cubit.addPlanItem(planItem);
-      }
-
-      if (mounted &&
-          (cubit.state is MaintenancePlanOperationSuccess ||
-              cubit.state is MaintenancePlanLoaded)) {
-        context.read<UpcomingMaintenanceCubit>().loadAllUpcomingMaintenance(
-          AppLocalizations.of(context),
+      final OperationResult result = _isEditing
+          ? await cubit.updatePlanItem(planItem)
+          : await cubit.addPlanItem(planItem);
+      if (!mounted) return;
+      if (result is OperationFailure) {
+        setState(() {
+          _isSubmitting = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result.error.toString()),
+            backgroundColor: AppColors.urgentReminderText,
+          ),
         );
-        context.read<ServiceLogCubit>().fetchServiceLogs();
+        return;
       }
 
-      if (mounted) Navigator.of(context).pop();
+      await context.read<ServiceLogCubit>().fetchServiceLogs();
+      if (!mounted) return;
+      await context.read<UpcomingMaintenanceCubit>().loadAllUpcomingMaintenance(
+        AppLocalizations.of(context),
+      );
+      if (!mounted) return;
+      Navigator.of(context).pop();
     }
   }
 
@@ -282,10 +295,9 @@ class _AddEditMaintenancePlanItemScreenState
     final localeProvider = context.watch<LocaleProvider>();
     final themeExtensions = Theme.of(context).extension<AppThemeExtensions>()!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor =
-        isDark
-            ? Theme.of(context).colorScheme.onPrimaryContainer
-            : Theme.of(context).colorScheme.onPrimary;
+    final bgColor = isDark
+        ? Theme.of(context).colorScheme.onPrimaryContainer
+        : Theme.of(context).colorScheme.onPrimary;
 
     return GradientBackground(
       gradient: themeExtensions.primaryGradient,
@@ -366,15 +378,16 @@ class _AddEditMaintenancePlanItemScreenState
                   decoration: InputDecoration(
                     labelText:
                         "${AppLocalizations.of(context)!.notes} (${AppLocalizations.of(context)!.optionalEntry})",
-                    hintText:
-                        AppLocalizations.of(context)!.noteMaintenanceItemHint,
+                    hintText: AppLocalizations.of(
+                      context,
+                    )!.noteMaintenanceItemHint,
                   ),
                   maxLines: 3,
                   minLines: 1,
                 ),
                 const SizedBox(height: 30),
                 ElevatedButton(
-                  onPressed: _submitForm,
+                  onPressed: _isSubmitting ? null : _submitForm,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: bgColor,
                     padding: const EdgeInsets.symmetric(vertical: 15),
@@ -386,17 +399,27 @@ class _AddEditMaintenancePlanItemScreenState
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  child: Text(
-                    AppLocalizations.of(
-                      context,
-                    )!.addEditButtonText(_isEditing ? 'edit' : 'add'),
-                    style: TextStyle(
-                      color:
-                          isDark
-                              ? Theme.of(context).colorScheme.onPrimary
-                              : Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
+                  child: _isSubmitting
+                      ? SizedBox.square(
+                          key: const ValueKey('plan-submit-progress'),
+                          dimension: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: isDark
+                                ? Theme.of(context).colorScheme.onPrimary
+                                : Theme.of(context).colorScheme.primary,
+                          ),
+                        )
+                      : Text(
+                          AppLocalizations.of(
+                            context,
+                          )!.addEditButtonText(_isEditing ? 'edit' : 'add'),
+                          style: TextStyle(
+                            color: isDark
+                                ? Theme.of(context).colorScheme.onPrimary
+                                : Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
                 ),
               ],
             ),

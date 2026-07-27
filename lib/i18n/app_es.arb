@@ -81,6 +81,8 @@
   "chooseDefaultVehicle": "Elegir vehículo predeterminado",
   "clearDefault": "Limpiar",
   "cancel": "Cancelar",
+  "back": "Volver",
+  "retry": "Reintentar",
   "chooseThreshold": "Elegir umbral",
   "chooseDisplayItemCount": "Elegir número de elementos",
   "itemCount": "{count, plural, =1{1 elemento} other{{count} elementos}}",

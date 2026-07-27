@@ -81,6 +81,8 @@
   "chooseDefaultVehicle": "اختر المركبة الافتراضية",
   "clearDefault": "مسح",
   "cancel": "إلغاء",
+  "back": "رجوع",
+  "retry": "إعادة المحاولة",
   "chooseThreshold": "اختر الحد",
   "chooseDisplayItemCount": "اختر عدد العناصر",
   "itemCount": "{count, plural, =1{عنصر واحد} =2{عنصران} few{{count} عناصر} many{{count} عنصراً} other{{count} عنصراً}}",

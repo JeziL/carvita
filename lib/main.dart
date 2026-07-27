@@ -107,21 +107,19 @@ class CarVitaApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider<VehicleCubit>(
-          create:
-              (context) => VehicleCubit(
-                vehicleRepository,
-                preferencesService: preferencesService,
-              )..fetchVehicles(),
+          create: (context) => VehicleCubit(
+            vehicleRepository,
+            preferencesService: preferencesService,
+          )..fetchVehicles(),
         ),
         BlocProvider<UpcomingMaintenanceCubit>(
-          create:
-              (context) => UpcomingMaintenanceCubit(
-                vehicleRepository,
-                maintenanceRepository,
-                predictionService,
-                notificationCoordinator,
-                preferencesService,
-              ),
+          create: (context) => UpcomingMaintenanceCubit(
+            vehicleRepository,
+            maintenanceRepository,
+            predictionService,
+            notificationCoordinator,
+            preferencesService,
+          ),
         ),
       ],
       child: Consumer2<LocaleProvider, ThemeProvider>(
@@ -245,10 +243,19 @@ class _ShortcutLocalizationWrapperState
     final AppLocalizations? l10n = AppLocalizations.of(context);
     if (l10n == null) return;
 
-    context.read<QuickActionService>().updateShortcutItems(context);
-    final UpcomingMaintenanceCubit upcomingMaintenanceCubit =
-        context.read<UpcomingMaintenanceCubit>();
+    final quickActionService = context.read<QuickActionService>();
+    quickActionService.navigatorReady();
     try {
+      await quickActionService.updateShortcutItems(context);
+    } catch (error, stackTrace) {
+      debugPrint(
+        'Failed to update localized quick actions: $error\n$stackTrace',
+      );
+    }
+    if (!mounted) return;
+
+    try {
+      final upcomingMaintenanceCubit = context.read<UpcomingMaintenanceCubit>();
       if (loadPredictions) {
         await upcomingMaintenanceCubit.loadAllUpcomingMaintenance(l10n);
       } else {
