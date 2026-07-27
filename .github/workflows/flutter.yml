@@ -7,7 +7,7 @@ on:
     branches:
       - main
     tags:
-      - 'v*.*.*+*'
+      - 'v*.*.*\+*'
 
 concurrency:
   group: flutter-${{ github.workflow }}-${{ github.ref }}
