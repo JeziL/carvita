@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -65,7 +65,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -130,7 +130,7 @@ jobs:
           apksigner_path="$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -n 1)"
           test -x "$apksigner_path"
           "$apksigner_path" verify --print-certs "$apk_path" | tee apksigner-output.txt
-          actual_fingerprint="$(awk -F': ' '/SHA-256 digest/ {print $2}' apksigner-output.txt | tr -d ':[:space:]' | tr '[:lower:]' '[:upper:]')"
+          actual_fingerprint="$(awk -F': ' '/SHA-256 digest/ {print $NF}' apksigner-output.txt | tr -d ':[:space:]' | tr '[:lower:]' '[:upper:]')"
           expected_fingerprint="$(printf '%s' "$APP_CERT_SHA256" | tr -d ':[:space:]' | tr '[:lower:]' '[:upper:]')"
           test -n "$actual_fingerprint"
           test "$actual_fingerprint" = "$expected_fingerprint"
