@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'package:carvita/core/constants/app_routes.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
+import 'package:carvita/presentation/navigation/main_navigation_controller.dart';
+import 'package:provider/provider.dart';
 
 class MainBottomNavigationBar extends StatelessWidget {
   final int currentIndex;
@@ -10,25 +11,7 @@ class MainBottomNavigationBar extends StatelessWidget {
 
   void _onItemTapped(BuildContext context, int index) {
     if (index == currentIndex) return;
-
-    String route;
-    switch (index) {
-      case 0:
-        route = AppRoutes.dashboardRoute;
-        break;
-      case 1:
-        route = AppRoutes.vehicleListRoute;
-        break;
-      case 2:
-        route = AppRoutes.upcomingMaintenanceRoute;
-        break;
-      case 3:
-        route = AppRoutes.settingsRoute;
-        break;
-      default:
-        return;
-    }
-    Navigator.pushNamedAndRemoveUntil(context, route, (_) => false);
+    context.read<MainNavigationController>().selectTab(index);
   }
 
   @override

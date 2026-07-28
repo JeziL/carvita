@@ -1,10 +1,13 @@
 import 'package:carvita/application/ports/maintenance_repository_port.dart';
+import 'package:carvita/application/ports/prediction_repository_port.dart';
+import 'package:carvita/application/queries/maintenance_data_snapshot.dart';
 import 'package:carvita/data/models/maintenance_plan_item.dart';
 import 'package:carvita/data/models/service_log_entry.dart';
 import 'package:carvita/data/models/service_log_performed_item_link.dart';
 import 'package:carvita/data/sources/local/database_helper.dart';
 
-class MaintenanceRepository implements MaintenanceRepositoryPort {
+class MaintenanceRepository
+    implements MaintenanceRepositoryPort, PredictionRepositoryPort {
   final DatabaseHelper _dbHelper;
 
   MaintenanceRepository({DatabaseHelper? dbHelper})
@@ -65,5 +68,16 @@ class MaintenanceRepository implements MaintenanceRepositoryPort {
     int vehicleId,
   ) async {
     return await _dbHelper.getPerformedItemLinksForVehicle(vehicleId);
+  }
+
+  @override
+  Future<MaintenanceDataSnapshot> getPredictionSnapshot() async {
+    final rows = await _dbHelper.getPredictionSnapshotRows();
+    return MaintenanceDataSnapshot(
+      vehicles: rows.vehicles,
+      planItems: rows.planItems,
+      serviceLogs: rows.serviceLogs,
+      performedItemLinks: rows.performedItemLinks,
+    );
   }
 }

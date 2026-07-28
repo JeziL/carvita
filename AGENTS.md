@@ -47,6 +47,7 @@ lib/
   main.dart                         应用启动、全局依赖和 MaterialApp
   application/
     ports/                          repository、Clock 与设备能力接口
+    queries/                        预测等跨仓储只读快照
     use_cases/                      车辆、计划、记录、预测和提醒编排
   core/
     constants/                     路由名和固定颜色
@@ -63,9 +64,10 @@ lib/
   presentation/
     failures/                      failure 到本地化用户文案的映射
     formatters/                    模型/偏好的本地化展示格式
+    images/                        车辆图片按需加载、尺寸解码与有界缓存
     manager/                       Cubit、State、语言和主题 Provider
-    navigation/                    typed 路由参数、路由装配和快捷导航适配器
-    screens/                       页面、详情页 Tab 和局部组件
+    navigation/                    typed 路由、持久 MainShell 和快捷导航适配器
+    screens/                       页面、详情页 Tab 和局部组件；Settings 备份区独立拆分
   i18n/
     app_*.arb                      12 个受版本控制的翻译源文件
     generated/                     flutter gen-l10n 生成，禁止提交
@@ -96,7 +98,10 @@ assets/icon/                       主图标及其 Cairo 生成脚本
 - `LocaleProvider`、`ThemeProvider`、application use case、`AppStartupPort`、其他平台端口和 `QuickActionService` 由 `MultiProvider` 提供；
 - `VehicleCubit` 和 `UpcomingMaintenanceCubit` 由 `MultiBlocProvider` 提供；
 - `NavigationService.navigatorKey` 供 app shortcut 从应用外入口发起导航；
-- `routeObserver` 主要让 Dashboard 在返回或恢复前台时重读筛选偏好。
+- `MainNavigationController` 协调持久化根 tab、快捷入口与通知导航；
+- `routeObserver` 继续处理普通路由返回；Dashboard 还监听根 tab 切换以重读筛选偏好。
+
+四个主页面由 `MainShell` 以 lazy `IndexedStack` 持有。底部导航只选择 tab，不再创建或清空根路由；已创建 tab 的滚动、筛选和局部状态必须保留。Android 返回键在非 Dashboard 根 tab 上先回到 Dashboard。快捷入口或通知要展示根 tab 时，应先回退到首个 shell route，再由 `MainNavigationController` 选择目标 tab，避免堆叠多个 `MainShell`。
 
 每辆车详情页会使用全局注入的 `MaintenancePlanUseCases` 和 `ServiceLogUseCases` 创建该车辆专属的 Cubit。快捷入口直接打开记录页时也遵循同一装配方式。向编辑页传递已有 Cubit 时必须使用 `BlocProvider.value`，不要让子路由错误地关闭父页面拥有的 Cubit。
 
@@ -114,7 +119,7 @@ assets/icon/                       主图标及其 Cairo 生成脚本
 - 使用 `app_route_arguments.dart` 中的 typed arguments，不新增动态 Map 参数协议；
 - 对必需参数做显式校验并返回可理解的错误页；
 - 所有 `MaterialPageRoute` 保留传入的 `RouteSettings`；
-- 注意底部导航使用 `pushNamedAndRemoveUntil(..., (_) => false)` 重建根栈。
+- 根 tab 切换通过 `MainNavigationController`；只有显式恢复到全新根栈的错误恢复流程才能清空 Navigator。
 
 ## 数据模型与 SQLite 约束
 
@@ -132,6 +137,8 @@ assets/icon/                       主图标及其 Cairo 生成脚本
 - 保养记录及其项目关联必须在同一事务中新增或更新。
 - 一个已执行项目要么引用 `maintenancePlanItemId`，要么使用 `customItemName`。
 - 仓储目前是数据库方法的薄封装；业务计算应放在 service/Cubit，而不是塞进 Widget。
+- 车辆列表查询是 summary projection，故意不读取 `vehicles.image`；`Vehicle.imageLoaded == false` 表示图片尚未加载，而不是没有图片。更新 summary 车辆时必须保留数据库中的原 BLOB；图片通过 `getVehicleImage` 按需读取，并使用默认最多 24 项/16 MiB 的 `VehicleImageCache` 与尺寸感知解码。
+- 全局预测通过 `PredictionRepositoryPort.getPredictionSnapshot()` 在同一个只读事务中取得车辆摘要、active plan、日志和关联，共固定 4 次查询。不得退回逐车或逐日志读取；记录与 performed items 的页面查询也应保持单次 JOIN/分组。
 
 修改数据库时必须：
 
@@ -143,7 +150,9 @@ assets/icon/                       主图标及其 Cairo 生成脚本
 
 当前只有 `onCreate`，没有迁移逻辑。表定义声明了外键和级联规则，但 `openDatabase` 没有在 `onConfigure` 中显式执行 `PRAGMA foreign_keys = ON`。不要假定级联删除一定生效；如果代码要依赖外键行为，应先显式启用并为已有数据制定清理/迁移策略。
 
-设置页的“导出数据”只复制 SQLite 文件，不包含 `SharedPreferences`。语言、主题、默认车辆、通知开关等偏好不会随数据库备份恢复。恢复流程会关闭数据库、删除当前库、复制用户选择的文件并要求退出应用。不要在未校验兼容性和失败回滚策略的情况下改动这条高风险路径。
+设置页的新导出格式是版本化 `.cvbackup` ZIP 容器，固定包含 `manifest.json`、`database/carvita_v1.db` 和 `preferences.json`。manifest 记录容器版本、数据库 schema version、应用版本、UTC 创建时间、内容大小和 SHA-256；偏好只允许 `BackupPreferencesPort` 白名单中的 typed 值。导出前仍需生成并校验一致的 SQLite 快照。
+
+恢复必须先区分新容器与旧裸 SQLite `.db`：旧 `.db` 仍只恢复业务数据库且不得修改偏好；新容器必须在关闭当前库前完成文件清单、版本、checksum、数据库和偏好校验。未知未来版本安全拒绝。新容器的数据库替换和偏好提交属于一个可回滚流程；任一提交或重开失败都要恢复原数据库，偏好实现也要恢复原白名单值。成功恢复后仍要求退出应用。不要把 `.cvbackup` 伪装成 `.db`，不要把未知偏好或非白名单键写入 `SharedPreferences`。
 
 ## 保养预测规则
 
@@ -281,7 +290,7 @@ dart format lib test tool
 dart run flutter_launcher_icons
 ```
 
-仓库已有覆盖第一、二阶段基础重构的单元、数据库、Cubit、Widget、架构依赖、Android 策略和发布校验测试。修改业务逻辑、状态时序、分层边界、备份或发布门禁后必须运行：
+仓库已有覆盖前三阶段基础重构的单元、数据库、Cubit、Widget、Golden、查询/缓存性能、架构依赖、Android 策略和发布校验测试。修改业务逻辑、状态时序、分层边界、备份或发布门禁后必须运行：
 
 ```bash
 flutter test

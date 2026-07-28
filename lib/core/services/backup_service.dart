@@ -1,10 +1,15 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:archive/archive.dart';
+import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 
+import 'package:carvita/application/ports/backup_preferences_port.dart';
 import 'package:carvita/data/sources/local/database_helper.dart';
 
 abstract interface class BackupDatabaseConnection {
@@ -38,12 +43,16 @@ class InvalidBackupException extends BackupException {
   const InvalidBackupException(super.message, {super.cause});
 }
 
+class UnsupportedBackupFormatException extends InvalidBackupException {
+  const UnsupportedBackupFormatException(super.message, {super.cause});
+}
+
 class BackupRestoreException extends BackupException {
   const BackupRestoreException(super.message, {super.cause});
 }
 
 abstract interface class BackupGateway {
-  Future<String> createExportSnapshot();
+  Future<String> createExportSnapshot({String applicationVersion = 'unknown'});
 
   Future<void> deleteExportSnapshot(String snapshotPath);
 
@@ -56,6 +65,7 @@ class BackupService implements BackupGateway {
     DatabaseFactory? sqliteFactory,
     Future<String> Function()? databaseDirectoryProvider,
     Future<Directory> Function()? temporaryDirectoryProvider,
+    BackupPreferencesPort? preferences,
     DateTime Function()? clock,
   }) : _databaseController =
            databaseController ?? _DatabaseHelperBackupController(),
@@ -64,9 +74,15 @@ class BackupService implements BackupGateway {
            databaseDirectoryProvider ?? getDatabasesPath,
        _temporaryDirectoryProvider =
            temporaryDirectoryProvider ?? getTemporaryDirectory,
+       _preferences = preferences ?? const _EmptyBackupPreferences(),
        _clock = clock ?? DateTime.now;
 
+  static const int backupFormatVersion = 1;
+  static const int backupPreferencesVersion = 1;
   static const int supportedSchemaVersion = DatabaseHelper.schemaVersion;
+  static const String _manifestPath = 'manifest.json';
+  static const String _databaseEntryPath = 'database/${DatabaseHelper.dbName}';
+  static const String _preferencesEntryPath = 'preferences.json';
 
   static const Map<String, Set<String>> _requiredSchema = {
     'vehicles': {
@@ -133,79 +149,140 @@ class BackupService implements BackupGateway {
   final DatabaseFactory _sqliteFactory;
   final Future<String> Function() _databaseDirectoryProvider;
   final Future<Directory> Function() _temporaryDirectoryProvider;
+  final BackupPreferencesPort _preferences;
   final DateTime Function() _clock;
 
   Future<void> _operationTail = Future<void>.value();
 
   @override
-  Future<String> createExportSnapshot() {
+  Future<String> createExportSnapshot({String applicationVersion = 'unknown'}) {
     return _serialize(() async {
-      final databaseDirectory = await _databaseDirectoryProvider();
-      final sourcePath = path.join(databaseDirectory, DatabaseHelper.dbName);
-
-      return _databaseController.runExclusive((connection) async {
-        String? snapshotPath;
-        Object? exportFailure;
-        StackTrace? exportStackTrace;
-
-        try {
-          await connection.close();
-
-          final sourceFile = File(sourcePath);
-          if (!await sourceFile.exists()) {
-            throw BackupSourceNotFoundException(sourcePath);
-          }
-
-          final temporaryDirectory = await _temporaryDirectoryProvider();
-          await temporaryDirectory.create(recursive: true);
-          snapshotPath = await _uniquePath(
-            temporaryDirectory.path,
-            'carvita_backup_${_formatTimestamp(_clock())}',
-            '.db',
-          );
-          await sourceFile.copy(snapshotPath);
-          await _validateDatabaseFile(snapshotPath);
-        } catch (error, stackTrace) {
-          exportFailure = error;
-          exportStackTrace = stackTrace;
-        }
-
-        Object? reopenFailure;
-        StackTrace? reopenStackTrace;
-        try {
-          await connection.open();
-        } catch (error, stackTrace) {
-          reopenFailure = error;
-          reopenStackTrace = stackTrace;
-        }
-
-        if (reopenFailure != null) {
-          if (snapshotPath != null) {
-            await _bestEffortDelete(File(snapshotPath));
-          }
-          Error.throwWithStackTrace(
-            BackupException(
-              exportFailure == null
-                  ? 'The database snapshot was created, but the app database '
-                        'could not be reopened.'
-                  : 'Database export failed and the app database could not be '
-                        'reopened.',
-              cause: reopenFailure,
-            ),
-            reopenStackTrace!,
-          );
-        }
-
-        if (exportFailure != null) {
-          if (snapshotPath != null) {
-            await _bestEffortDelete(File(snapshotPath));
-          }
-          Error.throwWithStackTrace(exportFailure, exportStackTrace!);
-        }
-
-        return snapshotPath!;
-      });
+      final databaseSnapshotPath = await _createDatabaseSnapshot();
+      try {
+        return await _createBackupPackage(
+          databaseSnapshotPath,
+          applicationVersion: applicationVersion,
+        );
+      } finally {
+        await _bestEffortDelete(File(databaseSnapshotPath));
+      }
     });
+  }
+
+  Future<String> _createDatabaseSnapshot() async {
+    final databaseDirectory = await _databaseDirectoryProvider();
+    final sourcePath = path.join(databaseDirectory, DatabaseHelper.dbName);
+
+    return _databaseController.runExclusive((connection) async {
+      String? snapshotPath;
+      Object? exportFailure;
+      StackTrace? exportStackTrace;
+
+      try {
+        await connection.close();
+
+        final sourceFile = File(sourcePath);
+        if (!await sourceFile.exists()) {
+          throw BackupSourceNotFoundException(sourcePath);
+        }
+
+        final temporaryDirectory = await _temporaryDirectoryProvider();
+        await temporaryDirectory.create(recursive: true);
+        snapshotPath = await _uniquePath(
+          temporaryDirectory.path,
+          '.carvita_database_snapshot_${_formatTimestamp(_clock())}',
+          '.db',
+        );
+        await sourceFile.copy(snapshotPath);
+        await _validateDatabaseFile(snapshotPath);
+      } catch (error, stackTrace) {
+        exportFailure = error;
+        exportStackTrace = stackTrace;
+      }
+
+      Object? reopenFailure;
+      StackTrace? reopenStackTrace;
+      try {
+        await connection.open();
+      } catch (error, stackTrace) {
+        reopenFailure = error;
+        reopenStackTrace = stackTrace;
+      }
+
+      if (reopenFailure != null) {
+        if (snapshotPath != null) {
+          await _bestEffortDelete(File(snapshotPath));
+        }
+        Error.throwWithStackTrace(
+          BackupException(
+            exportFailure == null
+                ? 'The database snapshot was created, but the app database '
+                      'could not be reopened.'
+                : 'Database export failed and the app database could not be '
+                      'reopened.',
+            cause: reopenFailure,
+          ),
+          reopenStackTrace!,
+        );
+      }
+
+      if (exportFailure != null) {
+        if (snapshotPath != null) {
+          await _bestEffortDelete(File(snapshotPath));
+        }
+        Error.throwWithStackTrace(exportFailure, exportStackTrace!);
+      }
+
+      return snapshotPath!;
+    });
+  }
+
+  Future<String> _createBackupPackage(
+    String databaseSnapshotPath, {
+    required String applicationVersion,
+  }) async {
+    final databaseBytes = await File(databaseSnapshotPath).readAsBytes();
+    final preferenceValues = await _preferences.readBackupPreferences();
+    final preferencesBytes = utf8.encode(
+      jsonEncode({
+        'version': backupPreferencesVersion,
+        'values': preferenceValues,
+      }),
+    );
+    final createdAt = _clock().toUtc();
+    final manifestBytes = utf8.encode(
+      jsonEncode({
+        'formatVersion': backupFormatVersion,
+        'databaseSchemaVersion': supportedSchemaVersion,
+        'applicationVersion': applicationVersion,
+        'createdAt': createdAt.toIso8601String(),
+        'contents': {
+          _databaseEntryPath: _contentDescription(databaseBytes),
+          _preferencesEntryPath: _contentDescription(preferencesBytes),
+        },
+      }),
+    );
+
+    final archive = Archive()
+      ..addFile(ArchiveFile.bytes(_manifestPath, manifestBytes))
+      ..addFile(ArchiveFile.bytes(_databaseEntryPath, databaseBytes))
+      ..addFile(ArchiveFile.bytes(_preferencesEntryPath, preferencesBytes));
+    final encoded = ZipEncoder().encode(archive);
+
+    final temporaryDirectory = await _temporaryDirectoryProvider();
+    await temporaryDirectory.create(recursive: true);
+    final packagePath = await _uniquePath(
+      temporaryDirectory.path,
+      'carvita_backup_${_formatTimestamp(createdAt.toLocal())}',
+      '.cvbackup',
+    );
+    await File(packagePath).writeAsBytes(encoded, flush: true);
+    await _readBackupPackage(packagePath);
+    return packagePath;
+  }
+
+  Map<String, Object> _contentDescription(List<int> bytes) {
+    return {'size': bytes.length, 'sha256': sha256.convert(bytes).toString()};
   }
 
   @override
@@ -219,10 +296,11 @@ class BackupService implements BackupGateway {
         path.absolute(snapshotPath),
       );
       final snapshotName = path.basename(normalizedSnapshotPath);
+      final extension = path.extension(snapshotName).toLowerCase();
 
       if (!path.isWithin(normalizedTemporaryPath, normalizedSnapshotPath) ||
           !snapshotName.startsWith('carvita_backup_') ||
-          path.extension(snapshotName).toLowerCase() != '.db') {
+          (extension != '.cvbackup' && extension != '.db')) {
         return;
       }
 
@@ -239,6 +317,9 @@ class BackupService implements BackupGateway {
       if (!await sourceFile.exists()) {
         throw BackupSourceNotFoundException(sourcePath);
       }
+      final package = await _isSqliteFile(sourceFile)
+          ? null
+          : await _readBackupPackage(sourcePath);
 
       final databaseDirectory = await _databaseDirectoryProvider();
       final databaseDirectoryHandle = Directory(databaseDirectory);
@@ -252,7 +333,11 @@ class BackupService implements BackupGateway {
         '.${DatabaseHelper.dbName}.restore-staging',
         '.db',
       );
-      final stagingFile = await sourceFile.copy(stagingPath);
+      final stagingFile = package == null
+          ? await sourceFile.copy(stagingPath)
+          : await File(
+              stagingPath,
+            ).writeAsBytes(package.databaseBytes, flush: true);
 
       try {
         await _validateDatabaseFile(stagingPath);
@@ -265,6 +350,11 @@ class BackupService implements BackupGateway {
               connection: connection,
               liveDatabasePath: liveDatabasePath,
               stagingFile: stagingFile,
+              afterInstall: package == null
+                  ? null
+                  : () => _preferences.replaceBackupPreferences(
+                      package.preferences,
+                    ),
             );
           } catch (error, stackTrace) {
             restoreFailure = error;
@@ -316,6 +406,7 @@ class BackupService implements BackupGateway {
     required BackupDatabaseConnection connection,
     required String liveDatabasePath,
     required File stagingFile,
+    Future<void> Function()? afterInstall,
   }) async {
     final liveDatabaseFile = File(liveDatabasePath);
     final rollbackPath = await _uniquePath(
@@ -343,6 +434,7 @@ class BackupService implements BackupGateway {
 
       final restoredDatabase = await connection.open();
       await _validateOpenDatabase(restoredDatabase);
+      await afterInstall?.call();
     } catch (error, stackTrace) {
       try {
         await _rollbackDatabase(
@@ -377,6 +469,168 @@ class BackupService implements BackupGateway {
 
     if (rollbackCreated) {
       await _bestEffortDelete(rollbackFile);
+    }
+  }
+
+  Future<bool> _isSqliteFile(File file) async {
+    if (await file.length() < _sqliteHeader.length) return false;
+    final reader = await file.open();
+    try {
+      return _bytesEqual(
+        await reader.read(_sqliteHeader.length),
+        _sqliteHeader,
+      );
+    } finally {
+      await reader.close();
+    }
+  }
+
+  Future<_BackupPackage> _readBackupPackage(String packagePath) async {
+    try {
+      final archive = ZipDecoder().decodeBytes(
+        await File(packagePath).readAsBytes(),
+        verify: true,
+      );
+      final files = <String, ArchiveFile>{};
+      for (final entry in archive) {
+        if (!entry.isFile || entry.isSymbolicLink) {
+          throw const InvalidBackupException(
+            'The backup package contains unsupported entries.',
+          );
+        }
+        if (files.containsKey(entry.name)) {
+          throw const InvalidBackupException(
+            'The backup package contains duplicate entries.',
+          );
+        }
+        files[entry.name] = entry;
+      }
+      const expectedPaths = {
+        _manifestPath,
+        _databaseEntryPath,
+        _preferencesEntryPath,
+      };
+      if (!_setsEqual(files.keys.toSet(), expectedPaths)) {
+        throw const InvalidBackupException(
+          'The backup package has an incompatible content list.',
+        );
+      }
+
+      final manifestBytes = files[_manifestPath]!.readBytes();
+      final databaseBytes = files[_databaseEntryPath]!.readBytes();
+      final preferencesBytes = files[_preferencesEntryPath]!.readBytes();
+      if (manifestBytes == null ||
+          databaseBytes == null ||
+          preferencesBytes == null) {
+        throw const InvalidBackupException(
+          'The backup package contains unreadable content.',
+        );
+      }
+
+      final manifest = _decodeJsonObject(manifestBytes, 'manifest');
+      final formatVersion = manifest['formatVersion'];
+      if (formatVersion is! int || formatVersion != backupFormatVersion) {
+        throw UnsupportedBackupFormatException(
+          'Unsupported backup format version: ${formatVersion ?? 'unknown'}.',
+        );
+      }
+      final databaseSchemaVersion = manifest['databaseSchemaVersion'];
+      if (databaseSchemaVersion is! int ||
+          databaseSchemaVersion != supportedSchemaVersion) {
+        throw UnsupportedBackupFormatException(
+          'Unsupported database schema version in backup package: '
+          '${databaseSchemaVersion ?? 'unknown'}.',
+        );
+      }
+      final applicationVersion = manifest['applicationVersion'];
+      if (applicationVersion is! String || applicationVersion.isEmpty) {
+        throw const InvalidBackupException(
+          'The backup package has no application version.',
+        );
+      }
+      final createdAt = manifest['createdAt'];
+      if (createdAt is! String || DateTime.tryParse(createdAt) == null) {
+        throw const InvalidBackupException(
+          'The backup package has an invalid creation time.',
+        );
+      }
+      final contents = manifest['contents'];
+      if (contents is! Map<String, dynamic> ||
+          !_setsEqual(contents.keys.toSet(), {
+            _databaseEntryPath,
+            _preferencesEntryPath,
+          })) {
+        throw const InvalidBackupException(
+          'The backup manifest has an incompatible content list.',
+        );
+      }
+      _validateContentDescription(
+        contents[_databaseEntryPath],
+        databaseBytes,
+        _databaseEntryPath,
+      );
+      _validateContentDescription(
+        contents[_preferencesEntryPath],
+        preferencesBytes,
+        _preferencesEntryPath,
+      );
+
+      final preferencesDocument = _decodeJsonObject(
+        preferencesBytes,
+        'preferences',
+      );
+      if (preferencesDocument['version'] != backupPreferencesVersion) {
+        throw UnsupportedBackupFormatException(
+          'Unsupported backup preferences version: '
+          '${preferencesDocument['version'] ?? 'unknown'}.',
+        );
+      }
+      final rawValues = preferencesDocument['values'];
+      if (rawValues is! Map<String, dynamic>) {
+        throw const InvalidBackupException(
+          'The backup preferences are invalid.',
+        );
+      }
+      final preferences = validateBackupPreferenceValues(rawValues);
+      return _BackupPackage(
+        databaseBytes: databaseBytes,
+        preferences: preferences,
+      );
+    } on BackupException {
+      rethrow;
+    } catch (error) {
+      throw InvalidBackupException(
+        'The selected file is not a valid CarVita backup package.',
+        cause: error,
+      );
+    }
+  }
+
+  Map<String, dynamic> _decodeJsonObject(List<int> bytes, String label) {
+    final decoded = jsonDecode(utf8.decode(bytes));
+    if (decoded is! Map<String, dynamic>) {
+      throw InvalidBackupException('The backup $label is invalid.');
+    }
+    return decoded;
+  }
+
+  void _validateContentDescription(
+    Object? rawDescription,
+    List<int> bytes,
+    String entryPath,
+  ) {
+    if (rawDescription is! Map<String, dynamic> ||
+        rawDescription['size'] is! int ||
+        rawDescription['sha256'] is! String) {
+      throw InvalidBackupException(
+        'The backup checksum metadata for $entryPath is invalid.',
+      );
+    }
+    if (rawDescription['size'] != bytes.length ||
+        rawDescription['sha256'] != sha256.convert(bytes).toString()) {
+      throw InvalidBackupException(
+        'The backup content checksum for $entryPath does not match.',
+      );
     }
   }
 
@@ -620,4 +874,24 @@ class _DatabaseHelperBackupConnection implements BackupDatabaseConnection {
 
   @override
   Future<Database> open() => _connection.open();
+}
+
+final class _BackupPackage {
+  const _BackupPackage({
+    required this.databaseBytes,
+    required this.preferences,
+  });
+
+  final Uint8List databaseBytes;
+  final Map<String, Object> preferences;
+}
+
+final class _EmptyBackupPreferences implements BackupPreferencesPort {
+  const _EmptyBackupPreferences();
+
+  @override
+  Future<Map<String, Object>> readBackupPreferences() async => const {};
+
+  @override
+  Future<void> replaceBackupPreferences(Map<String, Object> values) async {}
 }

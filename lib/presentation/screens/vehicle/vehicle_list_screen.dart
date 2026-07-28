@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:transparent_image/transparent_image.dart';
 
 import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/constants/app_routes.dart';
@@ -9,6 +8,8 @@ import 'package:carvita/core/utils/operation_result.dart';
 import 'package:carvita/data/models/vehicle.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/presentation/failures/app_failure_localizer.dart';
+import 'package:carvita/presentation/images/vehicle_image_cache.dart';
+import 'package:carvita/presentation/images/vehicle_thumbnail.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_cubit.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_state.dart';
@@ -69,6 +70,7 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
       final result = await cubit.deleteVehicle(vehicle.id!);
       if (!context.mounted) return;
       if (result is OperationSuccess) {
+        context.read<VehicleImageCache>().invalidate(vehicle.id!);
         context.read<UpcomingMaintenanceCubit>().loadAllUpcomingMaintenance(
           AppLocalizations.of(context),
         );
@@ -178,42 +180,12 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
                       horizontal: 16,
                       vertical: 10,
                     ),
-                    leading: vehicle.image != null && vehicle.image!.isNotEmpty
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(8.0),
-                            child: FadeInImage(
-                              placeholder: MemoryImage(kTransparentImage),
-                              image: MemoryImage(vehicle.image!),
-                              fadeInDuration: const Duration(milliseconds: 200),
-                              width: 70,
-                              height: 70,
-                              fit: BoxFit.cover,
-                              imageErrorBuilder: (context, error, stackTrace) =>
-                                  Container(
-                                    width: 70,
-                                    height: 70,
-                                    color: Colors.grey[200],
-                                    child: const Icon(
-                                      Icons.directions_car,
-                                      size: 30,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                            ),
-                          )
-                        : Container(
-                            width: 70,
-                            height: 70,
-                            decoration: BoxDecoration(
-                              color: Colors.grey[200],
-                              borderRadius: BorderRadius.circular(8.0),
-                            ),
-                            child: const Icon(
-                              Icons.directions_car,
-                              size: 35,
-                              color: Colors.grey,
-                            ),
-                          ),
+                    leading: VehicleThumbnail(
+                      vehicle: vehicle,
+                      width: 70,
+                      height: 70,
+                      iconSize: 35,
+                    ),
                     title: Text(
                       vehicle.name,
                       style: TextStyle(

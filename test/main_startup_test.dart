@@ -12,6 +12,7 @@ import 'package:carvita/application/ports/app_startup_port.dart';
 import 'package:carvita/application/ports/clock.dart';
 import 'package:carvita/application/ports/notification_tap_port.dart';
 import 'package:carvita/application/ports/reminder_schedule_port.dart';
+import 'package:carvita/application/queries/maintenance_data_snapshot.dart';
 import 'package:carvita/application/use_cases/load_upcoming_maintenance.dart';
 import 'package:carvita/application/use_cases/synchronize_maintenance_reminders.dart';
 import 'package:carvita/core/services/notification_coordinator.dart';
@@ -48,7 +49,6 @@ void main() {
       platform: platform,
     );
     final upcomingCubit = _upcomingCubit(
-      vehicleRepository,
       maintenanceRepository,
       preferences,
       reminderSchedule,
@@ -80,7 +80,7 @@ void main() {
     await tester.pump();
     await tester.pump();
 
-    expect(vehicleRepository.readCount, 1);
+    expect(maintenanceRepository.snapshotReadCount, 1);
     expect(platform.setItemsCount, 1);
     expect(appStartup.initializeCount, 1);
     await upcomingCubit.close();
@@ -103,7 +103,6 @@ void main() {
       platform: platform,
     );
     final upcomingCubit = _upcomingCubit(
-      vehicleRepository,
       maintenanceRepository,
       preferences,
       reminderSchedule,
@@ -134,7 +133,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(platform.setItemsCount, 1);
-    expect(vehicleRepository.readCount, 1);
+    expect(maintenanceRepository.snapshotReadCount, 1);
     expect(tester.takeException(), isNull);
     await upcomingCubit.close();
   });
@@ -155,7 +154,6 @@ void main() {
       platform: _CountingQuickActionPlatform(),
     );
     final upcomingCubit = _upcomingCubit(
-      vehicleRepository,
       maintenanceRepository,
       preferences,
       reminderSchedule,
@@ -186,19 +184,19 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(notificationGateway.cancelCount, 1);
-    expect(vehicleRepository.readCount, 1);
+    expect(maintenanceRepository.snapshotReadCount, 1);
 
     reminderSchedule.nextContextChanged = true;
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     await tester.pumpAndSettle();
 
     expect(notificationGateway.cancelCount, 2);
-    expect(vehicleRepository.readCount, 2);
+    expect(maintenanceRepository.snapshotReadCount, 2);
 
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     await tester.pumpAndSettle();
     expect(notificationGateway.cancelCount, 2);
-    expect(vehicleRepository.readCount, 2);
+    expect(maintenanceRepository.snapshotReadCount, 2);
     await upcomingCubit.close();
   });
 
@@ -218,7 +216,6 @@ void main() {
       platform: platform,
     );
     final upcomingCubit = _upcomingCubit(
-      vehicleRepository,
       maintenanceRepository,
       preferences,
       reminderSchedule,
@@ -253,7 +250,7 @@ void main() {
     expect(platform.setItemsCount, 1);
     expect(platform.lastLogTitle, 'Log Maintenance');
     expect(notificationGateway.cancelCount, 1);
-    expect(vehicleRepository.readCount, 1);
+    expect(maintenanceRepository.snapshotReadCount, 1);
 
     await tester.pumpWidget(app(const Locale('de')));
     await tester.pumpAndSettle();
@@ -261,7 +258,7 @@ void main() {
     expect(platform.setItemsCount, 2);
     expect(platform.lastLogTitle, 'Wartung protokollieren');
     expect(notificationGateway.cancelCount, 2);
-    expect(vehicleRepository.readCount, 1);
+    expect(maintenanceRepository.snapshotReadCount, 1);
     await upcomingCubit.close();
   });
 
@@ -283,7 +280,6 @@ void main() {
         platform: _CountingQuickActionPlatform(),
       );
       final upcomingCubit = _upcomingCubit(
-        vehicleRepository,
         maintenanceRepository,
         preferences,
         _FixedReminderSchedule(),
@@ -318,12 +314,12 @@ void main() {
       await tester.pump();
 
       expect(find.byKey(const Key('dashboard-content')), findsOne);
-      expect(vehicleRepository.readCount, 0);
+      expect(maintenanceRepository.snapshotReadCount, 0);
 
       startupGate.complete();
       await tester.pumpAndSettle();
 
-      expect(vehicleRepository.readCount, 1);
+      expect(maintenanceRepository.snapshotReadCount, 1);
       expect(tester.takeException(), isNull);
       await upcomingCubit.close();
     },
@@ -331,7 +327,6 @@ void main() {
 }
 
 UpcomingMaintenanceCubit _upcomingCubit(
-  VehicleRepository vehicleRepository,
   MaintenanceRepository maintenanceRepository,
   PreferencesService preferences,
   ReminderSchedulePort reminderSchedule, {
@@ -343,7 +338,6 @@ UpcomingMaintenanceCubit _upcomingCubit(
   );
   return UpcomingMaintenanceCubit(
     LoadUpcomingMaintenance(
-      vehicleRepository,
       maintenanceRepository,
       PredictionService(clock),
       clock,
@@ -367,7 +361,20 @@ class _CountingVehicleRepository extends VehicleRepository {
   }
 }
 
-class _FakeMaintenanceRepository extends MaintenanceRepository {}
+class _FakeMaintenanceRepository extends MaintenanceRepository {
+  int snapshotReadCount = 0;
+
+  @override
+  Future<MaintenanceDataSnapshot> getPredictionSnapshot() async {
+    snapshotReadCount++;
+    return MaintenanceDataSnapshot(
+      vehicles: const [],
+      planItems: const [],
+      serviceLogs: const [],
+      performedItemLinks: const [],
+    );
+  }
+}
 
 class _FakePreferencesService extends PreferencesService {
   @override

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:transparent_image/transparent_image.dart';
 
 import 'package:carvita/application/use_cases/maintenance_plan_use_cases.dart';
 import 'package:carvita/application/use_cases/service_log_use_cases.dart';
@@ -12,6 +11,7 @@ import 'package:carvita/data/models/vehicle.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/presentation/manager/maintenance_plan/maintenance_plan_cubit.dart';
 import 'package:carvita/presentation/manager/service_log/service_log_cubit.dart';
+import 'package:carvita/presentation/images/vehicle_thumbnail.dart';
 import 'package:carvita/presentation/screens/maintenance/log_maintenance_screen.dart';
 
 class SelectVehicleScreen extends StatelessWidget {
@@ -77,31 +77,11 @@ class SelectVehicleScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: ListTile(
-                leading: vehicle.image != null && vehicle.image!.isNotEmpty
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(8.0),
-                        child: FadeInImage(
-                          placeholder: MemoryImage(kTransparentImage),
-                          image: MemoryImage(vehicle.image!),
-                          fadeInDuration: const Duration(milliseconds: 200),
-                          width: 50,
-                          height: 50,
-                          fit: BoxFit.cover,
-                        ),
-                      )
-                    : Container(
-                        width: 50,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                        child: const Icon(
-                          Icons.directions_car,
-                          size: 30,
-                          color: Colors.grey,
-                        ),
-                      ),
+                leading: VehicleThumbnail(
+                  vehicle: vehicle,
+                  width: 50,
+                  height: 50,
+                ),
                 title: Text(
                   vehicle.name,
                   style: TextStyle(

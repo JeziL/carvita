@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:carvita/application/ports/maintenance_repository_port.dart';
@@ -198,6 +200,9 @@ class _FakeVehicleRepository implements VehicleRepositoryPort {
     }
     return vehicle;
   }
+
+  @override
+  Future<Uint8List?> getVehicleImage(int id) async => vehicle?.image;
 
   @override
   Future<List<Vehicle>> getVehicles() async => [if (vehicle != null) vehicle!];

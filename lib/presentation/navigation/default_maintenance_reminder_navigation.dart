@@ -4,10 +4,13 @@ import 'package:carvita/core/constants/app_routes.dart';
 import 'package:carvita/core/services/maintenance_reminder_tap_service.dart';
 import 'package:carvita/core/services/navigation_service.dart';
 import 'package:carvita/presentation/navigation/app_route_arguments.dart';
+import 'package:carvita/presentation/navigation/main_navigation_controller.dart';
 
 class DefaultMaintenanceReminderNavigation
     implements MaintenanceReminderNavigation {
-  const DefaultMaintenanceReminderNavigation();
+  const DefaultMaintenanceReminderNavigation(this._mainNavigation);
+
+  final MainNavigationController _mainNavigation;
 
   BuildContext? get _context => NavigationService.navigatorKey.currentContext;
 
@@ -32,6 +35,8 @@ class DefaultMaintenanceReminderNavigation
   void openUpcomingMaintenance() {
     final context = _context;
     if (context == null || !context.mounted) return;
-    Navigator.pushNamed(context, AppRoutes.upcomingMaintenanceRoute);
+    final navigator = NavigationService.navigatorKey.currentState;
+    if (navigator == null) return;
+    _mainNavigation.revealRootTab(navigator, 2);
   }
 }

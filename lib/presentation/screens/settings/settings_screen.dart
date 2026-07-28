@@ -9,7 +9,6 @@ import 'package:carvita/application/use_cases/vehicle_use_cases.dart';
 import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/constants/app_routes.dart';
 import 'package:carvita/core/failures/app_failure.dart';
-import 'package:carvita/core/services/backup_service.dart';
 import 'package:carvita/core/services/notification_service.dart';
 import 'package:carvita/core/services/preferences_service.dart';
 import 'package:carvita/core/theme/app_theme.dart';
@@ -25,6 +24,7 @@ import 'package:carvita/presentation/manager/theme_provider.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_cubit.dart';
 import 'package:carvita/presentation/screens/common_widgets/main_bottom_navigation_bar.dart';
+import 'package:carvita/presentation/screens/settings/backup_settings_section.dart';
 import 'package:carvita/presentation/screens/settings/preference_dialogs.dart';
 
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_state.dart'
@@ -38,14 +38,10 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  late final BackupGateway _backupService;
   late final PreferencesService _preferencesService;
   late final VehicleUseCases _vehicleUseCases;
-  late final BackupFilePickerPort _backupFilePicker;
-  late final FileSharePort _fileShare;
   late final AppPackageInfoPort _packageInfoProvider;
   late final ExternalUrlPort _externalUrl;
-  late final AppExitPort _appExit;
 
   String _defaultVehicleName = "";
   int? _currentDefaultVehicleId;
@@ -55,22 +51,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
   DueReminderThresholdValue _selectedThreshold =
       DueReminderThresholdValue.halfYear;
   int _selectedReminderItemCount = 3;
-  bool _isExporting = false;
-  bool _isImporting = false;
   String _appVersion = '';
 
   @override
   void initState() {
     super.initState();
-    _backupService = context.read<BackupGateway>();
     _preferencesService = context.read<PreferencesService>();
     _vehicleUseCases = context.read<VehicleUseCases>();
     _notificationService = context.read<NotificationPermissionGateway>();
-    _backupFilePicker = context.read<BackupFilePickerPort>();
-    _fileShare = context.read<FileSharePort>();
     _packageInfoProvider = context.read<AppPackageInfoPort>();
     _externalUrl = context.read<ExternalUrlPort>();
-    _appExit = context.read<AppExitPort>();
     _loadDefaultVehicleInfo();
     _loadReminderSettings();
     _loadNotificationSettings();
@@ -228,227 +218,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (mounted) {
         setState(() => _selectedReminderItemCount = result);
       }
-    }
-  }
-
-  Future<void> _exportDatabase() async {
-    if (_isExporting) return;
-    setState(() => _isExporting = true);
-    String? snapshotPath;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(AppLocalizations.of(context)!.exportPrepare)),
-    );
-
-    try {
-      snapshotPath = await _backupService.createExportSnapshot();
-
-      final shareResult = await _fileShare.shareFile(snapshotPath);
-
-      if (shareResult == ShareFileOutcome.success) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(AppLocalizations.of(context)!.exportSuccess),
-              backgroundColor: Colors.green,
-            ),
-          );
-        }
-      } else if (shareResult == ShareFileOutcome.dismissed) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(AppLocalizations.of(context)!.exportCancelled),
-            ),
-          );
-        }
-      } else {
-        if (mounted) {
-          final failure = AppFailure.capture(
-            AppFailureKind.export,
-            StateError('Share failed with status $shareResult'),
-            StackTrace.current,
-            context: 'SettingsScreen.exportDatabase.share',
-          );
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                failure.toLocalizedMessage(AppLocalizations.of(context)!),
-              ),
-              backgroundColor: AppColors.urgentReminderText,
-            ),
-          );
-        }
-      }
-    } on BackupSourceNotFoundException {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context)!.errDBNotFound),
-            backgroundColor: AppColors.urgentReminderText,
-          ),
-        );
-      }
-    } catch (error, stackTrace) {
-      if (mounted) {
-        final failure = AppFailure.capture(
-          AppFailureKind.export,
-          error,
-          stackTrace,
-          context: 'SettingsScreen.exportDatabase',
-        );
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              failure.toLocalizedMessage(AppLocalizations.of(context)!),
-            ),
-            backgroundColor: AppColors.urgentReminderText,
-          ),
-        );
-      }
-    } finally {
-      if (snapshotPath != null) {
-        await _backupService.deleteExportSnapshot(snapshotPath);
-      }
-      if (mounted) setState(() => _isExporting = false);
-    }
-  }
-
-  Future<void> _importDatabase() async {
-    final bool? confirmed = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
-          title: Text(
-            AppLocalizations.of(context)!.restoreWarningTitle,
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurface,
-              fontSize: 20,
-            ),
-          ),
-          content: Text(
-            AppLocalizations.of(context)!.restoreWarningBody,
-            style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text(
-                AppLocalizations.of(context)!.cancel,
-                style: TextStyle(color: Theme.of(context).colorScheme.primary),
-              ),
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-            ),
-            TextButton(
-              child: Text(
-                AppLocalizations.of(context)!.restoreData,
-                style: TextStyle(
-                  color: AppColors.urgentReminderText,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (!mounted || confirmed != true) return;
-    if (_isImporting) return;
-
-    setState(() => _isImporting = true);
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.chooseDBFile)),
-      );
-    }
-
-    try {
-      final selectedPath = await _backupFilePicker.pickBackupFile();
-
-      if (selectedPath != null) {
-        await _backupService.restoreDatabase(selectedPath);
-        try {
-          await _notificationService.cancelAllNotifications();
-        } catch (error) {
-          debugPrint(
-            'Database restore succeeded, but old notifications could not be '
-            'cancelled: $error',
-          );
-        }
-
-        if (mounted) {
-          await showDialog<void>(
-            context: context,
-            barrierDismissible: false,
-            builder: (BuildContext dialogContext) {
-              return PopScope(
-                canPop: false,
-                child: AlertDialog(
-                  backgroundColor: Theme.of(
-                    context,
-                  ).colorScheme.surfaceContainerLowest,
-                  title: Text(
-                    AppLocalizations.of(context)!.restoreSuccessTitle,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                  ),
-                  content: Text(
-                    AppLocalizations.of(context)!.restoreSuccessBody,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                  ),
-                  actions: <Widget>[
-                    TextButton(
-                      onPressed: () {
-                        _appExit.exitApplication();
-                      },
-                      child: Text(
-                        AppLocalizations.of(context)!.exitButton,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          );
-        }
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(AppLocalizations.of(context)!.importCancelled),
-            ),
-          );
-        }
-      }
-    } catch (error, stackTrace) {
-      if (mounted) {
-        final failure = AppFailure.capture(
-          AppFailureKind.restore,
-          error,
-          stackTrace,
-          context: 'SettingsScreen.importDatabase',
-        );
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              failure.toLocalizedMessage(AppLocalizations.of(context)!),
-            ),
-            backgroundColor: AppColors.urgentReminderText,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _isImporting = false);
     }
   }
 
@@ -1003,51 +772,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
               ],
             ),
-            _buildSettingsCard(
-              title: AppLocalizations.of(context)!.data,
-              children: [
-                _buildSettingItem(
-                  icon: Icons.cloud_download_outlined,
-                  label: AppLocalizations.of(context)!.restoreData,
-                  onTap: _isImporting ? null : _importDatabase,
-                  trailing: _isImporting
-                      ? SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                        )
-                      : Icon(
-                          Icons.chevron_right,
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onSurface.withValues(alpha: 0.5),
-                        ),
-                ),
-                _buildSettingItem(
-                  icon: Icons.ios_share_outlined,
-                  label: AppLocalizations.of(context)!.exportData,
-                  onTap: _isExporting ? null : _exportDatabase,
-                  trailing: _isExporting
-                      ? SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                        )
-                      : Icon(
-                          Icons.chevron_right,
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onSurface.withValues(alpha: 0.5),
-                        ),
-                ),
-              ],
-            ),
+            const BackupSettingsSection(),
             _buildSettingsCard(
               title: AppLocalizations.of(context)!.about,
               children: [

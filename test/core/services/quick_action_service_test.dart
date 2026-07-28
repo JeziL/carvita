@@ -19,6 +19,8 @@ import 'package:carvita/data/repositories/vehicle_repository.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/presentation/manager/locale_provider.dart';
 import 'package:carvita/presentation/navigation/default_quick_action_navigation.dart';
+import 'package:carvita/presentation/navigation/main_navigation_controller.dart';
+import 'package:carvita/presentation/navigation/main_shell.dart';
 import 'package:carvita/presentation/screens/vehicle/select_vehicle_screen.dart';
 
 void main() {
@@ -30,12 +32,16 @@ void main() {
     tester,
   ) async {
     final platform = _FakeQuickActionPlatform();
-    final service = _service(platform: platform);
+    final mainNavigation = MainNavigationController();
+    final service = _service(
+      platform: platform,
+      mainNavigation: mainNavigation,
+    );
     service.initializeListener();
 
     platform.emit(QuickActionService.upcomingMaintenanceAction);
     platform.emit(QuickActionService.upcomingMaintenanceAction);
-    await tester.pumpWidget(_testApp());
+    await tester.pumpWidget(_testApp(mainNavigation: mainNavigation));
     service.navigatorReady();
     await tester.pumpAndSettle();
 
@@ -99,6 +105,7 @@ QuickActionService _service({
   required _FakeQuickActionPlatform platform,
   _FakeVehicleRepository? vehicleRepository,
   _FakePreferencesService? preferencesService,
+  MainNavigationController? mainNavigation,
 }) {
   final maintenanceRepository = _FakeMaintenanceRepository();
   return QuickActionService(
@@ -107,15 +114,21 @@ QuickActionService _service({
     navigation: DefaultQuickActionNavigation(
       MaintenancePlanUseCases(maintenanceRepository),
       ServiceLogUseCases(maintenanceRepository),
+      mainNavigation ?? MainNavigationController(),
     ),
     platform: platform,
   );
 }
 
-Widget _testApp() {
+Widget _testApp({MainNavigationController? mainNavigation}) {
   final preferences = PreferencesService();
-  return ChangeNotifierProvider(
-    create: (_) => LocaleProvider(preferences),
+  return MultiProvider(
+    providers: [
+      ChangeNotifierProvider(create: (_) => LocaleProvider(preferences)),
+      ChangeNotifierProvider.value(
+        value: mainNavigation ?? MainNavigationController(),
+      ),
+    ],
     child: MaterialApp(
       navigatorKey: NavigationService.navigatorKey,
       locale: const Locale('en'),
@@ -130,11 +143,14 @@ Widget _testApp() {
         ColorScheme.fromSeed(seedColor: Colors.blue),
         Brightness.light,
       ),
-      routes: {
-        '/upcoming-maintenance': (_) =>
-            const Scaffold(body: Text('Upcoming destination')),
-      },
-      home: const Scaffold(body: Text('Home')),
+      home: MainShell(
+        tabs: const [
+          Scaffold(body: Text('Home')),
+          SizedBox.shrink(),
+          Scaffold(body: Text('Upcoming destination')),
+          SizedBox.shrink(),
+        ],
+      ),
     ),
   );
 }

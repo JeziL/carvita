@@ -38,9 +38,11 @@ import 'package:carvita/presentation/manager/locale_provider.dart';
 import 'package:carvita/presentation/manager/theme_provider.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_cubit.dart';
+import 'package:carvita/presentation/images/vehicle_image_cache.dart';
 import 'package:carvita/presentation/navigation/app_router.dart';
 import 'package:carvita/presentation/navigation/default_maintenance_reminder_navigation.dart';
 import 'package:carvita/presentation/navigation/default_quick_action_navigation.dart';
+import 'package:carvita/presentation/navigation/main_navigation_controller.dart';
 
 final RouteObserver<ModalRoute<void>> routeObserver =
     RouteObserver<ModalRoute<void>>();
@@ -77,14 +79,16 @@ Future<void> main() async {
     vehicleRepository,
     preferencesService,
   );
+  final vehicleImageCache = VehicleImageCache(vehicleUseCases);
   final maintenancePlanUseCases = MaintenancePlanUseCases(
     maintenanceRepository,
   );
+  final mainNavigationController = MainNavigationController();
   final serviceLogUseCases = ServiceLogUseCases(maintenanceRepository);
   final maintenanceReminderTaps = MaintenanceReminderTapService(
     vehicleRepository,
     maintenanceRepository,
-    const DefaultMaintenanceReminderNavigation(),
+    DefaultMaintenanceReminderNavigation(mainNavigationController),
   );
   final reminderSchedule = ReminderScheduleService(
     const MethodChannelDeviceTimeZone(),
@@ -95,10 +99,12 @@ Future<void> main() async {
     maintenanceReminderTaps,
   );
   final notificationCoordinator = NotificationCoordinator(notificationService);
-  final backupService = BackupService(clock: clock.now);
+  final backupService = BackupService(
+    preferences: preferencesService,
+    clock: clock.now,
+  );
   const pluginPlatformService = PluginPlatformService();
   final loadUpcomingMaintenance = LoadUpcomingMaintenance(
-    vehicleRepository,
     maintenanceRepository,
     predictionService,
     clock,
@@ -112,6 +118,7 @@ Future<void> main() async {
   final quickActionNavigation = DefaultQuickActionNavigation(
     maintenancePlanUseCases,
     serviceLogUseCases,
+    mainNavigationController,
   );
 
   final quickActionService = QuickActionService(
@@ -133,10 +140,14 @@ Future<void> main() async {
       providers: [
         Provider<AppStartupPort>.value(value: appStartup),
         Provider<QuickActionService>.value(value: quickActionService),
+        ChangeNotifierProvider<MainNavigationController>.value(
+          value: mainNavigationController,
+        ),
         Provider<NotificationTapPort>.value(value: maintenanceReminderTaps),
         Provider<ReminderSchedulePort>.value(value: reminderSchedule),
         Provider<PreferencesService>.value(value: preferencesService),
         Provider<VehicleUseCases>.value(value: vehicleUseCases),
+        Provider<VehicleImageCache>.value(value: vehicleImageCache),
         Provider<MaintenancePlanUseCases>.value(value: maintenancePlanUseCases),
         Provider<ServiceLogUseCases>.value(value: serviceLogUseCases),
         Provider<NotificationPermissionGateway>.value(

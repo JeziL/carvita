@@ -13,6 +13,7 @@ import 'package:carvita/core/widgets/gradient_background.dart';
 import 'package:carvita/data/models/vehicle.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/presentation/failures/app_failure_localizer.dart';
+import 'package:carvita/presentation/images/vehicle_image_cache.dart';
 import 'package:carvita/presentation/formatters/localized_number_input.dart';
 import 'package:carvita/presentation/manager/locale_provider.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
@@ -38,6 +39,8 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
   late TextEditingController _engineNumberController;
 
   Uint8List? _selectedImageBytes;
+  bool _imageLoaded = true;
+  bool _imageWasChanged = false;
   DateTime? _selectedBoughtDate;
   bool _isSubmitting = false;
 
@@ -66,6 +69,23 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
       text: v?.engineNumber ?? '',
     );
     _selectedImageBytes = v?.image;
+    _imageLoaded = v?.imageLoaded ?? true;
+    if (v != null && !_imageLoaded && v.id != null) {
+      _loadExistingImage(v.id!);
+    }
+  }
+
+  Future<void> _loadExistingImage(int vehicleId) async {
+    try {
+      final bytes = await context.read<VehicleImageCache>().load(vehicleId);
+      if (!mounted || _imageWasChanged) return;
+      setState(() {
+        _selectedImageBytes = bytes;
+        _imageLoaded = true;
+      });
+    } catch (_) {
+      // A failed optional preview must not erase the stored image on save.
+    }
   }
 
   @override
@@ -89,6 +109,8 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
       if (!mounted) return;
       setState(() {
         _selectedImageBytes = imageBytes;
+        _imageLoaded = true;
+        _imageWasChanged = true;
       });
     }
   }
@@ -146,6 +168,8 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
                   onTap: () {
                     setState(() {
                       _selectedImageBytes = null;
+                      _imageLoaded = true;
+                      _imageWasChanged = true;
                     });
                     Navigator.of(context).pop();
                   },
@@ -219,6 +243,7 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
         mileageLastUpdated: mileageLastUpdated,
         boughtDate: _selectedBoughtDate!,
         image: _selectedImageBytes,
+        imageLoaded: _imageLoaded,
         model: _modelController.text.trim().isNotEmpty
             ? _modelController.text.trim()
             : null,
@@ -264,6 +289,14 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
             backgroundColor: AppColors.urgentReminderText,
           ),
         );
+      }
+
+      final imageCache = context.read<VehicleImageCache>();
+      final vehicleId = widget.vehicle?.id;
+      if (vehicleId == null) {
+        imageCache.clear();
+      } else {
+        imageCache.invalidate(vehicleId);
       }
 
       await context.read<UpcomingMaintenanceCubit>().loadAllUpcomingMaintenance(

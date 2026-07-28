@@ -5,15 +5,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:carvita/core/constants/app_routes.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/presentation/navigation/app_route_arguments.dart';
-import 'package:carvita/presentation/screens/dashboard/dashboard_screen.dart';
 import 'package:carvita/presentation/screens/maintenance/add_edit_maintenance_plan_item_screen.dart';
 import 'package:carvita/presentation/screens/maintenance/log_maintenance_screen.dart';
-import 'package:carvita/presentation/screens/maintenance/upcoming_maintenance_list_screen.dart';
+import 'package:carvita/presentation/navigation/main_shell.dart';
 import 'package:carvita/presentation/screens/settings/privacy_screen.dart';
-import 'package:carvita/presentation/screens/settings/settings_screen.dart';
 import 'package:carvita/presentation/screens/vehicle/add_edit_vehicle_screen.dart';
 import 'package:carvita/presentation/screens/vehicle/vehicle_details_screen.dart';
-import 'package:carvita/presentation/screens/vehicle/vehicle_list_screen.dart';
 
 class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -21,22 +18,22 @@ class AppRouter {
       case AppRoutes.dashboardRoute:
         return MaterialPageRoute(
           settings: settings,
-          builder: (_) => const DashboardScreen(),
+          builder: (_) => const MainShell(),
         );
       case AppRoutes.vehicleListRoute:
         return MaterialPageRoute(
           settings: settings,
-          builder: (_) => const VehicleListScreen(),
+          builder: (_) => const MainShell(initialIndex: 1),
         );
       case AppRoutes.settingsRoute:
         return MaterialPageRoute(
           settings: settings,
-          builder: (_) => const SettingsScreen(),
+          builder: (_) => const MainShell(initialIndex: 3),
         );
       case AppRoutes.upcomingMaintenanceRoute:
         return MaterialPageRoute(
           settings: settings,
-          builder: (_) => const UpcomingMaintenanceListScreen(),
+          builder: (_) => const MainShell(initialIndex: 2),
         );
       case AppRoutes.privacyRoute:
         return MaterialPageRoute(

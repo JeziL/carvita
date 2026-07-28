@@ -9,6 +9,7 @@ class Vehicle extends Equatable {
   final DateTime mileageLastUpdated;
   final DateTime boughtDate;
   final Uint8List? image;
+  final bool imageLoaded;
   final String? model;
   final String? plateNumber;
   final String? vin;
@@ -21,6 +22,7 @@ class Vehicle extends Equatable {
     required this.mileageLastUpdated,
     required this.boughtDate,
     this.image,
+    this.imageLoaded = true,
     this.model,
     this.plateNumber,
     this.vin,
@@ -35,6 +37,7 @@ class Vehicle extends Equatable {
       mileageLastUpdated: DateTime.parse(map['mileage_last_updated'] as String),
       boughtDate: DateTime.parse(map['bought_date'] as String),
       image: map['image'] as Uint8List?,
+      imageLoaded: map.containsKey('image'),
       model: map['model'] as String?,
       plateNumber: map['plate_number'] as String?,
       vin: map['vin'] as String?,
@@ -69,6 +72,7 @@ class Vehicle extends Equatable {
     String? vin,
     String? engineNumber,
     bool clearImage = false, // Special flag to nullify image
+    bool? imageLoaded,
   }) {
     return Vehicle(
       id: id ?? this.id,
@@ -77,6 +81,7 @@ class Vehicle extends Equatable {
       mileageLastUpdated: mileageLastUpdated ?? this.mileageLastUpdated,
       boughtDate: boughtDate ?? this.boughtDate,
       image: clearImage ? null : (image ?? this.image),
+      imageLoaded: imageLoaded ?? this.imageLoaded,
       model: model ?? this.model,
       plateNumber: plateNumber ?? this.plateNumber,
       vin: vin ?? this.vin,
@@ -91,6 +96,7 @@ class Vehicle extends Equatable {
         mileageLastUpdated == other.mileageLastUpdated &&
         boughtDate == other.boughtDate &&
         image == other.image &&
+        imageLoaded == other.imageLoaded &&
         model == other.model &&
         plateNumber == other.plateNumber &&
         vin == other.vin &&
@@ -105,6 +111,7 @@ class Vehicle extends Equatable {
     mileageLastUpdated,
     boughtDate,
     image,
+    imageLoaded,
     model,
     plateNumber,
     vin,
