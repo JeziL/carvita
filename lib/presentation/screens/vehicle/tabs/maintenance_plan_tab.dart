@@ -12,6 +12,7 @@ import 'package:carvita/presentation/manager/maintenance_plan/maintenance_plan_c
 import 'package:carvita/presentation/manager/maintenance_plan/maintenance_plan_state.dart';
 import 'package:carvita/presentation/manager/service_log/service_log_cubit.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
+import 'package:carvita/presentation/navigation/app_route_arguments.dart';
 
 class MaintenancePlanTab extends StatefulWidget {
   final int vehicleId;
@@ -164,13 +165,12 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
                       Navigator.pushNamed(
                         context,
                         AppRoutes.addManualItemRoute,
-                        arguments: {
-                          'vehicleId': widget.vehicleId,
-                          'vehicleName': widget.vehicleName,
-                          'planItem': null, // Adding new item
-                          'cubitInstance': maintenancePlanCubit,
-                          'serviceLogCubit': context.read<ServiceLogCubit>(),
-                        },
+                        arguments: AddEditMaintenancePlanItemRouteArguments(
+                          vehicleId: widget.vehicleId,
+                          vehicleName: widget.vehicleName,
+                          maintenancePlanCubit: maintenancePlanCubit,
+                          serviceLogCubit: context.read<ServiceLogCubit>(),
+                        ),
                       );
                     },
                     icon: Icon(
@@ -300,14 +300,16 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
                                     Navigator.pushNamed(
                                       context,
                                       AppRoutes.addManualItemRoute,
-                                      arguments: {
-                                        'vehicleId': widget.vehicleId,
-                                        'vehicleName': widget.vehicleName,
-                                        'planItem': item,
-                                        'cubitInstance': maintenancePlanCubit,
-                                        'serviceLogCubit': context
-                                            .read<ServiceLogCubit>(),
-                                      },
+                                      arguments:
+                                          AddEditMaintenancePlanItemRouteArguments(
+                                            vehicleId: widget.vehicleId,
+                                            vehicleName: widget.vehicleName,
+                                            planItem: item,
+                                            maintenancePlanCubit:
+                                                maintenancePlanCubit,
+                                            serviceLogCubit: context
+                                                .read<ServiceLogCubit>(),
+                                          ),
                                     );
                                   } else if (value == 'delete') {
                                     _confirmDeleteItem(context, item);

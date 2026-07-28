@@ -11,6 +11,7 @@ import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/presentation/manager/locale_provider.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_state.dart';
+import 'package:carvita/presentation/navigation/app_route_arguments.dart';
 import 'package:carvita/presentation/screens/common_widgets/main_bottom_navigation_bar.dart';
 
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_cubit.dart'; // For vehicle filter
@@ -320,7 +321,9 @@ class _UpcomingMaintenanceListScreenState
                       Navigator.pushNamed(
                         context,
                         AppRoutes.vehicleDetailsRoute,
-                        arguments: prediction.vehicle.id,
+                        arguments: VehicleDetailsRouteArguments(
+                          vehicleId: prediction.vehicle.id,
+                        ),
                       );
                     },
                   ),

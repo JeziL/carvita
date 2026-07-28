@@ -11,6 +11,7 @@ import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_cubit.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_state.dart';
+import 'package:carvita/presentation/navigation/app_route_arguments.dart';
 import 'package:carvita/presentation/screens/common_widgets/main_bottom_navigation_bar.dart';
 
 class VehicleListScreen extends StatefulWidget {
@@ -246,7 +247,9 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
                             Navigator.pushNamed(
                               context,
                               AppRoutes.addVehicleRoute,
-                              arguments: vehicle,
+                              arguments: AddEditVehicleRouteArguments(
+                                vehicle: vehicle,
+                              ),
                             );
                           },
                         ),
@@ -263,7 +266,9 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
                       Navigator.pushNamed(
                         context,
                         AppRoutes.vehicleDetailsRoute,
-                        arguments: vehicle.id,
+                        arguments: VehicleDetailsRouteArguments(
+                          vehicleId: vehicle.id,
+                        ),
                       );
                     },
                   ),
@@ -288,7 +293,11 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.pushNamed(context, AppRoutes.addVehicleRoute);
+          Navigator.pushNamed(
+            context,
+            AppRoutes.addVehicleRoute,
+            arguments: const AddEditVehicleRouteArguments(),
+          );
         },
         backgroundColor: Theme.of(context).colorScheme.primary,
         shape: const CircleBorder(),

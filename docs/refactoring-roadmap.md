@@ -4,7 +4,7 @@
 >
 > 适用范围：CarVita Android / Flutter 主仓库
 >
-> 当前阶段：第一阶段「稳定性与数据安全止血」已完成；第二阶段待启动
+> 当前阶段：第二阶段「边界清晰化与体验一致性」进行中
 >
 > 本文性质：架构目标、问题台账、实施顺序、验收门槛与决策记录的唯一跟踪入口
 
@@ -177,7 +177,7 @@ flowchart TD
 | PRED-002 | P1 | 第二阶段 | 待办 | `MileageEstimator` 只比较排序后首尾里程，首尾仍增长时会掩盖中间某一段里程倒退、仪表更换或错误记录 | 明确逐段单调性、同日记录、仪表更换和数据修正规则；对每个相邻有效样本检查，遇异常按已决策策略使用最近有效段、拆段或回退，不得让负段被首尾净增长掩盖；覆盖中段倒退、多个倒退、零日差、同里程和恢复增长的纯 Dart 测试 |
 | UNIT-001 | P1 | 第二阶段 | 待办 | 当前 km/mi 偏好只改变标签，不转换数值；费用是无币种的数值，跨 locale、设备或未来完整备份时可能被重解释 | 先决定里程单位是全局展示偏好还是每车持久业务属性，并定义现有无单位数据的迁移/转换规则；费用明确 ISO 4217 币种、精度/最小单位，或明确保持“无币种数值”的产品限制；locale 切换不得改变业务含义；禁止部分转换；如需新持久字段，统一延后第四阶段 |
 | DATE-001 | P2 | 第二阶段 | 待办 | 到期天数按 `Duration.inDays` 截断，明天可能显示今天；购买/保养日期选择器允许明天 | 提供统一 calendar-day 工具；今天、明天、昨天、DST、跨月和时区边界测试通过；不允许未来业务日期 |
-| ROUTE-001 | P2 | 第二阶段 | 待办 | Router 在校验前强制 cast 动态 Map/Cubit 参数，错误参数直接 TypeError | 每条有参数路由使用 typed args；缺失/错误参数进入本地化错误页而非抛异常；所有 MaterialPageRoute 保留 RouteSettings；route 测试覆盖 |
+| ROUTE-001 | P2 | 第二阶段 | **进行中** | Router 在校验前强制 cast 动态 Map/Cubit 参数，错误参数直接 TypeError | 每条有参数路由使用 typed args；缺失/错误参数进入本地化错误页而非抛异常；所有 MaterialPageRoute 保留 RouteSettings；route 测试覆盖 |
 | ERROR-001 | P2 | 第二阶段 | 待办 | repository/Cubit 的 `e.toString()` 和硬编码英文直接暴露给用户 | 定义 typed failure 与本地化映射；诊断详情只进入开发日志；12 个 locale 均有用户可理解错误文案；失败 Widget 测试不出现 SQL、路径或英文内部异常 |
 | THEME-001 | P2 | 第二阶段 | 待办 | 渐变、AppBar、spinner 和固定红色混用不成对的 ColorScheme 角色，部分默认配色对比度不足 | 建立 surface/gradient/error 语义 token；亮色、暗色和代表性 custom seed 的普通文字达到 4.5:1；Vehicle List loading 可见；error route/LicensePage 有稳定背景 |
 | A11Y-001 | P2 | 第二阶段 | 待办 | 全局把文字缩放限制为 1.2，长翻译、固定网格和单行按钮被截断 | 移除不合理上限或支持至少 200% 缩放；关键页面在 1.0/1.3/2.0 下无 overflow；FAB、图片选择、编辑、删除等操作有语义标签和足够触控区域 |
@@ -408,6 +408,7 @@ ADR 的“已接受”只表示范围/设计约束已锁定，不代表对应问
 | 2026-07-28 | PRIV-001/LIFE-001 | 完成第一阶段实机回归，复核 Android 系统备份、设备迁移、备份恢复、通知、快捷入口及异步页面生命周期；Google Play Data safety 与应用内本地存储承诺一致 | 维护者实机验收 | 维护者确认实机测试完成；Manifest、Android 11- 和 Android 12+ 规则排除全部备份 domain；Play 商店声明不收集、不共享数据；源码 mounted 审计与 `flutter analyze` 通过 | 对应条目标记已完成 |
 | 2026-07-28 | BUILD-001/CI-001/RELEASE-001 | 启用 `main` 保护规则并要求 `Quality`；补齐签名指纹 secret；在当前 `main` 上完成无密钥 debug 与有密钥 release 全流程验证 | 发布门禁验收 | active ruleset `Protect main` 要求 `Quality`；Actions run `30320858844` 的 `Quality` 通过；run `30321597401` 的 `Quality`、签名 release APK、证书指纹、checksum、双语 changelog 和 artifact 上传全部通过 | 对应条目标记已完成 |
 | 2026-07-28 | 第一阶段退出验收 | 按退出条件复核全部第一阶段 P1/P2、schema 冻结、首保兼容字段、旧库/旧备份、12 locale、工作区与发布门禁 | 阶段收尾 | 当前 HEAD 全量 CI 与实机回归通过；数据库 version 仍为 1，建表 SQL 未变化；未跟踪 generated、build、缓存或签名文件 | 第一阶段正式完成；第二阶段待启动 |
+| 2026-07-28 | ROUTE-001 | 启动第二阶段；把命名路由的动态 Map/裸参数迁移为 typed arguments，并让 MaterialPageRoute 保留 RouteSettings；本子范围不改 schema/version、备份格式、通知 ID、业务规则或现有文案 | `codex/refactor-phase-2-foundations` | 新增 3 项 route 测试通过；10 个受影响 Dart 文件格式检查通过；`flutter analyze` 与 60 项 `flutter test` 全部通过 | 缺失/错误参数的本地化错误页与文案等待产品确认后实施 |
 
 ## 9. PR / 交付检查清单
 

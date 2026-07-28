@@ -10,6 +10,7 @@ import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/presentation/manager/locale_provider.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_state.dart';
+import 'package:carvita/presentation/navigation/app_route_arguments.dart';
 import 'package:carvita/presentation/screens/vehicle/widgets/info_grid_item.dart';
 import 'package:carvita/presentation/screens/vehicle/widgets/maintenance_list_item_card.dart';
 
@@ -54,7 +55,9 @@ class OverviewTab extends StatelessWidget {
                       Navigator.pushNamed(
                         context,
                         AppRoutes.addVehicleRoute,
-                        arguments: vehicle,
+                        arguments: AddEditVehicleRouteArguments(
+                          vehicle: vehicle,
+                        ),
                       );
                     },
                     child: Text(

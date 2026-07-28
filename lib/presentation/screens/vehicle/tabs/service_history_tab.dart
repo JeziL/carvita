@@ -13,6 +13,7 @@ import 'package:carvita/presentation/manager/maintenance_plan/maintenance_plan_c
 import 'package:carvita/presentation/manager/service_log/service_log_cubit.dart';
 import 'package:carvita/presentation/manager/service_log/service_log_state.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
+import 'package:carvita/presentation/navigation/app_route_arguments.dart';
 
 class ServiceHistoryTab extends StatefulWidget {
   final int vehicleId;
@@ -145,13 +146,12 @@ class _ServiceHistoryTabState extends State<ServiceHistoryTab> {
                       Navigator.pushNamed(
                         context,
                         AppRoutes.logMaintenanceRoute,
-                        arguments: {
-                          'vehicleId': widget.vehicleId,
-                          'vehicleName': widget.vehicleName,
-                          'logToEdit': null,
-                          'serviceLogCubit': serviceLogCubit,
-                          'maintenancePlanCubit': maintenancePlanCubit,
-                        },
+                        arguments: LogMaintenanceRouteArguments(
+                          vehicleId: widget.vehicleId,
+                          vehicleName: widget.vehicleName,
+                          serviceLogCubit: serviceLogCubit,
+                          maintenancePlanCubit: maintenancePlanCubit,
+                        ),
                       );
                     },
                     icon: Icon(
@@ -309,14 +309,14 @@ class _ServiceHistoryTabState extends State<ServiceHistoryTab> {
                                     Navigator.pushNamed(
                                       context,
                                       AppRoutes.logMaintenanceRoute,
-                                      arguments: {
-                                        'vehicleId': widget.vehicleId,
-                                        'vehicleName': widget.vehicleName,
-                                        'logToEdit': logWithItems,
-                                        'serviceLogCubit': serviceLogCubit,
-                                        'maintenancePlanCubit':
+                                      arguments: LogMaintenanceRouteArguments(
+                                        vehicleId: widget.vehicleId,
+                                        vehicleName: widget.vehicleName,
+                                        logToEdit: logWithItems,
+                                        serviceLogCubit: serviceLogCubit,
+                                        maintenancePlanCubit:
                                             maintenancePlanCubit,
-                                      },
+                                      ),
                                     );
                                   } else if (value == 'delete') {
                                     _confirmDeleteLog(context, logWithItems);

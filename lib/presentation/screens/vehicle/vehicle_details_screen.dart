@@ -17,6 +17,7 @@ import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/presentation/manager/maintenance_plan/maintenance_plan_cubit.dart';
 import 'package:carvita/presentation/manager/service_log/service_log_cubit.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_cubit.dart';
+import 'package:carvita/presentation/navigation/app_route_arguments.dart';
 import 'package:carvita/presentation/screens/vehicle/tabs/maintenance_plan_tab.dart';
 import 'package:carvita/presentation/screens/vehicle/tabs/overview_tab.dart';
 import 'package:carvita/presentation/screens/vehicle/tabs/service_history_tab.dart';
@@ -330,14 +331,13 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
                 Navigator.pushNamed(
                   builderContext,
                   AppRoutes.logMaintenanceRoute,
-                  arguments: {
-                    'vehicleId': vehicle.id!,
-                    'vehicleName': vehicle.name,
-                    'logToEdit': null,
-                    'serviceLogCubit': builderContext.read<ServiceLogCubit>(),
-                    'maintenancePlanCubit': builderContext
+                  arguments: LogMaintenanceRouteArguments(
+                    vehicleId: vehicle.id!,
+                    vehicleName: vehicle.name,
+                    serviceLogCubit: builderContext.read<ServiceLogCubit>(),
+                    maintenancePlanCubit: builderContext
                         .read<MaintenancePlanCubit>(),
-                  },
+                  ),
                 );
               },
               backgroundColor: Theme.of(context).colorScheme.primary,

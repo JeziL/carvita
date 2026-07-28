@@ -18,6 +18,7 @@ import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maint
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_state.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_cubit.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_state.dart';
+import 'package:carvita/presentation/navigation/app_route_arguments.dart';
 import 'package:carvita/presentation/screens/common_widgets/main_bottom_navigation_bar.dart';
 import 'package:carvita/presentation/screens/dashboard/widgets/quick_action_button.dart';
 import 'package:carvita/presentation/screens/dashboard/widgets/vehicle_summary_card.dart';
@@ -249,7 +250,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         Navigator.pushNamed(
           context,
           AppRoutes.vehicleDetailsRoute,
-          arguments: vehicle.id,
+          arguments: VehicleDetailsRouteArguments(vehicleId: vehicle.id),
         );
       },
     );
@@ -307,6 +308,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                           Navigator.pushNamed(
                             context,
                             AppRoutes.addVehicleRoute,
+                            arguments: const AddEditVehicleRouteArguments(),
                           );
                         },
                       ),
