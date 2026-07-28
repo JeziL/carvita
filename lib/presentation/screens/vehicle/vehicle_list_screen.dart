@@ -227,7 +227,10 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
                       children: [
                         (vehicle.model != null && vehicle.model!.isNotEmpty)
                             ? Text(
-                                "${AppLocalizations.of(context)!.vehicleModel}: ${vehicle.model!}",
+                                AppLocalizations.of(context)!.labeledValue(
+                                  AppLocalizations.of(context)!.vehicleModel,
+                                  vehicle.model!,
+                                ),
                                 style: TextStyle(
                                   color: Theme.of(context).colorScheme.onSurface
                                       .withValues(alpha: 0.7),
@@ -252,6 +255,7 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
                             Icons.edit_outlined,
                             color: Theme.of(context).colorScheme.primary,
                           ),
+                          tooltip: AppLocalizations.of(context)!.edit,
                           onPressed: () {
                             Navigator.pushNamed(
                               context,
@@ -267,6 +271,7 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
                             Icons.delete_outline,
                             color: AppColors.urgentReminderText,
                           ),
+                          tooltip: AppLocalizations.of(context)!.delete,
                           onPressed: () => _confirmDelete(context, vehicle),
                         ),
                       ],
@@ -301,6 +306,7 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton(
+        tooltip: AppLocalizations.of(context)!.addVehicle,
         onPressed: () {
           Navigator.pushNamed(
             context,

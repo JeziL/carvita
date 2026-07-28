@@ -21,6 +21,7 @@ class PrivacyScreen extends StatelessWidget {
           elevation: 0,
           leading: IconButton(
             icon: Icon(Icons.arrow_back_ios_new),
+            tooltip: AppLocalizations.of(context)!.back,
             onPressed: () => Navigator.of(context).pop(),
           ),
         ),

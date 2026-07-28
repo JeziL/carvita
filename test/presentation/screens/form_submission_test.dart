@@ -180,11 +180,227 @@ void main() {
 
     await cubit.close();
   });
+
+  testWidgets('vehicle form normalizes locale digits before saving', (
+    tester,
+  ) async {
+    final repository = _BlockingVehicleRepository();
+    final cubit = VehicleCubit(
+      VehicleUseCases(repository, PreferencesService()),
+    );
+
+    await tester.pumpWidget(
+      _testApp(
+        locale: const Locale('ar'),
+        providers: [BlocProvider<VehicleCubit>.value(value: cubit)],
+        child: AddEditVehicleScreen(vehicle: _vehicle()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byKey(const ValueKey('vehicle-mileage-field')),
+      '١٢٣٫٤',
+    );
+    final submit = find.byType(ElevatedButton).last;
+    await tester.ensureVisible(submit);
+    await tester.tap(submit);
+    await tester.pump();
+
+    expect(repository.lastUpdatedVehicle?.mileage, 123.4);
+
+    await tester.pumpWidget(const SizedBox());
+    await cubit.close();
+    repository.updateCompleter.complete();
+    await tester.pump();
+  });
+
+  testWidgets('purchase and completed service pickers stop at today', (
+    tester,
+  ) async {
+    final futureDate = DateTime.now().add(const Duration(days: 1));
+    final vehicleRepository = _BlockingVehicleRepository();
+    final vehicleCubit = VehicleCubit(
+      VehicleUseCases(vehicleRepository, PreferencesService()),
+    );
+
+    await tester.pumpWidget(
+      _testApp(
+        providers: [BlocProvider<VehicleCubit>.value(value: vehicleCubit)],
+        child: AddEditVehicleScreen(
+          vehicle: _vehicle().copyWith(boughtDate: futureDate),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('vehicle-bought-date-field')));
+    await tester.pumpAndSettle();
+
+    var picker = tester.widget<DatePickerDialog>(find.byType(DatePickerDialog));
+    expect(DateUtils.isSameDay(picker.lastDate, DateTime.now()), isTrue);
+    expect(DateUtils.isSameDay(picker.initialDate, DateTime.now()), isTrue);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(const SizedBox());
+    await vehicleCubit.close();
+
+    final maintenanceRepository = _BlockingMaintenanceRepository();
+    final planCubit = MaintenancePlanCubit(
+      MaintenancePlanUseCases(maintenanceRepository),
+      1,
+    );
+    final logCubit = ServiceLogCubit(
+      ServiceLogUseCases(maintenanceRepository),
+      1,
+    );
+    await tester.pumpWidget(
+      _testApp(
+        providers: [
+          BlocProvider<MaintenancePlanCubit>.value(value: planCubit),
+          BlocProvider<ServiceLogCubit>.value(value: logCubit),
+        ],
+        child: LogMaintenanceScreen(
+          vehicleId: 1,
+          vehicleName: 'Vehicle',
+          logToEdit: ServiceLogWithItems(
+            entry: _serviceLog().entry.copyWith(serviceDate: futureDate),
+            performedItems: _serviceLog().performedItems,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('log-date-field')));
+    await tester.pumpAndSettle();
+
+    picker = tester.widget<DatePickerDialog>(find.byType(DatePickerDialog));
+    expect(DateUtils.isSameDay(picker.lastDate, DateTime.now()), isTrue);
+    expect(DateUtils.isSameDay(picker.initialDate, DateTime.now()), isTrue);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(const SizedBox());
+    await planCubit.close();
+    await logCubit.close();
+  });
+
+  testWidgets('plan form accepts locale integer digits', (tester) async {
+    final repository = _BlockingMaintenanceRepository();
+    final planCubit = MaintenancePlanCubit(
+      MaintenancePlanUseCases(repository),
+      1,
+    );
+    final logCubit = ServiceLogCubit(ServiceLogUseCases(repository), 1);
+
+    await tester.pumpWidget(
+      _testApp(
+        locale: const Locale('ar'),
+        providers: [
+          BlocProvider<MaintenancePlanCubit>.value(value: planCubit),
+          BlocProvider<ServiceLogCubit>.value(value: logCubit),
+        ],
+        child: AddEditMaintenancePlanItemScreen(
+          vehicleId: 1,
+          vehicleName: 'Vehicle',
+          planItemToEdit: _planItem(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byKey(const ValueKey('plan-time-field')), '١٨');
+    final submit = find.byType(ElevatedButton).last;
+    await tester.ensureVisible(submit);
+    await tester.tap(submit);
+    await tester.pump();
+
+    expect(repository.lastPlanItem?.intervalTimeMonths, 18);
+
+    await tester.pumpWidget(const SizedBox());
+    await planCubit.close();
+    await logCubit.close();
+    repository.planUpdateCompleter.complete();
+    await tester.pump();
+  });
+
+  testWidgets('service log form accepts locale decimal input', (tester) async {
+    final repository = _BlockingMaintenanceRepository();
+    final planCubit = MaintenancePlanCubit(
+      MaintenancePlanUseCases(repository),
+      1,
+    );
+    final logCubit = ServiceLogCubit(ServiceLogUseCases(repository), 1);
+
+    await tester.pumpWidget(
+      _testApp(
+        locale: const Locale('ar'),
+        providers: [
+          BlocProvider<MaintenancePlanCubit>.value(value: planCubit),
+          BlocProvider<ServiceLogCubit>.value(value: logCubit),
+        ],
+        child: LogMaintenanceScreen(
+          vehicleId: 1,
+          vehicleName: 'Vehicle',
+          logToEdit: _serviceLog(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byKey(const ValueKey('log-mileage-field')),
+      '١٢٣٫٤',
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('log-cost-field')),
+      '٥٠٫٢٥',
+    );
+    final submit = find.byType(ElevatedButton).last;
+    await tester.ensureVisible(submit);
+    await tester.tap(submit);
+    await tester.pump();
+
+    expect(repository.lastLogEntry?.mileageAtService, 123.4);
+    expect(repository.lastLogEntry?.cost, 50.25);
+
+    await tester.pumpWidget(const SizedBox());
+    await planCubit.close();
+    await logCubit.close();
+    repository.logUpdateCompleter.complete(true);
+    await tester.pump();
+  });
+
+  testWidgets('vehicle form is accessible at 200 percent text scaling', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final cubit = VehicleCubit(
+      VehicleUseCases(_BlockingVehicleRepository(), PreferencesService()),
+    );
+
+    await tester.pumpWidget(
+      _testApp(
+        textScaler: const TextScaler.linear(2),
+        providers: [BlocProvider<VehicleCubit>.value(value: cubit)],
+        child: AddEditVehicleScreen(vehicle: _vehicle()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.bySemanticsLabel(RegExp('Upload vehicle image')), findsOne);
+    expect(find.byTooltip('Back'), findsOne);
+    await cubit.close();
+  });
 }
 
 Widget _testApp({
   required List<SingleChildWidget> providers,
   required Widget child,
+  Locale locale = const Locale('en'),
+  TextScaler textScaler = TextScaler.noScaling,
 }) {
   final preferences = PreferencesService();
   return MultiProvider(
@@ -198,7 +414,7 @@ Widget _testApp({
       ...providers,
     ],
     child: MaterialApp(
-      locale: const Locale('en'),
+      locale: locale,
       localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
@@ -210,6 +426,13 @@ Widget _testApp({
         ColorScheme.fromSeed(seedColor: Colors.blue),
         Brightness.light,
       ),
+      builder: (context, appChild) {
+        final mediaQuery = MediaQuery.of(context);
+        return MediaQuery(
+          data: mediaQuery.copyWith(textScaler: textScaler),
+          child: appChild!,
+        );
+      },
       home: child,
     ),
   );
@@ -257,10 +480,12 @@ class _BlockingVehicleRepository extends VehicleRepository {
   final Completer<void> updateCompleter = Completer<void>();
   int updateCount = 0;
   Object? writeError;
+  Vehicle? lastUpdatedVehicle;
 
   @override
   Future<void> updateVehicle(Vehicle vehicle) async {
     updateCount++;
+    lastUpdatedVehicle = vehicle;
     if (writeError case final error?) throw error;
     await updateCompleter.future;
   }
@@ -274,6 +499,8 @@ class _BlockingMaintenanceRepository extends MaintenanceRepository {
   final Completer<bool> logUpdateCompleter = Completer<bool>();
   int planUpdateCount = 0;
   int logUpdateCount = 0;
+  MaintenancePlanItem? lastPlanItem;
+  ServiceLogEntry? lastLogEntry;
 
   @override
   Future<List<MaintenancePlanItem>> getPlanItems(int vehicleId) async => [
@@ -283,6 +510,7 @@ class _BlockingMaintenanceRepository extends MaintenanceRepository {
   @override
   Future<void> updatePlanItem(MaintenancePlanItem item) async {
     planUpdateCount++;
+    lastPlanItem = item;
     await planUpdateCompleter.future;
   }
 
@@ -297,6 +525,7 @@ class _BlockingMaintenanceRepository extends MaintenanceRepository {
     List<PerformedItemInput> performedItems,
   ) async {
     logUpdateCount++;
+    lastLogEntry = logEntry;
     return logUpdateCompleter.future;
   }
 }

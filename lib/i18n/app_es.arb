@@ -176,5 +176,16 @@
   "refreshErrorMessage": "No se puede actualizar temporalmente. Inténtalo de nuevo.",
   "reminderUpdateErrorMessage": "Guardado, pero no se pudo actualizar el recordatorio.",
   "exportErrorMessage": "No se pudieron exportar los datos. Inténtalo de nuevo.",
-  "restoreErrorMessage": "No se pudieron restaurar los datos. Comprueba el archivo de copia de seguridad e inténtalo de nuevo."
+  "restoreErrorMessage": "No se pudieron restaurar los datos. Comprueba el archivo de copia de seguridad e inténtalo de nuevo.",
+  "requiredFieldLabel": "{label}*",
+  "requiredFieldWithUnit": "{label} ({unit})*",
+  "optionalFieldLabel": "{label} ({optional})",
+  "labeledValue": "{label}: {value}",
+  "sectionHeading": "{label}:",
+  "dateWithMileage": "{date} @ {mileage}",
+  "dateWithRelative": "{date} ({relative})",
+  "combinedValues": "{first} / {second}",
+  "modelAndYear": "{model} - {year}",
+  "nextMaintenanceSummary": "Próximo: {item} - {due}",
+  "notificationTitle": "Recordatorio de mantenimiento: {vehicleName}"
 }

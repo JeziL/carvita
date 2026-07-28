@@ -176,5 +176,16 @@
   "refreshErrorMessage": "تعذر التحديث مؤقتاً. حاول مرة أخرى.",
   "reminderUpdateErrorMessage": "تم الحفظ، لكن تعذر تحديث التذكير.",
   "exportErrorMessage": "تعذر تصدير البيانات. حاول مرة أخرى.",
-  "restoreErrorMessage": "تعذر استعادة البيانات. تحقق من ملف النسخة الاحتياطية وحاول مرة أخرى."
+  "restoreErrorMessage": "تعذر استعادة البيانات. تحقق من ملف النسخة الاحتياطية وحاول مرة أخرى.",
+  "requiredFieldLabel": "{label}*",
+  "requiredFieldWithUnit": "{label} ({unit})*",
+  "optionalFieldLabel": "{label} ({optional})",
+  "labeledValue": "{label}: {value}",
+  "sectionHeading": "{label}:",
+  "dateWithMileage": "{date} @ {mileage}",
+  "dateWithRelative": "{date} ({relative})",
+  "combinedValues": "{first} / {second}",
+  "modelAndYear": "{model} - {year}",
+  "nextMaintenanceSummary": "التالية: {item} - {due}",
+  "notificationTitle": "تذكير بصيانة {vehicleName}"
 }

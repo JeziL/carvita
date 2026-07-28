@@ -113,7 +113,11 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
       );
     }
     if (parts.isEmpty) return ""; // should not happen
-    return "${AppLocalizations.of(context)!.regularInterval}: ${parts.join(' / ')}";
+    final l10n = AppLocalizations.of(context)!;
+    final interval = parts.length == 1
+        ? parts.single
+        : l10n.combinedValues(parts.first, parts.last);
+    return l10n.labeledValue(l10n.regularInterval, interval);
   }
 
   @override
@@ -284,7 +288,12 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
                                     if (item.notes != null &&
                                         item.notes!.isNotEmpty)
                                       Text(
-                                        "${AppLocalizations.of(context)!.notes}: ${item.notes}",
+                                        AppLocalizations.of(
+                                          context,
+                                        )!.labeledValue(
+                                          AppLocalizations.of(context)!.notes,
+                                          item.notes!,
+                                        ),
                                         style: TextStyle(
                                           fontSize: 13,
                                           color: Theme.of(context)

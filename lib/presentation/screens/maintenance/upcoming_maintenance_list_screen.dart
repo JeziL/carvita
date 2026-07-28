@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/constants/app_routes.dart';
+import 'package:carvita/core/utils/calendar_day.dart';
 import 'package:carvita/data/models/predicted_maintenance.dart';
 import 'package:carvita/data/models/vehicle.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
@@ -263,12 +264,21 @@ class _UpcomingMaintenanceListScreenState
                 final dueDate = DateFormat.yMMMd(
                   Localizations.localeOf(context).toLanguageTag(),
                 ).format(prediction.predictedDueDate);
-                final daysRemaining = prediction.predictedDueDate
-                    .difference(DateTime.now())
-                    .inDays;
+                final daysRemaining = CalendarDay.daysUntil(
+                  prediction.predictedDueDate,
+                );
                 String dueText = daysRemaining >= 0
                     ? AppLocalizations.of(context)!.daysLater(daysRemaining)
                     : AppLocalizations.of(context)!.daysOverdue(-daysRemaining);
+                final estimatedValue = prediction.predictedAtMileage == null
+                    ? dueDate
+                    : AppLocalizations.of(context)!.combinedValues(
+                        dueDate,
+                        AppLocalizations.of(context)!.nMileage(
+                          prediction.predictedAtMileage!.round(),
+                          localeProvider.mileageUnit,
+                        ),
+                      );
 
                 return Card(
                   elevation: 1.5,
@@ -300,7 +310,10 @@ class _UpcomingMaintenanceListScreenState
                           ),
                         ),
                         Text(
-                          "${AppLocalizations.of(context)!.status}: $dueText",
+                          AppLocalizations.of(context)!.labeledValue(
+                            AppLocalizations.of(context)!.status,
+                            dueText,
+                          ),
                           style: TextStyle(
                             fontWeight: FontWeight.w500,
                             color: daysRemaining <= 30
@@ -309,7 +322,10 @@ class _UpcomingMaintenanceListScreenState
                           ),
                         ),
                         Text(
-                          "${AppLocalizations.of(context)!.estimated}: $dueDate ${prediction.predictedAtMileage != null ? '/ ${prediction.predictedAtMileage!.toStringAsFixed(0)} ${localeProvider.mileageUnit}' : ''}",
+                          AppLocalizations.of(context)!.labeledValue(
+                            AppLocalizations.of(context)!.estimated,
+                            estimatedValue,
+                          ),
                           style: TextStyle(
                             color: Theme.of(
                               context,

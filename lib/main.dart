@@ -5,6 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl_standalone.dart';
 import 'package:provider/provider.dart';
 
+import 'package:carvita/application/ports/app_startup_port.dart';
 import 'package:carvita/application/ports/clock.dart';
 import 'package:carvita/application/ports/notification_tap_port.dart';
 import 'package:carvita/application/ports/platform_ports.dart';
@@ -16,6 +17,7 @@ import 'package:carvita/application/use_cases/synchronize_maintenance_reminders.
 import 'package:carvita/application/use_cases/vehicle_use_cases.dart';
 import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/constants/app_routes.dart';
+import 'package:carvita/core/services/app_startup_service.dart';
 import 'package:carvita/core/services/backup_service.dart';
 import 'package:carvita/core/services/device_time_zone_service.dart';
 import 'package:carvita/core/services/maintenance_reminder_tap_service.dart';
@@ -88,13 +90,10 @@ Future<void> main() async {
     const MethodChannelDeviceTimeZone(),
     clock,
   );
-  await reminderSchedule.refreshTimeZone();
   final notificationService = NotificationService(
     clock,
     maintenanceReminderTaps,
   );
-  await notificationService.initialize();
-  await findSystemLocale();
   final notificationCoordinator = NotificationCoordinator(notificationService);
   final backupService = BackupService(clock: clock.now);
   const pluginPlatformService = PluginPlatformService();
@@ -121,10 +120,18 @@ Future<void> main() async {
     navigation: quickActionNavigation,
     platform: const PluginQuickActionPlatform(),
   );
-  quickActionService.initializeListener();
+  final appStartup = AppStartupService(
+    refreshReminderSchedule: reminderSchedule.refreshTimeZone,
+    initializeNotifications: notificationService.initialize,
+    initializeSystemLocale: () async {
+      await findSystemLocale();
+    },
+    initializeQuickActions: quickActionService.initializeListener,
+  );
   runApp(
     MultiProvider(
       providers: [
+        Provider<AppStartupPort>.value(value: appStartup),
         Provider<QuickActionService>.value(value: quickActionService),
         Provider<NotificationTapPort>.value(value: maintenanceReminderTaps),
         Provider<ReminderSchedulePort>.value(value: reminderSchedule),
@@ -247,18 +254,7 @@ class CarVitaApp extends StatelessWidget {
             locale: localeProvider.appLocale,
 
             builder: (context, child) {
-              final MediaQueryData data = MediaQuery.of(context);
-              return ShortcutLocalizationWrapper(
-                child: MediaQuery(
-                  data: data.copyWith(
-                    textScaler: data.textScaler.clamp(
-                      minScaleFactor: 0.8,
-                      maxScaleFactor: 1.2,
-                    ), // restrict text scaling
-                  ),
-                  child: child!,
-                ),
-              );
+              return ShortcutLocalizationWrapper(child: child!);
             },
           );
         },
@@ -330,6 +326,25 @@ class _ShortcutLocalizationWrapperState
     final quickActionService = context.read<QuickActionService>();
     context.read<NotificationTapPort>().navigatorReady();
     quickActionService.navigatorReady();
+    if (loadPredictions) {
+      try {
+        final result = await context.read<AppStartupPort>().initialize();
+        assert(() {
+          for (final failure in result.failures) {
+            debugPrint(
+              'Recoverable startup failure in ${failure.step.name}: '
+              '${failure.error}\n${failure.stackTrace}',
+            );
+          }
+          return true;
+        }());
+      } catch (error, stackTrace) {
+        debugPrint(
+          'Unexpected startup initialization failure: $error\n$stackTrace',
+        );
+      }
+      if (!mounted) return;
+    }
     try {
       await quickActionService.updateShortcutItems(
         logMaintenanceTitle: l10n.logMaintenance,
@@ -368,9 +383,9 @@ class _ShortcutLocalizationWrapperState
 
       final l10n = AppLocalizations.of(context);
       if (l10n == null) return;
-      await context
-          .read<UpcomingMaintenanceCubit>()
-          .rescheduleNotificationsBasedOnNewSettings(l10n);
+      await context.read<UpcomingMaintenanceCubit>().loadAllUpcomingMaintenance(
+        l10n,
+      );
     } catch (error, stackTrace) {
       debugPrint(
         'Failed to refresh reminders after resume: $error\n$stackTrace',

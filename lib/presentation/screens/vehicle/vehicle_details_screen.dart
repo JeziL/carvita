@@ -113,6 +113,13 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
 
   Widget _buildVehicleHeader(BuildContext context, Vehicle vehicle) {
     final themeExtensions = Theme.of(context).extension<AppThemeExtensions>()!;
+    final purchaseYear = DateFormat.y(
+      Localizations.localeOf(context).toLanguageTag(),
+    ).format(vehicle.boughtDate);
+    final model = vehicle.model;
+    final modelAndYear = model != null && model.isNotEmpty
+        ? AppLocalizations.of(context)!.modelAndYear(model, purchaseYear)
+        : purchaseYear;
     return Container(
       padding: EdgeInsets.only(
         top: MediaQuery.of(context).padding.top + 10,
@@ -124,13 +131,14 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Align(
-            alignment: Alignment.topLeft,
+            alignment: AlignmentDirectional.topStart,
             child: IconButton(
               icon: Icon(
                 Icons.arrow_back_ios_new,
                 color: themeExtensions.textColorOnBackground,
                 size: 24,
               ),
+              tooltip: AppLocalizations.of(context)!.back,
               onPressed: () => Navigator.of(context).pop(),
             ),
           ),
@@ -202,7 +210,7 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
           ),
           const SizedBox(height: 5),
           Text(
-            "${vehicle.model != null ? '${vehicle.model} - ' : ''}${DateFormat.y((Localizations.localeOf(context).toLanguageTag())).format(vehicle.boughtDate)}",
+            modelAndYear,
             style: TextStyle(
               color: themeExtensions.textColorOnBackground.withValues(
                 alpha: 0.85,
@@ -348,6 +356,7 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
               ],
             ),
             floatingActionButton: FloatingActionButton(
+              tooltip: AppLocalizations.of(builderContext)!.logMaintenance,
               onPressed: () {
                 Navigator.pushNamed(
                   builderContext,

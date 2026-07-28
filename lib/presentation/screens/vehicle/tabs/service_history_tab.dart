@@ -244,7 +244,19 @@ class _ServiceHistoryTabState extends State<ServiceHistoryTab> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      "${DateFormat.yMMMd(Localizations.localeOf(context).toLanguageTag()).format(entry.serviceDate)} @ ${AppLocalizations.of(context)!.nMileage(entry.mileageAtService.round(), localeProvider.mileageUnit)}",
+                                      AppLocalizations.of(
+                                        context,
+                                      )!.dateWithMileage(
+                                        DateFormat.yMMMd(
+                                          Localizations.localeOf(
+                                            context,
+                                          ).toLanguageTag(),
+                                        ).format(entry.serviceDate),
+                                        AppLocalizations.of(context)!.nMileage(
+                                          entry.mileageAtService.round(),
+                                          localeProvider.mileageUnit,
+                                        ),
+                                      ),
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w500,
@@ -262,7 +274,20 @@ class _ServiceHistoryTabState extends State<ServiceHistoryTab> {
                                             CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            "${AppLocalizations.of(context)!.serviceItemLabel}: ${logWithItems.performedItemDisplayNames.join(AppLocalizations.of(context)!.seperator)}",
+                                            AppLocalizations.of(
+                                              context,
+                                            )!.labeledValue(
+                                              AppLocalizations.of(
+                                                context,
+                                              )!.serviceItemLabel,
+                                              logWithItems
+                                                  .performedItemDisplayNames
+                                                  .join(
+                                                    AppLocalizations.of(
+                                                      context,
+                                                    )!.seperator,
+                                                  ),
+                                            ),
                                             style: TextStyle(
                                               fontSize: 13,
                                               color: Theme.of(context)
@@ -293,7 +318,12 @@ class _ServiceHistoryTabState extends State<ServiceHistoryTab> {
                                     if (entry.notes != null &&
                                         entry.notes!.isNotEmpty)
                                       Text(
-                                        "${AppLocalizations.of(context)!.notes}: ${entry.notes}",
+                                        AppLocalizations.of(
+                                          context,
+                                        )!.labeledValue(
+                                          AppLocalizations.of(context)!.notes,
+                                          entry.notes!,
+                                        ),
                                         style: TextStyle(
                                           fontSize: 13,
                                           color: Theme.of(context)

@@ -176,5 +176,16 @@
   "refreshErrorMessage": "暂时无法刷新，请重试。",
   "reminderUpdateErrorMessage": "已保存，提醒更新失败。",
   "exportErrorMessage": "无法导出数据，请重试。",
-  "restoreErrorMessage": "无法恢复数据，请检查备份文件后重试。"
+  "restoreErrorMessage": "无法恢复数据，请检查备份文件后重试。",
+  "requiredFieldLabel": "{label}*",
+  "requiredFieldWithUnit": "{label}（{unit}）*",
+  "optionalFieldLabel": "{label}（{optional}）",
+  "labeledValue": "{label}：{value}",
+  "sectionHeading": "{label}：",
+  "dateWithMileage": "{date} @ {mileage}",
+  "dateWithRelative": "{date}（{relative}）",
+  "combinedValues": "{first} / {second}",
+  "modelAndYear": "{model} - {year}",
+  "nextMaintenanceSummary": "下次保养：{item} - {due}",
+  "notificationTitle": "{vehicleName}保养提醒"
 }

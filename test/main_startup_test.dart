@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -6,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:carvita/application/ports/app_startup_port.dart';
 import 'package:carvita/application/ports/clock.dart';
 import 'package:carvita/application/ports/notification_tap_port.dart';
 import 'package:carvita/application/ports/reminder_schedule_port.dart';
@@ -37,6 +40,7 @@ void main() {
     final platform = _CountingQuickActionPlatform();
     final notificationTaps = _FakeNotificationTaps();
     final reminderSchedule = _FixedReminderSchedule();
+    final appStartup = _FakeAppStartup();
     final quickActionService = QuickActionService(
       vehicleRepository: vehicleRepository,
       preferencesService: preferences,
@@ -53,6 +57,7 @@ void main() {
     await tester.pumpWidget(
       MultiProvider(
         providers: [
+          Provider<AppStartupPort>.value(value: appStartup),
           Provider<QuickActionService>.value(value: quickActionService),
           Provider<NotificationTapPort>.value(value: notificationTaps),
           Provider<ReminderSchedulePort>.value(value: reminderSchedule),
@@ -77,6 +82,7 @@ void main() {
 
     expect(vehicleRepository.readCount, 1);
     expect(platform.setItemsCount, 1);
+    expect(appStartup.initializeCount, 1);
     await upcomingCubit.close();
   });
 
@@ -89,6 +95,7 @@ void main() {
     final platform = _CountingQuickActionPlatform(failSetItems: true);
     final notificationTaps = _FakeNotificationTaps();
     final reminderSchedule = _FixedReminderSchedule();
+    final appStartup = _FakeAppStartup();
     final quickActionService = QuickActionService(
       vehicleRepository: vehicleRepository,
       preferencesService: preferences,
@@ -105,6 +112,7 @@ void main() {
     await tester.pumpWidget(
       MultiProvider(
         providers: [
+          Provider<AppStartupPort>.value(value: appStartup),
           Provider<QuickActionService>.value(value: quickActionService),
           Provider<NotificationTapPort>.value(value: notificationTaps),
           Provider<ReminderSchedulePort>.value(value: reminderSchedule),
@@ -131,13 +139,14 @@ void main() {
     await upcomingCubit.close();
   });
 
-  testWidgets('resume reschedules once when time zone context changed', (
+  testWidgets('resume reloads once when calendar context changed', (
     tester,
   ) async {
     final vehicleRepository = _CountingVehicleRepository();
     final maintenanceRepository = _FakeMaintenanceRepository();
     final preferences = _FakePreferencesService();
     final reminderSchedule = _FixedReminderSchedule();
+    final appStartup = _FakeAppStartup();
     final notificationGateway = _NoopNotificationGateway();
     final quickActionService = QuickActionService(
       vehicleRepository: vehicleRepository,
@@ -156,6 +165,7 @@ void main() {
     await tester.pumpWidget(
       MultiProvider(
         providers: [
+          Provider<AppStartupPort>.value(value: appStartup),
           Provider<QuickActionService>.value(value: quickActionService),
           Provider<NotificationTapPort>.value(value: _FakeNotificationTaps()),
           Provider<ReminderSchedulePort>.value(value: reminderSchedule),
@@ -176,18 +186,148 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(notificationGateway.cancelCount, 1);
+    expect(vehicleRepository.readCount, 1);
 
     reminderSchedule.nextContextChanged = true;
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     await tester.pumpAndSettle();
 
     expect(notificationGateway.cancelCount, 2);
+    expect(vehicleRepository.readCount, 2);
 
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     await tester.pumpAndSettle();
     expect(notificationGateway.cancelCount, 2);
+    expect(vehicleRepository.readCount, 2);
     await upcomingCubit.close();
   });
+
+  testWidgets('resolved locale changes refresh shortcuts and reminders', (
+    tester,
+  ) async {
+    final vehicleRepository = _CountingVehicleRepository();
+    final maintenanceRepository = _FakeMaintenanceRepository();
+    final preferences = _FakePreferencesService();
+    final platform = _CountingQuickActionPlatform();
+    final reminderSchedule = _FixedReminderSchedule();
+    final notificationGateway = _NoopNotificationGateway();
+    final quickActionService = QuickActionService(
+      vehicleRepository: vehicleRepository,
+      preferencesService: preferences,
+      navigation: const _NoopQuickActionNavigation(),
+      platform: platform,
+    );
+    final upcomingCubit = _upcomingCubit(
+      vehicleRepository,
+      maintenanceRepository,
+      preferences,
+      reminderSchedule,
+      notificationGateway: notificationGateway,
+    );
+
+    Widget app(Locale locale) {
+      return MultiProvider(
+        providers: [
+          Provider<AppStartupPort>.value(value: _FakeAppStartup()),
+          Provider<QuickActionService>.value(value: quickActionService),
+          Provider<NotificationTapPort>.value(value: _FakeNotificationTaps()),
+          Provider<ReminderSchedulePort>.value(value: reminderSchedule),
+          BlocProvider<UpcomingMaintenanceCubit>.value(value: upcomingCubit),
+        ],
+        child: MaterialApp(
+          locale: locale,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const ShortcutLocalizationWrapper(child: SizedBox()),
+        ),
+      );
+    }
+
+    await tester.pumpWidget(app(const Locale('en')));
+    await tester.pumpAndSettle();
+    expect(platform.setItemsCount, 1);
+    expect(platform.lastLogTitle, 'Log Maintenance');
+    expect(notificationGateway.cancelCount, 1);
+    expect(vehicleRepository.readCount, 1);
+
+    await tester.pumpWidget(app(const Locale('de')));
+    await tester.pumpAndSettle();
+
+    expect(platform.setItemsCount, 2);
+    expect(platform.lastLogTitle, 'Wartung protokollieren');
+    expect(notificationGateway.cancelCount, 2);
+    expect(vehicleRepository.readCount, 1);
+    await upcomingCubit.close();
+  });
+
+  testWidgets(
+    'recoverable startup failure does not block the first frame or predictions',
+    (tester) async {
+      final vehicleRepository = _CountingVehicleRepository();
+      final maintenanceRepository = _FakeMaintenanceRepository();
+      final preferences = _FakePreferencesService();
+      final startupGate = Completer<void>();
+      final appStartup = _FakeAppStartup(
+        gate: startupGate,
+        throwOnInitialize: true,
+      );
+      final quickActionService = QuickActionService(
+        vehicleRepository: vehicleRepository,
+        preferencesService: preferences,
+        navigation: const _NoopQuickActionNavigation(),
+        platform: _CountingQuickActionPlatform(),
+      );
+      final upcomingCubit = _upcomingCubit(
+        vehicleRepository,
+        maintenanceRepository,
+        preferences,
+        _FixedReminderSchedule(),
+      );
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            Provider<AppStartupPort>.value(value: appStartup),
+            Provider<QuickActionService>.value(value: quickActionService),
+            Provider<NotificationTapPort>.value(value: _FakeNotificationTaps()),
+            Provider<ReminderSchedulePort>.value(
+              value: _FixedReminderSchedule(),
+            ),
+            BlocProvider<UpcomingMaintenanceCubit>.value(value: upcomingCubit),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const ShortcutLocalizationWrapper(
+              child: SizedBox(key: Key('dashboard-content')),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.byKey(const Key('dashboard-content')), findsOne);
+      expect(vehicleRepository.readCount, 0);
+
+      startupGate.complete();
+      await tester.pumpAndSettle();
+
+      expect(vehicleRepository.readCount, 1);
+      expect(tester.takeException(), isNull);
+      await upcomingCubit.close();
+    },
+  );
 }
 
 UpcomingMaintenanceCubit _upcomingCubit(
@@ -239,6 +379,7 @@ class _CountingQuickActionPlatform implements QuickActionPlatform {
 
   final bool failSetItems;
   int setItemsCount = 0;
+  String? lastLogTitle;
 
   @override
   void initialize(ValueChanged<String> onShortcut) {}
@@ -249,6 +390,7 @@ class _CountingQuickActionPlatform implements QuickActionPlatform {
     required String upcomingMaintenanceTitle,
   }) async {
     setItemsCount++;
+    lastLogTitle = logMaintenanceTitle;
     if (failSetItems) throw StateError('shortcut platform failed');
   }
 }
@@ -339,5 +481,23 @@ class _FixedReminderSchedule implements ReminderSchedulePort {
       timeZoneId: 'UTC',
       usedFallback: false,
     );
+  }
+}
+
+class _FakeAppStartup implements AppStartupPort {
+  _FakeAppStartup({this.gate, this.throwOnInitialize = false});
+
+  final Completer<void>? gate;
+  final bool throwOnInitialize;
+  int initializeCount = 0;
+
+  @override
+  Future<AppStartupResult> initialize() async {
+    initializeCount++;
+    await gate?.future;
+    if (throwOnInitialize) {
+      throw StateError('recoverable startup failure');
+    }
+    return AppStartupResult(const []);
   }
 }

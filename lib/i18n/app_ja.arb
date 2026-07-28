@@ -176,5 +176,16 @@
   "refreshErrorMessage": "一時的に更新できません。もう一度お試しください。",
   "reminderUpdateErrorMessage": "保存しましたが、リマインダーを更新できませんでした。",
   "exportErrorMessage": "データをエクスポートできませんでした。もう一度お試しください。",
-  "restoreErrorMessage": "データを復元できませんでした。バックアップファイルを確認して、もう一度お試しください。"
+  "restoreErrorMessage": "データを復元できませんでした。バックアップファイルを確認して、もう一度お試しください。",
+  "requiredFieldLabel": "{label}*",
+  "requiredFieldWithUnit": "{label}（{unit}）*",
+  "optionalFieldLabel": "{label}（{optional}）",
+  "labeledValue": "{label}：{value}",
+  "sectionHeading": "{label}：",
+  "dateWithMileage": "{date} @ {mileage}",
+  "dateWithRelative": "{date}（{relative}）",
+  "combinedValues": "{first}／{second}",
+  "modelAndYear": "{model} - {year}",
+  "nextMaintenanceSummary": "次回：{item} - {due}",
+  "notificationTitle": "{vehicleName}のメンテナンスリマインダー"
 }

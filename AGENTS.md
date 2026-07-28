@@ -83,16 +83,17 @@ assets/icon/                       主图标及其 Cairo 生成脚本
 `lib/main.dart` 的启动顺序是：
 
 1. 初始化 Flutter binding；
-2. 初始化本地通知插件；通知权限只在用户启用提醒时请求；
-3. 读取系统 locale；
-4. 创建 Clock、偏好服务、数据库、repository 实现、application use case 与平台适配器；
-5. 注册 Android app shortcut 监听；
-6. 注入全局 Provider/Cubit 并启动 `MaterialApp`。
+2. 创建 Clock、偏好服务、数据库、repository 实现、application use case 与平台适配器；
+3. 注入全局 Provider/Cubit 并立即启动 `MaterialApp`；
+4. 首帧后通过 `AppStartupPort` 单飞初始化设备时区、本地通知、系统 locale 与 Android app shortcut 监听；
+5. Navigator 和本地化就绪后更新快捷入口，并首次加载预测和同步提醒。
+
+平台初始化必须逐项隔离失败；可恢复的通知、locale 或快捷入口插件异常不得阻止基础 UI 启动，也不得跳过后续预测加载。通知权限仍只在用户启用提醒时请求。
 
 全局对象：
 
 - repository、Clock 和插件实现只在 `main.dart` 组合；Screen/Cubit 不直接创建或依赖具体 repository；
-- `LocaleProvider`、`ThemeProvider`、application use case、平台端口和 `QuickActionService` 由 `MultiProvider` 提供；
+- `LocaleProvider`、`ThemeProvider`、application use case、`AppStartupPort`、其他平台端口和 `QuickActionService` 由 `MultiProvider` 提供；
 - `VehicleCubit` 和 `UpcomingMaintenanceCubit` 由 `MultiBlocProvider` 提供；
 - `NavigationService.navigatorKey` 供 app shortcut 从应用外入口发起导航；
 - `routeObserver` 主要让 Dashboard 在返回或恢复前台时重读筛选偏好。
@@ -185,7 +186,7 @@ assets/icon/                       主图标及其 Cairo 生成脚本
 
 `UpcomingMaintenanceCubit.loadAllUpcomingMaintenance` 调用 `LoadUpcomingMaintenance` 遍历所有车辆并重新查询计划、记录和关联，再由 `SynchronizeMaintenanceReminders` 按 latest-wins 协议重建通知。不要把它放入高频 build 或无意义的循环中。
 
-通知安排在“到期日前 N 天的设备当前 IANA 时区中午 12:00”，使用 `inexactAllowWhileIdle`。Android 原生时区通过 application port 读取并设置为 `tz.local`；App resume 时只有时区或当地日历日期变化才重排，短时间重复 resume 不重复全库扫描。若原提醒时间已过，则使用不晚于到期日的下一个当地中午；不存在可用时间时跳过，不立即补发。通知 ID 由车辆 ID 与计划 ID 的组合 hash 得到。
+通知安排在“到期日前 N 天的设备当前 IANA 时区中午 12:00”，使用 `inexactAllowWhileIdle`。Android 原生时区通过 application port 读取并设置为 `tz.local`；App resume 时只有时区或当地日历日期变化才完整重载预测并重建提醒，普通同日 resume 不扫描全库。若原提醒时间已过，则使用不晚于到期日的下一个当地中午；不存在可用时间时跳过，不立即补发。通知 ID 由车辆 ID 与计划 ID 的组合 hash 得到。
 
 通知 payload 是带版本、目标动作、车辆 ID、计划 ID 和调度批次时间的 typed JSON。前台、后台恢复和冷启动点击统一先进入内存队列，待 Navigator 与依赖就绪后校验对象：有效对象打开车辆详情的保养计划页签；车辆或计划已删除时打开即将到期列表；非法 payload 安全忽略。后台 isolate 不直接导航，同一批次恰好消费一次。变更 ID、channel、调度时间或 payload 会影响已有通知的替换、取消与点击兼容行为。
 
@@ -208,7 +209,7 @@ repository、Cubit 和平台异常使用 `AppFailure`/`OperationFailure` 分类�
 
 `ar`、`de`、`en`、`es`、`fr`、`it`、`ja`、`ko`、`pt`、`ru`、`zh`（简体）和 `zh_Hant`（繁体）。
 
-所有 ARB 当前均有 177 个消息 key。新增用户可见文本时：
+所有 ARB 当前均有 188 个消息 key。新增用户可见文本时：
 
 1. 先在 `app_en.arb` 添加消息和 `@message` 描述/placeholder 类型；
 2. 同步补齐另外 11 个 ARB，保持 placeholder 名称和 ICU 类型一致；
@@ -218,6 +219,8 @@ repository、Cubit 和平台异常使用 `AppFailure`/`OperationFailure` 分类�
 
 新增 locale 还必须同步 `appSupportedLocales` 和设置页显示名称。简体/繁体中文依赖 script code 区分，避免只比较 language code。新 UI 不要硬编码英文；内部诊断文本可以保留稳定英文，但用户可见错误应走 `AppLocalizations`。
 
+用户输入的数字通过 `LocalizedNumberInput` 统一规范化：接受当前 locale 的数字、`.`、当前 locale 小数分隔符和阿拉伯小数分隔符，不接受分组符或混合分隔符；计划周期保持整数，车辆/保养里程和费用保持各自现有精度与数值语义。购买日期和已完成保养日期按本地日历日处理，只允许今天及过去；已有未来日期进入编辑页时回落到今天。
+
 ## UI、主题与资源约定
 
 - 主题由 `ColorScheme.fromSeed` 和 `AppTheme.getThemeData` 构建。
@@ -225,7 +228,7 @@ repository、Cubit 和平台异常使用 `AppFailure`/`OperationFailure` 分类�
 - 渐变页面优先复用 `GradientBackground`；普通表面优先使用 `colorScheme` 的 surface/onSurface 色。
 - 紧急/删除语义统一使用 `AppColors.urgentReminderText`。
 - 同时检查亮色、暗色和自定义 seed color；不要假定固定背景上的文字颜色。
-- 应用将系统文字缩放限制在 0.8–1.2，仍需避免固定高度导致本地化文本截断。
+- 应用遵循系统文字缩放；关键页面必须在 200% 缩放下无 overflow，并避免固定高度、单行标签或非 directional 布局导致本地化文本截断。
 - 车辆图片在选择时压缩到质量 70、最大宽度 800，并直接写入数据库；增大图片尺寸会直接放大数据库和备份。
 - app icon 源文件是 `assets/icon/icon.png`，可由 `assets/icon/icon_generator.py` 重新生成；launcher 资源由 `flutter_launcher_icons.yaml` 控制。
 - Android app shortcut 使用 `action_log` 和 `action_upcoming_list`，图标分别来自 `ic_action_log`、`ic_action_list` 的亮/暗资源。修改类型字符串时要同步监听、动态 shortcut 和原生资源。

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -8,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:carvita/application/use_cases/vehicle_use_cases.dart';
 import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/theme/app_theme.dart';
+import 'package:carvita/core/utils/calendar_day.dart';
 import 'package:carvita/core/utils/operation_result.dart';
 import 'package:carvita/core/widgets/gradient_background.dart';
 import 'package:carvita/data/models/maintenance_plan_item.dart';
@@ -15,6 +15,7 @@ import 'package:carvita/data/models/service_log_entry.dart';
 import 'package:carvita/data/models/vehicle.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/presentation/failures/app_failure_localizer.dart';
+import 'package:carvita/presentation/formatters/localized_number_input.dart';
 import 'package:carvita/presentation/manager/locale_provider.dart';
 import 'package:carvita/presentation/manager/maintenance_plan/maintenance_plan_cubit.dart';
 import 'package:carvita/presentation/manager/service_log/service_log_cubit.dart';
@@ -66,7 +67,9 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
     _vehicleUseCases = context.read<VehicleUseCases>();
     final log = widget.logToEdit?.entry;
 
-    _selectedServiceDate = log?.serviceDate ?? DateTime.now();
+    _selectedServiceDate = CalendarDay.clampToToday(
+      log?.serviceDate ?? DateTime.now(),
+    );
     final localeProvider = context.read<LocaleProvider>();
     final String? currentLocaleTag = localeProvider.appLocale?.toLanguageTag();
     _dateController = TextEditingController(
@@ -110,11 +113,15 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
   }
 
   Future<void> _selectServiceDate(BuildContext context) async {
+    final today = CalendarDay.dateOnly(DateTime.now());
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: _selectedServiceDate ?? DateTime.now(),
+      initialDate: CalendarDay.clampToToday(
+        _selectedServiceDate ?? today,
+        today: today,
+      ),
       firstDate: DateTime(1900),
-      lastDate: DateTime.now().add(const Duration(days: 1)),
+      lastDate: today,
       builder: (_, child) => child!,
     );
     if (!context.mounted) return;
@@ -147,6 +154,7 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
   void _submitForm() async {
     if (_isSubmitting) return;
     final localeProvider = Provider.of<LocaleProvider>(context, listen: false);
+    final inputLocale = Localizations.localeOf(context);
     if (!_formKey.currentState!.validate()) return;
     if (_selectedServiceDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -182,7 +190,10 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
       return;
     }
 
-    final newMileageAtService = double.parse(_mileageController.text.trim());
+    final newMileageAtService = LocalizedNumberInput.parseDouble(
+      _mileageController.text,
+      inputLocale,
+    )!;
     final logEntry = ServiceLogEntry(
       id: widget.logToEdit?.entry.id,
       vehicleId: widget.vehicleId,
@@ -190,7 +201,7 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
       mileageAtService: newMileageAtService,
       cost: _costController.text.trim().isEmpty
           ? null
-          : double.tryParse(_costController.text.trim()),
+          : LocalizedNumberInput.parseDouble(_costController.text, inputLocale),
       notes: _notesController.text.trim().isEmpty
           ? null
           : _notesController.text.trim(),
@@ -316,7 +327,9 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "${AppLocalizations.of(context)!.maintenanceItems}*",
+          AppLocalizations.of(
+            context,
+          )!.requiredFieldLabel(AppLocalizations.of(context)!.maintenanceItems),
           style: TextStyle(
             color: themeExtensions.textColorOnBackground.withValues(alpha: 0.9),
             fontSize: 14,
@@ -365,7 +378,9 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
               children: [
                 if (hasPlanSelections)
                   Text(
-                    "${AppLocalizations.of(context)!.chooseFromPlan}:",
+                    AppLocalizations.of(context)!.sectionHeading(
+                      AppLocalizations.of(context)!.chooseFromPlan,
+                    ),
                     style: TextStyle(
                       color: themeExtensions.textColorOnBackground.withValues(
                         alpha: 0.8,
@@ -462,7 +477,9 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
 
                 if (_selectedCustomItemNames.isNotEmpty)
                   Text(
-                    "${AppLocalizations.of(context)!.customItemAdded}:",
+                    AppLocalizations.of(context)!.sectionHeading(
+                      AppLocalizations.of(context)!.customItemAdded,
+                    ),
                     style: TextStyle(
                       color: themeExtensions.textColorOnBackground.withValues(
                         alpha: 0.8,
@@ -524,6 +541,7 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
                         Icons.add_circle_outline,
                         color: themeExtensions.textColorOnBackground,
                       ),
+                      tooltip: AppLocalizations.of(context)!.customItemAddHint,
                       onPressed: _addCustomItem,
                     ),
                   ],
@@ -539,6 +557,7 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
   @override
   Widget build(BuildContext context) {
     final localeProvider = context.watch<LocaleProvider>();
+    final inputLocale = Localizations.localeOf(context);
     final themeExtensions = Theme.of(context).extension<AppThemeExtensions>()!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bgColor = isDark
@@ -561,6 +580,7 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
           elevation: 0,
           leading: IconButton(
             icon: Icon(Icons.arrow_back_ios_new),
+            tooltip: AppLocalizations.of(context)!.back,
             onPressed: () => Navigator.of(context).pop(),
           ),
         ),
@@ -588,13 +608,15 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
                 const SizedBox(height: 20),
                 // Date
                 TextFormField(
+                  key: const ValueKey('log-date-field'),
                   controller: _dateController,
                   style: TextStyle(
                     color: themeExtensions.textColorOnBackground,
                   ),
                   decoration: InputDecoration(
-                    labelText:
-                        '${AppLocalizations.of(context)!.maintenanceDate}*',
+                    labelText: AppLocalizations.of(context)!.requiredFieldLabel(
+                      AppLocalizations.of(context)!.maintenanceDate,
+                    ),
                     suffixIcon: Icon(
                       Icons.calendar_today,
                       color: themeExtensions.textColorOnBackground,
@@ -612,18 +634,25 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
 
                 // Mileage
                 TextFormField(
+                  key: const ValueKey('log-mileage-field'),
                   controller: _mileageController,
                   style: TextStyle(
                     color: themeExtensions.textColorOnBackground,
                   ),
                   decoration: InputDecoration(
-                    labelText:
-                        '${AppLocalizations.of(context)!.mileageAtService} (${localeProvider.mileageUnit})*',
+                    labelText: AppLocalizations.of(context)!
+                        .requiredFieldWithUnit(
+                          AppLocalizations.of(context)!.mileageAtService,
+                          localeProvider.mileageUnit,
+                        ),
                   ),
-                  keyboardType: TextInputType.number,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   inputFormatters: [
-                    FilteringTextInputFormatter.allow(
-                      RegExp(r'^\d+\.?\d{0,1}$'),
+                    LocalizedNumberTextInputFormatter.decimal(
+                      inputLocale,
+                      maxFractionDigits: 1,
                     ),
                   ],
                   validator: (value) {
@@ -632,8 +661,11 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
                         AppLocalizations.of(context)!.maintenanceDate,
                       );
                     }
-                    if (double.tryParse(value.trim()) == null ||
-                        double.parse(value.trim()) <= 0) {
+                    final mileage = LocalizedNumberInput.parseDouble(
+                      value,
+                      inputLocale,
+                    );
+                    if (mileage == null || mileage <= 0) {
                       return AppLocalizations.of(context)!.invalidOptionalEntry(
                         AppLocalizations.of(context)!.maintenanceDate,
                       );
@@ -649,22 +681,38 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
 
                 // Cost
                 TextFormField(
+                  key: const ValueKey('log-cost-field'),
                   controller: _costController,
                   style: TextStyle(
                     color: themeExtensions.textColorOnBackground,
                   ),
                   decoration: InputDecoration(
-                    labelText:
-                        '${AppLocalizations.of(context)!.cost} (${AppLocalizations.of(context)!.optionalEntry})',
+                    labelText: AppLocalizations.of(context)!.optionalFieldLabel(
+                      AppLocalizations.of(context)!.cost,
+                      AppLocalizations.of(context)!.optionalEntry,
+                    ),
                   ),
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
                   inputFormatters: [
-                    FilteringTextInputFormatter.allow(
-                      RegExp(r'^\d+\.?\d{0,2}$'),
+                    LocalizedNumberTextInputFormatter.decimal(
+                      inputLocale,
+                      maxFractionDigits: 2,
                     ),
                   ],
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) return null;
+                    final cost = LocalizedNumberInput.parseDouble(
+                      value,
+                      inputLocale,
+                    );
+                    return cost == null || cost < 0
+                        ? AppLocalizations.of(context)!.invalidOptionalEntry(
+                            AppLocalizations.of(context)!.cost,
+                          )
+                        : null;
+                  },
                 ),
                 const SizedBox(height: 20),
 
@@ -675,8 +723,10 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
                     color: themeExtensions.textColorOnBackground,
                   ),
                   decoration: InputDecoration(
-                    labelText:
-                        '${AppLocalizations.of(context)!.notes} (${AppLocalizations.of(context)!.optionalEntry})',
+                    labelText: AppLocalizations.of(context)!.optionalFieldLabel(
+                      AppLocalizations.of(context)!.notes,
+                      AppLocalizations.of(context)!.optionalEntry,
+                    ),
                     hintText: AppLocalizations.of(context)!.notesMLogHint,
                   ),
                   maxLines: 3,

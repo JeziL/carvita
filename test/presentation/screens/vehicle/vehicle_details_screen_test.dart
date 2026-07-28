@@ -125,6 +125,49 @@ void main() {
     expect(tester.takeException(), isNull);
     await vehicleCubit.close();
   });
+
+  testWidgets('loaded vehicle details fit at 200 percent text scaling', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final vehicleRepository = _DeferredVehicleRepository()
+      ..completer.complete(_vehicle());
+    final maintenanceRepository = _CountingMaintenanceRepository();
+    final preferences = PreferencesService();
+    final vehicleUseCases = VehicleUseCases(vehicleRepository, preferences);
+    final maintenancePlanUseCases = MaintenancePlanUseCases(
+      maintenanceRepository,
+    );
+    final serviceLogUseCases = ServiceLogUseCases(maintenanceRepository);
+    final vehicleCubit = VehicleCubit(vehicleUseCases);
+
+    await tester.pumpWidget(
+      _testApp(
+        vehicleCubit: vehicleCubit,
+        vehicleRepository: vehicleRepository,
+        maintenanceRepository: maintenanceRepository,
+        vehicleUseCases: vehicleUseCases,
+        maintenancePlanUseCases: maintenancePlanUseCases,
+        serviceLogUseCases: serviceLogUseCases,
+        textScaler: const TextScaler.linear(2),
+        child: VehicleDetailsScreen(
+          vehicleId: 1,
+          vehicleUseCases: vehicleUseCases,
+          maintenancePlanUseCases: maintenancePlanUseCases,
+          serviceLogUseCases: serviceLogUseCases,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.byTooltip('Log Maintenance'), findsOne);
+    await vehicleCubit.close();
+  });
 }
 
 Widget _testApp({
@@ -135,6 +178,7 @@ Widget _testApp({
   required MaintenancePlanUseCases maintenancePlanUseCases,
   required ServiceLogUseCases serviceLogUseCases,
   required Widget child,
+  TextScaler textScaler = TextScaler.noScaling,
 }) {
   final preferences = PreferencesService();
   const clock = SystemClock();
@@ -178,6 +222,13 @@ Widget _testApp({
         ColorScheme.fromSeed(seedColor: Colors.blue),
         Brightness.light,
       ),
+      builder: (context, appChild) {
+        final mediaQuery = MediaQuery.of(context);
+        return MediaQuery(
+          data: mediaQuery.copyWith(textScaler: textScaler),
+          child: appChild!,
+        );
+      },
       home: child,
     ),
   );

@@ -102,7 +102,7 @@ class UpcomingMaintenanceCubit extends Cubit<UpcomingMaintenanceState> {
     return _synchronizeReminders(
       predictions,
       (prediction) => ReminderContent(
-        title: '${l10n.notificationPrefix}: ${prediction.vehicle.name}',
+        title: l10n.notificationTitle(prediction.vehicle.name),
         body: l10n.notificationBody(
           prediction.planItem.itemName,
           prediction.predictedDueDate,

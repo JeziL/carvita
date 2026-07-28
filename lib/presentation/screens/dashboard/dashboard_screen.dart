@@ -9,6 +9,7 @@ import 'package:carvita/core/constants/app_routes.dart';
 import 'package:carvita/core/services/preferences_service.dart';
 import 'package:carvita/core/services/quick_action_service.dart';
 import 'package:carvita/core/theme/app_theme.dart';
+import 'package:carvita/core/utils/calendar_day.dart';
 import 'package:carvita/core/widgets/gradient_background.dart';
 import 'package:carvita/data/models/predicted_maintenance.dart';
 import 'package:carvita/data/models/vehicle.dart';
@@ -157,9 +158,9 @@ class _DashboardScreenState extends State<DashboardScreen>
             ...urgentItems.map((prediction) {
               final vehicleName = prediction.vehicle.name;
               final itemName = prediction.planItem.itemName;
-              final daysRemaining = prediction.predictedDueDate
-                  .difference(DateTime.now())
-                  .inDays;
+              final daysRemaining = CalendarDay.daysUntil(
+                prediction.predictedDueDate,
+              );
               String dueText = daysRemaining >= 0
                   ? AppLocalizations.of(context)!.daysLater(daysRemaining)
                   : AppLocalizations.of(context)!.daysOverdue(-daysRemaining);
@@ -209,17 +210,23 @@ class _DashboardScreenState extends State<DashboardScreen>
             }),
             if (filteredPredictions.length > currentItemCount)
               Align(
-                alignment: Alignment.centerRight,
+                alignment: AlignmentDirectional.centerEnd,
                 child: TextButton(
                   onPressed: () => Navigator.pushNamed(
                     context,
                     AppRoutes.upcomingMaintenanceRoute,
                   ),
-                  child: Text(
-                    "${AppLocalizations.of(context)!.viewAll} >>",
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        AppLocalizations.of(context)!.viewAll,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                      const Icon(Icons.chevron_right),
+                    ],
                   ),
                 ),
               ),

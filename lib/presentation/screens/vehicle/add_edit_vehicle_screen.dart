@@ -1,6 +1,5 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -8,11 +7,13 @@ import 'package:intl/intl.dart';
 import 'package:carvita/application/ports/platform_ports.dart';
 import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/theme/app_theme.dart';
+import 'package:carvita/core/utils/calendar_day.dart';
 import 'package:carvita/core/utils/operation_result.dart';
 import 'package:carvita/core/widgets/gradient_background.dart';
 import 'package:carvita/data/models/vehicle.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/presentation/failures/app_failure_localizer.dart';
+import 'package:carvita/presentation/formatters/localized_number_input.dart';
 import 'package:carvita/presentation/manager/locale_provider.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_cubit.dart';
@@ -50,9 +51,13 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
     _mileageController = TextEditingController(
       text: v?.mileage.toString() ?? '',
     );
-    _selectedBoughtDate = v?.boughtDate;
+    _selectedBoughtDate = v == null
+        ? null
+        : CalendarDay.clampToToday(v.boughtDate);
     _boughtDateController = TextEditingController(
-      text: v != null ? DateFormat.yMMMd().format(v.boughtDate) : '',
+      text: _selectedBoughtDate == null
+          ? ''
+          : DateFormat.yMMMd().format(_selectedBoughtDate!),
     );
     _modelController = TextEditingController(text: v?.model ?? '');
     _plateNumberController = TextEditingController(text: v?.plateNumber ?? '');
@@ -153,13 +158,15 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
   }
 
   Future<void> _selectBoughtDate(BuildContext context) async {
+    final today = CalendarDay.dateOnly(DateTime.now());
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: _selectedBoughtDate ?? DateTime.now(),
+      initialDate: CalendarDay.clampToToday(
+        _selectedBoughtDate ?? today,
+        today: today,
+      ),
       firstDate: DateTime(1950),
-      lastDate: DateTime.now().add(
-        const Duration(days: 1),
-      ), // Cannot be in future
+      lastDate: today,
       builder: (_, child) => child!,
     );
     if (!context.mounted) return;
@@ -175,6 +182,7 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
 
   void _submitForm() async {
     if (_isSubmitting) return;
+    final inputLocale = Localizations.localeOf(context);
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
@@ -194,7 +202,11 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
       }
 
       final mileageFilled =
-          double.tryParse(_mileageController.text.trim()) ?? 0;
+          LocalizedNumberInput.parseDouble(
+            _mileageController.text,
+            inputLocale,
+          ) ??
+          0;
       var mileageLastUpdated = DateTime.now();
       if (_isEditing && mileageFilled == widget.vehicle!.mileage) {
         mileageLastUpdated = widget.vehicle!.mileageLastUpdated;
@@ -265,6 +277,7 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
   @override
   Widget build(BuildContext context) {
     final localeProvider = context.watch<LocaleProvider>();
+    final inputLocale = Localizations.localeOf(context);
     final themeExtensions = Theme.of(context).extension<AppThemeExtensions>()!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bgColor = isDark
@@ -278,14 +291,18 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
       TextInputType keyboardType = TextInputType.text,
       bool isRequired = false,
       String? Function(String?)? validator,
+      List<TextInputFormatter>? inputFormatters,
+      Key? fieldKey,
     }) {
       return Padding(
         padding: const EdgeInsets.only(bottom: 18.0),
         child: TextFormField(
+          key: fieldKey,
           controller: controller,
           style: TextStyle(color: themeExtensions.textColorOnBackground),
           decoration: InputDecoration(labelText: label, hintText: hint),
           keyboardType: keyboardType,
+          inputFormatters: inputFormatters,
           validator: (value) {
             if (isRequired && (value == null || value.trim().isEmpty)) {
               return AppLocalizations.of(context)!.invalidEmptyEntry(label);
@@ -312,6 +329,7 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
           elevation: 0,
           leading: IconButton(
             icon: Icon(Icons.arrow_back_ios_new),
+            tooltip: AppLocalizations.of(context)!.back,
             onPressed: () => Navigator.of(context).pop(),
           ),
         ),
@@ -322,65 +340,102 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                GestureDetector(
-                  onTap: _showImagePickerOptions,
-                  child: Container(
-                    height: 150,
-                    margin: const EdgeInsets.only(bottom: 20),
-                    decoration: BoxDecoration(
-                      color: bgColor.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: bgColor.withValues(alpha: 0.3)),
-                    ),
-                    child: _selectedImageBytes != null
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(9),
-                            child: Image.memory(
-                              _selectedImageBytes!,
-                              fit: BoxFit.cover,
-                              width: double.infinity,
-                              height: 150,
+                Semantics(
+                  button: true,
+                  label: AppLocalizations.of(context)!.uploadVehicleImage,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: _showImagePickerOptions,
+                    child: Container(
+                      constraints: const BoxConstraints(minHeight: 150),
+                      margin: const EdgeInsets.only(bottom: 20),
+                      decoration: BoxDecoration(
+                        color: bgColor.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: bgColor.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: _selectedImageBytes != null
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(9),
+                              child: Image.memory(
+                                _selectedImageBytes!,
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                                height: 150,
+                              ),
+                            )
+                          : Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.add_a_photo_outlined,
+                                    size: 36,
+                                    color:
+                                        themeExtensions.textColorOnBackground,
+                                  ),
+                                  SizedBox(height: 8),
+                                  Text(
+                                    AppLocalizations.of(
+                                      context,
+                                    )!.optionalFieldLabel(
+                                      AppLocalizations.of(
+                                        context,
+                                      )!.uploadVehicleImage,
+                                      AppLocalizations.of(
+                                        context,
+                                      )!.optionalEntry,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color:
+                                          themeExtensions.textColorOnBackground,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          )
-                        : Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.add_a_photo_outlined,
-                                size: 36,
-                                color: themeExtensions.textColorOnBackground,
-                              ),
-                              SizedBox(height: 8),
-                              Text(
-                                "${AppLocalizations.of(context)!.uploadVehicleImage} (${AppLocalizations.of(context)!.optionalEntry})",
-                                style: TextStyle(
-                                  color: themeExtensions.textColorOnBackground,
-                                ),
-                              ),
-                            ],
-                          ),
+                    ),
                   ),
                 ),
 
                 formField(
                   _nameController,
-                  '${AppLocalizations.of(context)!.vehicleNickname}*',
+                  AppLocalizations.of(context)!.requiredFieldLabel(
+                    AppLocalizations.of(context)!.vehicleNickname,
+                  ),
                   AppLocalizations.of(context)!.vehicleNicknameHint,
                   isRequired: true,
                 ),
                 formField(
                   _mileageController,
-                  '${AppLocalizations.of(context)!.mileageLabelWithUnit(" (${localeProvider.mileageUnit})")}*',
+                  AppLocalizations.of(context)!.requiredFieldWithUnit(
+                    AppLocalizations.of(context)!.mileageLabelWithUnit(""),
+                    localeProvider.mileageUnit,
+                  ),
                   null,
-                  keyboardType: TextInputType.number,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   isRequired: true,
+                  inputFormatters: [
+                    LocalizedNumberTextInputFormatter.decimal(inputLocale),
+                  ],
+                  fieldKey: const ValueKey('vehicle-mileage-field'),
                   validator: (val) {
                     if (val == null || val.isEmpty) {
                       return AppLocalizations.of(context)!.invalidEmptyEntry(
                         AppLocalizations.of(context)!.mileageLabelWithUnit(""),
                       );
                     }
-                    if (double.tryParse(val) == null || double.parse(val) < 0) {
+                    final mileage = LocalizedNumberInput.parseDouble(
+                      val,
+                      inputLocale,
+                    );
+                    if (mileage == null || mileage < 0) {
                       return AppLocalizations.of(context)!.invalidOptionalEntry(
                         AppLocalizations.of(context)!.mileageLabelWithUnit(""),
                       );
@@ -391,12 +446,16 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 18.0),
                   child: TextFormField(
+                    key: const ValueKey('vehicle-bought-date-field'),
                     controller: _boughtDateController,
                     style: TextStyle(
                       color: themeExtensions.textColorOnBackground,
                     ),
                     decoration: InputDecoration(
-                      labelText: '${AppLocalizations.of(context)!.boughtDate}*',
+                      labelText: AppLocalizations.of(context)!
+                          .requiredFieldLabel(
+                            AppLocalizations.of(context)!.boughtDate,
+                          ),
                       suffixIcon: Icon(
                         Icons.calendar_today,
                         color: themeExtensions.textColorOnBackground,

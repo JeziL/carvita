@@ -25,7 +25,6 @@ class InfoGridItem extends StatelessWidget {
                 context,
               ).colorScheme.onSurface.withValues(alpha: 0.7),
             ),
-            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 4),
           Text(
@@ -35,7 +34,6 @@ class InfoGridItem extends StatelessWidget {
               fontWeight: FontWeight.w500,
               color: Theme.of(context).colorScheme.onSurface,
             ),
-            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

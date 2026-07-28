@@ -176,5 +176,16 @@
   "refreshErrorMessage": "Aktualisierung vorübergehend nicht möglich. Versuchen Sie es erneut.",
   "reminderUpdateErrorMessage": "Gespeichert, aber die Erinnerung konnte nicht aktualisiert werden.",
   "exportErrorMessage": "Daten konnten nicht exportiert werden. Versuchen Sie es erneut.",
-  "restoreErrorMessage": "Daten konnten nicht wiederhergestellt werden. Prüfen Sie die Sicherungsdatei und versuchen Sie es erneut."
+  "restoreErrorMessage": "Daten konnten nicht wiederhergestellt werden. Prüfen Sie die Sicherungsdatei und versuchen Sie es erneut.",
+  "requiredFieldLabel": "{label}*",
+  "requiredFieldWithUnit": "{label} ({unit})*",
+  "optionalFieldLabel": "{label} ({optional})",
+  "labeledValue": "{label}: {value}",
+  "sectionHeading": "{label}:",
+  "dateWithMileage": "{date} @ {mileage}",
+  "dateWithRelative": "{date} ({relative})",
+  "combinedValues": "{first} / {second}",
+  "modelAndYear": "{model} - {year}",
+  "nextMaintenanceSummary": "Nächste: {item} - {due}",
+  "notificationTitle": "Wartungserinnerung: {vehicleName}"
 }

@@ -41,13 +41,13 @@ class QuickActionButton extends StatelessWidget {
             const SizedBox(height: 5),
             Text(
               label,
+              textAlign: TextAlign.center,
               style: TextStyle(
                 color: bgColor,
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+              maxLines: 2,
             ),
           ],
         ),
