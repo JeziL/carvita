@@ -160,7 +160,9 @@ assets/icon/                       主图标及其 Cairo 生成脚本
 
 修改算法时优先写纯 Dart 单元测试。利用现有的 `currentDateOverride` 固定当前时间，至少覆盖：月末加月、闰年、没有历史、首保、有历史、时间优先、里程优先、已逾期、里程倒退和零日差。
 
-里程值本身是“单位无关”的数值。设置中的 `km`/`mi` 当前只改变显示标签，不做数值换算。不要悄悄加入部分换算；如要支持真实单位转换，需要为现有数据设计明确迁移方案。
+未来首次预测已确定采用“从创建保养计划时的日期与车辆当前里程起算”，有对应保养记录后再从最近一次关联记录起算；新车和二手车不做 UI 区分，也不增加基线输入或解释文案。当前 schema 尚不能可靠保存计划起点，因此该规则必须随专门的数据库迁移完整实现和测试；在此之前不得用会随车辆更新漂移的动态值替代，也不得复用或重解释首保兼容字段。
+
+里程值本身是“单位无关”的数值。设置中的 `km`/`mi` 只改变显示标签，不做数值换算；费用继续保存和显示为无币种数值。这是当前明确保留的产品行为，不作为重构优化项。不要加入部分换算、按 locale 推断货币，或重新解释已有数据。
 
 ## 状态刷新与副作用
 
@@ -183,7 +185,9 @@ assets/icon/                       主图标及其 Cairo 生成脚本
 
 `UpcomingMaintenanceCubit.loadAllUpcomingMaintenance` 调用 `LoadUpcomingMaintenance` 遍历所有车辆并重新查询计划、记录和关联，再由 `SynchronizeMaintenanceReminders` 按 latest-wins 协议重建通知。不要把它放入高频 build 或无意义的循环中。
 
-通知安排在“到期日前 N 天的本地时间中午 12:00”，使用 `inexactAllowWhileIdle`。通知 ID 由车辆 ID 与计划 ID 的组合 hash 得到。变更 ID、channel、调度时间或 payload 会影响已有通知的替换和取消行为。
+通知安排在“到期日前 N 天的设备当前 IANA 时区中午 12:00”，使用 `inexactAllowWhileIdle`。Android 原生时区通过 application port 读取并设置为 `tz.local`；App resume 时只有时区或当地日历日期变化才重排，短时间重复 resume 不重复全库扫描。若原提醒时间已过，则使用不晚于到期日的下一个当地中午；不存在可用时间时跳过，不立即补发。通知 ID 由车辆 ID 与计划 ID 的组合 hash 得到。
+
+通知 payload 是带版本、目标动作、车辆 ID、计划 ID 和调度批次时间的 typed JSON。前台、后台恢复和冷启动点击统一先进入内存队列，待 Navigator 与依赖就绪后校验对象：有效对象打开车辆详情的保养计划页签；车辆或计划已删除时打开即将到期列表；非法 payload 安全忽略。后台 isolate 不直接导航，同一批次恰好消费一次。变更 ID、channel、调度时间或 payload 会影响已有通知的替换、取消与点击兼容行为。
 
 Vehicle/Plan/Log Cubit 的初始加载由创建方显式触发，构造函数不自动 fetch。写命令在 repository 成功后等待刷新并返回 `OperationResult`；刷新失败通过 `OperationSuccess.followUpFailure` 表达，UI 仍保留最后一次成功数据。若重构该时序，必须同步修改调用方并加测试。
 
@@ -204,7 +208,7 @@ repository、Cubit 和平台异常使用 `AppFailure`/`OperationFailure` 分类�
 
 `ar`、`de`、`en`、`es`、`fr`、`it`、`ja`、`ko`、`pt`、`ru`、`zh`（简体）和 `zh_Hant`（繁体）。
 
-所有 ARB 当前均有 167 个消息 key。新增用户可见文本时：
+所有 ARB 当前均有 177 个消息 key。新增用户可见文本时：
 
 1. 先在 `app_en.arb` 添加消息和 `@message` 描述/placeholder 类型；
 2. 同步补齐另外 11 个 ARB，保持 placeholder 名称和 ICU 类型一致；

@@ -66,7 +66,7 @@
 - 当前 UI、帮助和隐私说明必须清楚表达“业务数据库备份”与“完整应用设置备份”的区别；
 - 未来若提供完整备份，应采用有 `formatVersion` 的版本化备份包，包含 manifest、数据库 schema version、应用版本、内容清单和校验值；
 - 新格式必须保留裸 v1 `.db` 的导入能力，并为数据库与偏好的联合恢复设计 staging、校验和双向回滚；
-- 里程单位和货币语义未确定前，不得把偏好简单打包后宣称可跨设备无歧义恢复。
+- 里程单位偏好仍按现状留在 `SharedPreferences` 中，费用仍为数据库内的无币种数值；未来备份容器只需如实声明内容，不承担单位或货币转换。
 
 ### 2.5 Android 系统备份与隐私决策
 
@@ -173,9 +173,7 @@ flowchart TD
 | PREF-001 | P2 | 第一阶段 | **已完成** | 默认车辆和语言对话框把 dismiss 返回的 null 当成“清除”或“跟随系统” | cancel/dismiss、clear/follow-system 使用可区分结果；遮罩和系统返回不改变偏好；Widget 测试覆盖已有非空选择 |
 | LIFE-001 | P2 | 第一阶段 | **已完成** | 图片、日期、PackageInfo、通知开关等异步流程存在 dispose 后 `setState`/context 使用 | 所有跨 await UI 路径有 mounted 保护或移入 controller；移除 lint ignore；路由被 shortcut 清空、picker 返回较晚等测试不抛异常 |
 | LOAD-001 | P2 | 第一阶段 | **已完成** | Plan/Log Cubit 构造器自动 fetch，多个路由又 cascade fetch；车辆列表也重复初始加载 | 每个资源只有一个初始加载入口；进入详情、快捷记录、车辆列表时 repository 调用次数测试为 1；无 close 后 emit |
-| PRED-001 | P1 | 第二阶段 | 待办 | 车辆只有购入日期与当前里程，没有二手车购入里程、已知上次保养或“周期从何处起算”的显式语义；现有规则可能把整车累计里程误当作购入后里程 | 先通过 ADR 定义新车、二手车、历史未知、手工基线和最近保养的起算规则，并形成可复核示例；第二阶段只实现无需落盘的新策略与输入校验；若需要新增购入里程/基线字段，必须另入第四阶段 migration，禁止在第一阶段加列 |
-| PRED-002 | P1 | 第二阶段 | 待办 | `MileageEstimator` 只比较排序后首尾里程，首尾仍增长时会掩盖中间某一段里程倒退、仪表更换或错误记录 | 明确逐段单调性、同日记录、仪表更换和数据修正规则；对每个相邻有效样本检查，遇异常按已决策策略使用最近有效段、拆段或回退，不得让负段被首尾净增长掩盖；覆盖中段倒退、多个倒退、零日差、同里程和恢复增长的纯 Dart 测试 |
-| UNIT-001 | P1 | 第二阶段 | 待办 | 当前 km/mi 偏好只改变标签，不转换数值；费用是无币种的数值，跨 locale、设备或未来完整备份时可能被重解释 | 先决定里程单位是全局展示偏好还是每车持久业务属性，并定义现有无单位数据的迁移/转换规则；费用明确 ISO 4217 币种、精度/最小单位，或明确保持“无币种数值”的产品限制；locale 切换不得改变业务含义；禁止部分转换；如需新持久字段，统一延后第四阶段 |
+| PRED-001 | P1 | 第四阶段 | 待办 | 车辆只有购入日期与当前里程，现有无历史规则可能把整车累计里程误当作购入后里程；已确认改为从“创建保养计划”起算，但当前 schema 没有可持久化的计划起点 | 新计划在创建时静默保存日期与车辆当前里程，首次到期从该起点叠加周期；最近一次与该计划项目关联的真实保养记录优先于创建起点；不区分新车/二手车，不新增用户输入或解释文案；编辑周期、车辆里程变化、无关保养记录不得移动起点；删除最近记录后回退到上一条关联记录或原起点；旧计划迁移后保持原预测，避免升级时提醒整体漂移；随 DB-001 设计字段、迁移和备份兼容，不复用或重解释首保兼容字段 |
 | DATE-001 | P2 | 第二阶段 | 待办 | 到期天数按 `Duration.inDays` 截断，明天可能显示今天；购买/保养日期选择器允许明天 | 提供统一 calendar-day 工具；今天、明天、昨天、DST、跨月和时区边界测试通过；不允许未来业务日期 |
 | ROUTE-001 | P2 | 第二阶段 | **已完成** | Router 在校验前强制 cast 动态 Map/Cubit 参数，错误参数直接 TypeError | 每条有参数路由使用 typed args；缺失/错误参数进入本地化错误页而非抛异常；所有 MaterialPageRoute 保留 RouteSettings；route 测试覆盖 |
 | ERROR-001 | P2 | 第二阶段 | **已完成** | repository/Cubit 的 `e.toString()` 和硬编码英文直接暴露给用户 | 定义 typed failure 与本地化映射；诊断详情只进入开发日志；12 个 locale 均有用户可理解错误文案；失败 Widget 测试不出现 SQL、路径或英文内部异常 |
@@ -184,13 +182,13 @@ flowchart TD
 | I18N-001 | P2 | 第二阶段 | 待办 | Widget 中拼接标签、标点、箭头和日期；数字输入仅接受点号/ASCII 数字；跟随系统 locale 后 shortcut/通知不更新 | 完整句子进入 ARB；RTL 使用 directional API；支持 locale 数字/小数分隔符或提供明确规范化；12 个 locale key/placeholder 检查通过；系统 locale 改变会更新 shortcut 和后续通知 |
 | ARCH-001 | P2 | 第二阶段 | **已完成** | data model、preferences、quick action 与 Screen 之间存在反向依赖；Screen 直接创建 repository | domain/data model 不 import Flutter UI/l10n；core service 不 import Screen/Cubit；repository、Clock 和平台端口由 composition root 注入；架构依赖测试或静态规则落地 |
 | APPSTART-001 | P2 | 第二阶段 | 待办 | 通知初始化和 locale 查找仍阻塞 `runApp`；可恢复插件错误可能阻止 UI 启动；启动即请求通知权限已在 NOTIF-001 中移除 | 基础 UI 可先启动；继续保持仅在用户启用提醒时请求权限；插件失败映射为可恢复状态；启动失败注入测试仍能进入 Dashboard |
-| RESUME-001 | P2 | 第二阶段 | 待办 | App resume 只重读 Dashboard 筛选，不按陈旧度重算预测和通知 | 记录最后刷新时间；超过阈值或日期/时区变化时执行一次节流刷新；短时间多次 resume 不重复全库扫描 |
-| NOTIF-002 | P1 | 第二阶段 | 待办 | 通知服务目前只初始化 timezone 数据库，没有把设备实际 IANA 时区设置为 `tz.local`；本地中午调度在非默认时区、DST 或时区切换后可能偏移 | 通过可测试的时区端口获取设备 IANA zone 并调用 `tz.setLocalLocation`；始终按目标到期日前 N 天的当地中午计算一次性通知；时区/日期变化与 resume 触发节流重排；覆盖 DST gap/fold、跨时区旅行、重启和无效 zone 回退；不得恢复按年重复 |
-| NOTIF-003 | P2 | 第二阶段 | 待办 | 通知初始化的点击回调尚未消费 payload，且没有前台、后台与冷启动统一的安全导航协议 | 定义带 `payloadVersion`、vehicle ID、plan item ID 和目标动作的 typed payload；编码/解析失败安全忽略并记录诊断；前台、后台、冷启动点击都先排队，待 Navigator 与依赖就绪后恰好消费一次；后台 isolate 不直接导航；有效、过期、对象已删除和恶意 payload 测试通过 |
+| RESUME-001 | P2 | 第二阶段 | 进行中 | NOTIF-002 已让 resume 在时区或当地日期变化时单飞重排通知，但尚未按普通数据陈旧度重新加载预测 | 记录最后完整预测刷新时间；超过阈值时执行一次节流全量刷新；继续复用现有日期/时区变化检测；短时间多次 resume 不重复全库扫描 |
+| NOTIF-002 | P1 | 第二阶段 | **已完成** | 重构前通知服务只初始化 timezone 数据库，没有把设备实际 IANA 时区设置为 `tz.local`；本地中午调度在非默认时区、DST 或时区切换后可能偏移 | Android scoped MethodChannel 通过 application port 提供设备时区并设置 `tz.local`；调度策略按目标当地日历日构造中午，跨 DST 使用目标日 offset；错过原时间后取不晚于到期日的下一个当地中午，否则跳过；时区/日期变化的 resume 单飞重排，重复 resume 不扫描；无效 zone 安全回退；保持一次性 `inexactAllowWhileIdle` |
+| NOTIF-003 | P2 | 第二阶段 | **已完成** | 重构前通知点击回调未消费 payload，前台、后台恢复与冷启动没有统一导航协议 | payload 使用带版本、动作、vehicle ID、plan item ID 和调度批次时间的 typed JSON；运行中回调和冷启动 launch details 进入同一有界去重队列；Navigator 就绪后校验车辆和 active plan，有效对象打开车辆详情保养计划页签，已删除对象打开即将到期列表，非法或恶意 payload 安全忽略；后台 isolate 不直接导航 |
 | NAV-002 | P3 | 第三阶段 | 待办 | 底部导航每次清空整个路由栈，丢失各 tab 滚动、筛选和子栈 | 采用 shell/IndexedStack 或独立 Navigator；切换 tab 保留页面状态；Android 返回行为有集成测试 |
 | PERF-001 | P2 | 第三阶段 | 待办 | 保养记录关联项按每条日志再次查询，形成 N+1；全局预测还会逐车、逐资源重复访问数据库，数据量增长后查询次数线性放大 | 用 JOIN/批量 `IN`/分组查询或等价 repository query 一次取得关联数据；相同页面加载的查询次数不随日志条数增长；全局预测复用明确快照并保持结果一致；通过 query-count 测试与脱敏大数据基准记录时延、内存和查询数 |
 | IMAGE-001 | P3 | 第三阶段 | 待办 | 车辆图片以 BLOB 存于主表，普通列表查询也可能携带完整图片，并在卡片中反复解码；这会放大查询内存、备份体积和滚动成本 | 列表摘要查询默认不投影 image BLOB，详情按需加载；使用尺寸感知解码、缩略图和有界缓存；大量车辆/大图场景记录查询字节、峰值内存、滚动帧和备份体积；不擅自放大入库图片；若把图片移出数据库，必须进入第四阶段迁移并同时设计备份兼容 |
-| BKP-003 | P2 | 第三阶段 | 待办 | 裸 SQLite 无法表达完整备份内容、偏好、格式版本或校验信息，未来扩展时容易出现“文件能打开但语义不兼容” | 在 UNIT-001 等语义决策完成后设计版本化备份容器：manifest 含 `formatVersion`、数据库 `user_version`、应用版本、内容清单和 checksum，可选偏好有 allowlist 与类型版本；继续支持旧裸 v1 `.db` 导入；数据库与偏好使用 staging、联合校验和可回滚提交；未知新版本安全拒绝；不得把新包伪装成旧 `.db` |
+| BKP-003 | P2 | 第三阶段 | 待办 | 裸 SQLite 无法表达完整备份内容、偏好、格式版本或校验信息，未来扩展时容易出现“文件能打开但语义不兼容” | 设计版本化备份容器：manifest 含 `formatVersion`、数据库 `user_version`、应用版本、内容清单和 checksum，可选偏好有 allowlist 与类型版本；继续支持旧裸 v1 `.db` 导入；数据库与偏好使用 staging、联合校验和可回滚提交；未知新版本安全拒绝；不得把新包伪装成旧 `.db` |
 | DB-001 | P1 | 第四阶段 | 待办 | 当前没有 schema 迁移框架，未来变更无法可靠升级旧库 | 在明确 schema 变更需求后升级版本；实现幂等 `onUpgrade`；覆盖全新安装、v1 升级、重复打开和旧备份恢复；失败回滚策略明确 |
 | DB-002 | P1 | 第四阶段 | 待办 | 外键未显式启用，现存数据可能有孤儿；直接开启会改变删除行为 | 先生成只读一致性报告；定义孤儿清理/保留规则；在事务迁移中清理并启用 foreign keys；每次连接验证 pragma；级联/软删除/备份恢复测试通过 |
 | DB-003 | P2 | 第四阶段 | 待办 | 四张表没有显式二级索引，vehicle/date、active plan 和 performed-item 关联查询在数据增长后可能退化为全表扫描 | 先用代表性数据和 `EXPLAIN QUERY PLAN` 证明热点，再在 schema version bump / `onUpgrade` 中加入最小必要索引；候选包括 plan `(vehicleId,isActive,id)`、log `(vehicleId,serviceDate,id)`、performed item 的 `serviceLogId` 与 `maintenancePlanItemId`；验证写入成本、查询计划和迁移幂等性；第一阶段禁止用临时 `CREATE INDEX` 绕过冻结 |
@@ -262,8 +260,8 @@ flowchart TD
 
 1. ROUTE-001、ERROR-001：先统一 typed route/failure；
 2. ARCH-001：建立 application use case 与端口，逐步移除 Screen 内 repository；
-3. PRED-001、PRED-002、UNIT-001：先锁定二手车起算、逐段里程异常、里程单位与费用币种语义；任何新增持久字段只形成第四阶段输入；
-4. NOTIF-002、NOTIF-003：修正 IANA 时区/DST 调度，并建立可版本化 payload 与冷启动导航协议；
+3. PRED-001：已锁定“从创建保养计划起算”的产品规则；可靠实现需要持久化计划起点，已移入第四阶段；
+4. NOTIF-002、NOTIF-003：**已完成** IANA 时区/DST 调度、可版本化 payload 与冷启动导航协议；
 5. DATE-001、I18N-001：统一日期、数字、RTL 和完整句式；
 6. THEME-001、A11Y-001：重建语义色与大字体适配；
 7. APPSTART-001、RESUME-001：优化启动和生命周期刷新，包含日期/时区变化后的节流通知重排。
@@ -274,7 +272,7 @@ flowchart TD
 
 1. NAV-002：持久化底部 tab 和返回栈；
 2. PERF-001、IMAGE-001：批量消除 N+1，拆分列表摘要与图片 BLOB 按需加载，并建立查询/内存/滚动基准；
-3. BKP-003：在单位、币种和隐私范围明确后设计版本化完整备份包，保留裸 v1 `.db` 导入；
+3. BKP-003：在隐私范围明确后设计版本化完整备份包，保留裸 v1 `.db` 导入；
 4. 拆分超大 Screen，补 golden/性能回归；
 5. 评估 Cubit/Provider 的长期统一策略，但不以“统一框架”为目的重写稳定代码。
 
@@ -285,18 +283,19 @@ flowchart TD
 - 第一至第三阶段的行为测试已形成稳定保护网；
 - 已有真实 v1 数据样本和备份样本；
 - DB-001/DB-002/DB-003/COMPAT-001 的产品与数据决策完成评审；
-- PRED-001、UNIT-001、IMAGE-001 或 BKP-003 中任何需要落盘的新语义已有单独迁移方案。
+- PRED-001、IMAGE-001 或 BKP-003 中任何需要落盘的新语义已有单独迁移方案。
 
 实施顺序：
 
 1. 只读扫描 v1 数据，统计孤儿、非法关联、空值和备份版本；
 2. 决定清理、修复、保留或阻止升级的规则；
-3. 以 `EXPLAIN QUERY PLAN` 和基准确认索引，而不是按猜测批量建索引；
-4. 设计新 version、`onUpgrade`、事务与失败回滚，并纳入已经批准的购入里程/单位/币种/图片字段；
-5. 在迁移中处理历史数据和索引；
-6. 在所有连接的 `onConfigure` 中启用并验证 foreign keys；
-7. 验证全新安装、v1 升级、旧备份恢复、版本化备份恢复和迁移失败回滚；
-8. 最后再决定首保兼容字段的长期去留。
+3. 为 PRED-001 设计计划起点字段和旧计划兼容迁移，不复用首保字段；
+4. 以 `EXPLAIN QUERY PLAN` 和基准确认索引，而不是按猜测批量建索引；
+5. 设计新 version、`onUpgrade`、事务与失败回滚，并纳入已经批准的预测起算或图片字段；
+6. 在迁移中处理历史数据和索引；
+7. 在所有连接的 `onConfigure` 中启用并验证 foreign keys；
+8. 验证全新安装、v1 升级、旧备份恢复、版本化备份恢复和迁移失败回滚；
+9. 最后再决定首保兼容字段的长期去留。
 
 ## 6. 测试矩阵
 
@@ -304,18 +303,18 @@ flowchart TD
 | --- | --- | --- | --- | --- | --- |
 | 历史项目身份 | typed item → input 映射；同名/custom/软删除 | 查询返回 link ID、plan ID/custom name；更新不改身份 | 编辑成功/失败后的刷新顺序 | 编辑页正确预选且 plan Loading 不降级为 custom | 用旧库编辑历史记录后预测仍引用原计划 |
 | 车辆/计划/日志写入 | command Result 与 failure mapping | 事务成功、写失败、刷新失败 | loading/data/submitting/effect 精确序列 | 双击仅提交一次；失败保留输入；成功才 pop | 连续新增、编辑、删除后 Dashboard/详情一致 |
-| 全局预测与里程 | 月末、闰年、首保兼容值、二手车起算、有/无历史、时间/里程、逾期、逐段倒退、同日记录、单位语义 | 每车聚合输入一致；查询快照稳定 | 并发 refresh latest-wins | Dashboard/列表 loading 时保留旧内容；单位/locale 切换不重解释数值 | 后台恢复后按阈值刷新；脱敏二手车样本对照 |
+| 全局预测与里程 | 月末、闰年、首保兼容值、创建计划起点、有/无关联历史、时间/里程/组合周期、逾期和现有日均里程回退规则 | 新计划原子保存日期/里程起点；编辑周期和车辆里程更新不移动起点；关联记录按最新有效记录覆盖起点；无关记录不影响；删除记录逐级回退；v1 旧计划迁移不改变原预测 | 并发 refresh latest-wins；写后刷新使用同一已提交起点 | Dashboard/列表 loading 时保留旧内容；创建/编辑计划不增加基线字段或解释文案 | 全新安装、v1 升级、旧备份恢复后对照首次到期目标；脱敏新车/二手车样本一致 |
 | 通知 | lead time、locale、IANA zone、DST gap/fold、过去时间跳过、ID 输入、typed payload 编解码 | 不适用 | 业务数据成功但通知失败时 state 不丢失；点击 intent 排队/去重 | 设置开关/权限失败反馈；对象删除或无效 payload 安全处理 | 冷启动、重启、跨时区、DST、并发重排、前台/后台/冷启动点击 |
 | Quick Action | intent queue 与去重 | 不适用 | Navigator readiness 状态 | 无车辆/单车/默认车/多车选择 | 冷启动和前台触发均不崩溃、不重复导航 |
 | 备份导出 | 文件命名与 typed result | 数据库关闭/快照一致性 | 进度与错误状态 | 成功、取消、失败反馈 | 导出后用真实 SQLite 工具打开 |
 | 裸数据库恢复 | 校验、临时路径、回滚决策 | 有效 v1、无效文件、损坏文件、复制中断、回滚；导入不修改 SharedPreferences | 恢复中禁止重复操作 | 明示仅含业务数据；警告、取消、成功退出、失败可重试 | 当前库不因失败丢失；旧裸备份恢复可启动；偏好保持原值 |
-| 版本化完整备份（第三阶段） | manifest/version/checksum/allowlist 解析；未知版本拒绝 | 数据库与偏好联合 staging、校验、提交和双向回滚 | 进度、可恢复失败与不兼容状态 | 内容清单与恢复范围确认 | 新包跨设备恢复；旧裸 `.db` 继续兼容；单位/币种含义不漂移 |
+| 版本化完整备份（第三阶段） | manifest/version/checksum/allowlist 解析；未知版本拒绝 | 数据库与偏好联合 staging、校验、提交和双向回滚 | 进度、可恢复失败与不兼容状态 | 内容清单与恢复范围确认 | 新包跨设备恢复；旧裸 `.db` 继续兼容 |
 | Android 系统备份与隐私 | 备份规则配置解析或静态断言 | 数据库/偏好 include-exclude 清单与产品决策一致 | 不适用 | 隐私页与实际策略文案一致 | Android 12+ data extraction、旧版 full backup、设备迁移/恢复与商店 Data safety 对照 |
 | 路由 | typed args 校验 | 不适用 | 不适用 | 缺参/错参进入本地化错误页 | shortcut、通知和底部导航返回栈 |
 | 国际化/RTL | locale 数字与 calendar-day 工具 | 不适用 | 系统 locale 变更事件 | 12 locale 冒烟；Arabic RTL；完整句式 | 系统语言切换后 shortcut/通知文案更新 |
 | 主题/无障碍 | 对比度 token 计算 | 不适用 | Theme/Locale 初始状态 | light/dark/custom；文字 1.0/1.3/2.0；Semantics | TalkBack、系统大字体、深色模式 |
 | 查询、图片与索引 | 批量映射/分组正确；缩略图策略 | 固定数据量下 query-count；`EXPLAIN QUERY PLAN`；BLOB 投影；索引迁移与写入成本 | 大数据加载不发射过期结果 | 大图列表帧、缓存上限与按需详情加载 | 脱敏大库记录时延、查询数、峰值内存与备份体积 |
-| 数据库迁移（第四阶段） | migration decision helpers | fresh、v1→新版本、重复升级、孤儿、FK、索引、业务语义字段、旧备份、失败回滚 | 启动错误映射 | 恢复/升级进度与错误页 | release APK 上用脱敏真实库验证 |
+| 数据库迁移（第四阶段） | migration decision helpers | fresh、v1→新版本、重复升级、孤儿、FK、索引、已批准的新字段、旧备份、失败回滚 | 启动错误映射 | 恢复/升级进度与错误页 | release APK 上用脱敏真实库验证 |
 | 构建与发布门禁 | version/tag/changelog 校验脚本测试 | 不适用 | 不适用 | 不适用 | 无 release secrets 的 PR/debug 构建；debug/release 证书身份；双语 changelog、checksum、versionCode 和失败前置验证 |
 | 工具链约束 | 代码在声明的最低 Dart/Flutter 组合分析和测试，或约束已收紧 | 不适用 | 不适用 | 最低与 CI 版本各执行关键 Widget 冒烟 | CI 输出并核对 Flutter/Dart 版本，不夹带工具链升级 |
 
@@ -351,8 +350,8 @@ flutter build apk --debug
 | ADR-008 | 提议 | 可访问性通过响应式布局解决，不再依赖低文字缩放上限 | 尊重系统辅助设置，并以 200% Widget 测试约束布局质量 |
 | ADR-009 | 已接受 | 禁止 Android 系统云备份和设备到设备迁移；用户需要副本时使用手工业务数据库导出 | 与“数据只保存在本机、由用户决定是否导出”的产品承诺一致；`allowBackup=false` 负责退出默认 Auto Backup，同时 Android 11- 的 full-backup rules 与 Android 12+ 的 cloud/device-transfer extraction rules 显式排除全部可备份 domain，以覆盖部分厂商忽略 `allowBackup=false` 的 D2D 行为；手工导出继续采用裸 v1 SQLite 且不包含偏好 |
 | ADR-010 | 已接受 | 第一阶段手工备份继续是裸 v1 SQLite，明确不包含 `SharedPreferences`；未来完整备份使用新的版本化容器 | 避免在数据安全修复中静默改变格式；保留旧 `.db` 导入能力，同时让未来的内容清单、校验、偏好版本和联合回滚有明确承载 |
-| ADR-011 | 提议 | 里程单位与费用币种属于业务数据语义，不应只靠当前 locale 或展示标签猜测 | 现有 unitless 数值必须先定义来源和迁移策略；禁止只转换部分页面或把同一历史值在 km/mi、不同货币之间无提示重解释 |
-| ADR-012 | 提议 | 二手车预测必须有明确起算基线，不能默认把累计里程等同于购入后行驶里程 | 先确定购入里程、未知历史、最近保养和手工基线的优先级，再决定是否需要第四阶段新增持久字段 |
+| ADR-012 | 已接受 | 首次预测从创建保养计划时的日期与车辆当前里程起算；有对应保养记录后改从最近一次关联记录起算 | 新车与二手车采用同一规则，用户无需选择车辆类型、填写购入里程或理解“基线”；起点由应用静默保存，界面和文案不增加复杂度；已有计划升级时不重置提醒；当前 schema 无法可靠保存日期起点，因此实现与完整测试移入第四阶段，禁止使用会随车辆更新漂移的临时推导或重解释首保字段 |
+| ADR-013 | 已接受 | 保留现有日均里程估算、全局 km/mi 标签偏好和无币种费用行为，不列为重构优化项 | 产品不需要逐段处理里程异常、数值单位转换或费用币种建模；重构不得顺带改变这些行为，也不得按 locale 重解释已有数值 |
 
 新决策必须追加记录，不得静默改写已接受决策。若替代旧决策，应把旧条目标记为“已取代”并链接新 ID。
 
@@ -410,7 +409,10 @@ ADR 的“已接受”只表示范围/设计约束已锁定，不代表对应问
 | 2026-07-28 | 第一阶段退出验收 | 按退出条件复核全部第一阶段 P1/P2、schema 冻结、首保兼容字段、旧库/旧备份、12 locale、工作区与发布门禁 | 阶段收尾 | 当前 HEAD 全量 CI 与实机回归通过；数据库 version 仍为 1，建表 SQL 未变化；未跟踪 generated、build、缓存或签名文件 | 第一阶段正式完成；第二阶段待启动 |
 | 2026-07-28 | ROUTE-001 | 启动第二阶段；把命名路由的动态 Map/裸参数迁移为 typed arguments，并让 MaterialPageRoute 保留 RouteSettings；本子范围不改 schema/version、备份格式、通知 ID、业务规则或现有文案 | `codex/refactor-phase-2-foundations` | 新增 3 项 route 测试通过；10 个受影响 Dart 文件格式检查通过；`flutter analyze` 与 60 项 `flutter test` 全部通过 | 缺失/错误参数的本地化错误页与文案等待产品确认后实施 |
 | 2026-07-28 | ROUTE-001/ERROR-001 | 完成错误参数安全校验、本地化恢复页、typed failure 与 presentation mapper；车辆、计划、记录、预测、详情、提醒和备份错误不再暴露内部异常；采用经确认的简短刷新/提醒文案；不改 schema/version、备份格式、通知 ID 或正常业务语义 | `codex/refactor-phase-2-foundations` | 12 个 ARB 均为 177 个消息 key；`flutter gen-l10n`、受影响文件格式化、`flutter analyze`、66 项 `flutter test` 和 `git diff --check` 通过 | ROUTE-001、ERROR-001 已完成；下一步推进 ARCH-001，业务语义项继续等待逐项确认 |
-| 2026-07-28 | ARCH-001 | 完成 repository/preferences/notification/platform ports 与车辆、计划、记录、预测、提醒 application use case；Clock 由组合根注入；模型、偏好显示、快捷导航和设备插件移除反向依赖；Screen 不再依赖具体 repository 或直接调用文件选择、分享、图片、应用信息、外链和退出插件；不改 schema/version、备份格式、通知 ID、路由参数或业务语义 | `codex/refactor-phase-2-foundations` | 8 项架构依赖规则、全量 73 项 `flutter test`、99 文件格式检查（0 变更）、`flutter gen-l10n`、`flutter analyze` 和 `git diff --check` 通过；维护者在正常环境确认 Android debug APK 构建无问题 | ARCH-001 已完成；下一步进入 PRED-001/PRED-002/UNIT-001 等业务语义项前逐项取得产品确认 |
+| 2026-07-28 | ARCH-001 | 完成 repository/preferences/notification/platform ports 与车辆、计划、记录、预测、提醒 application use case；Clock 由组合根注入；模型、偏好显示、快捷导航和设备插件移除反向依赖；Screen 不再依赖具体 repository 或直接调用文件选择、分享、图片、应用信息、外链和退出插件；不改 schema/version、备份格式、通知 ID、路由参数或业务语义 | `codex/refactor-phase-2-foundations` | 8 项架构依赖规则、全量 73 项 `flutter test`、99 文件格式检查（0 变更）、`flutter gen-l10n`、`flutter analyze` 和 `git diff --check` 通过；维护者在正常环境确认 Android debug APK 构建无问题 | ARCH-001 已完成；下一步进入 PRED-001 等业务语义项前逐项取得产品确认 |
+| 2026-07-28 | ADR-013 | 按产品决定移除 PRED-002、UNIT-001 及其后续依赖；保留日均里程估算、km/mi 标签偏好和无币种费用现状 | 当前重构任务 | 文档范围复核；未修改业务代码、数据库或用户文案 | PRED-001 方案确认后再继续实现 |
+| 2026-07-28 | PRED-001/ADR-012 | 接受“从创建保养计划起算”的统一规则，不区分新车/二手车、不增加输入或解释文案；因可靠起点必须落盘，将实现移入第四阶段并补齐创建、编辑、关联记录、删除回退和旧库迁移矩阵 | 当前重构任务 | 产品确认；架构审查确认 v1 schema 无计划创建日期，且动态使用车辆当前值会导致预测起点漂移 | 第二阶段继续 NOTIF-002/NOTIF-003；第四阶段与 DB-001 一并实现并运行完整预测/迁移测试 |
+| 2026-07-28 | NOTIF-002/NOTIF-003 | 接入 Android IANA 时区端口和当地日历中午调度；实现错过提醒后的受限顺延、时区/日期变化 resume 重排、版本化 typed payload、冷启动/运行中点击队列、对象校验和保养计划页签导航；不新增用户文案，不改 schema、通知 ID 或 recurrence | `codex/refactor-phase-2-foundations` | 新增时区/DST、跨区/跨日、错过提醒、无效 zone、payload 安全、前后台/冷启动、重复/后续批次、删除对象、导航页签、生命周期及 Android channel 测试；`flutter gen-l10n`、114 文件格式检查、`flutter analyze`、全量 96 项 `flutter test`、`flutter build apk --debug` 和 `git diff --check` 通过 | NOTIF-002/NOTIF-003 已完成；RESUME-001 保留普通数据陈旧度刷新，下一步进入 DATE-001/I18N-001 前确认体验与输入规则 |
 
 ## 9. PR / 交付检查清单
 
@@ -424,7 +426,7 @@ ADR 的“已接受”只表示范围/设计约束已锁定，不代表对应问
 - [ ] 跨 `await` 的 UI 操作检查 mounted，route-owned Cubit 无 close 后 emit。
 - [ ] 用户可见文本通过 ARB，12 个 locale key/placeholder 一致。
 - [ ] light、dark、custom seed、RTL 和大字体按改动范围验证。
-- [ ] 预测改动覆盖二手车基线、逐段里程倒退；单位/币种没有部分转换或依赖 locale 重解释历史值。
+- [ ] 预测改动覆盖经确认的二手车起算规则，且不顺带改变日均里程估算、单位标签或无币种费用行为。
 - [ ] 通知改动验证局部/全局刷新顺序、实际 IANA zone、DST、一次性调度和 payload 冷启动消费。
 - [ ] 查询/图片改动记录 query-count、BLOB 投影、内存基准；索引只在第四阶段随 version bump 和 migration 引入。
 - [ ] 备份相关改动验证有效库、无效库、取消、失败和回滚。

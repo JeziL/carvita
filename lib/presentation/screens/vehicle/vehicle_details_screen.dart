@@ -30,6 +30,7 @@ import 'package:carvita/presentation/manager/vehicle_list/vehicle_state.dart'
 
 class VehicleDetailsScreen extends StatefulWidget {
   final int vehicleId;
+  final VehicleDetailsTab initialTab;
   final VehicleUseCases? vehicleUseCases;
   final MaintenancePlanUseCases? maintenancePlanUseCases;
   final ServiceLogUseCases? serviceLogUseCases;
@@ -37,6 +38,7 @@ class VehicleDetailsScreen extends StatefulWidget {
   const VehicleDetailsScreen({
     super.key,
     required this.vehicleId,
+    this.initialTab = VehicleDetailsTab.overview,
     this.vehicleUseCases,
     this.maintenancePlanUseCases,
     this.serviceLogUseCases,
@@ -67,7 +69,11 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
         context.read<MaintenancePlanUseCases>();
     _serviceLogUseCases =
         widget.serviceLogUseCases ?? context.read<ServiceLogUseCases>();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(
+      length: 3,
+      initialIndex: widget.initialTab.index,
+      vsync: this,
+    );
     _fetchVehicleDetails();
   }
 

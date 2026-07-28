@@ -10,10 +10,16 @@ class AddEditVehicleRouteArguments {
   const AddEditVehicleRouteArguments({this.vehicle});
 }
 
+enum VehicleDetailsTab { overview, maintenancePlan, serviceHistory }
+
 class VehicleDetailsRouteArguments {
   final int? vehicleId;
+  final VehicleDetailsTab initialTab;
 
-  const VehicleDetailsRouteArguments({required this.vehicleId});
+  const VehicleDetailsRouteArguments({
+    required this.vehicleId,
+    this.initialTab = VehicleDetailsTab.overview,
+  });
 }
 
 class AddEditMaintenancePlanItemRouteArguments {

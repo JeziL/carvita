@@ -6,6 +6,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 import 'package:carvita/application/ports/clock.dart';
+import 'package:carvita/application/ports/reminder_schedule_port.dart';
+import 'package:carvita/application/reminders/maintenance_reminder_payload.dart';
 import 'package:carvita/application/use_cases/load_upcoming_maintenance.dart';
 import 'package:carvita/application/use_cases/synchronize_maintenance_reminders.dart';
 import 'package:carvita/core/services/notification_coordinator.dart';
@@ -69,6 +71,9 @@ void main() {
     expect(request.title, 'Maintenance Reminder: Vehicle');
     expect(request.body, contains('Oil'));
     expect(request.scheduledDateTime, DateTime(2026, 12, 29, 12));
+    final payload = MaintenanceReminderPayload.tryParse(request.payload);
+    expect(payload?.vehicleId, 1);
+    expect(payload?.planItemId, 1);
     await cubit.close();
   });
 
@@ -262,6 +267,7 @@ UpcomingMaintenanceCubit _buildCubit(
     SynchronizeMaintenanceReminders(
       preferences,
       NotificationCoordinator(gateway),
+      _FixedReminderSchedule(),
       clock,
     ),
   );
@@ -440,4 +446,34 @@ class _FixedClock implements Clock {
 
   @override
   DateTime now() => value;
+}
+
+class _FixedReminderSchedule implements ReminderSchedulePort {
+  @override
+  DateTime? calculateNotificationTime({
+    required DateTime predictedDueDate,
+    required int leadTimeDays,
+    required DateTime now,
+  }) {
+    final result = predictedDueDate
+        .subtract(Duration(days: leadTimeDays))
+        .copyWith(
+          hour: 12,
+          minute: 0,
+          second: 0,
+          millisecond: 0,
+          microsecond: 0,
+        );
+    return result.isAfter(now) ? result : null;
+  }
+
+  @override
+  Future<ReminderScheduleRefresh> refreshTimeZone() async {
+    return const ReminderScheduleRefresh(
+      timeZoneChanged: false,
+      calendarDateChanged: false,
+      timeZoneId: 'UTC',
+      usedFallback: false,
+    );
+  }
 }

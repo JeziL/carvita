@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:carvita/application/ports/clock.dart';
 import 'package:carvita/application/ports/notification_replacement_port.dart';
 import 'package:carvita/application/ports/preferences_ports.dart';
+import 'package:carvita/application/ports/reminder_schedule_port.dart';
+import 'package:carvita/application/reminders/maintenance_reminder_payload.dart';
 import 'package:carvita/data/models/predicted_maintenance.dart';
 
 typedef ReminderContentBuilder =
@@ -19,11 +21,13 @@ final class SynchronizeMaintenanceReminders {
   SynchronizeMaintenanceReminders(
     this._preferences,
     this._notificationReplacement,
+    this._reminderSchedule,
     this._clock,
   );
 
   final ReminderPreferences _preferences;
   final NotificationReplacementPort _notificationReplacement;
+  final ReminderSchedulePort _reminderSchedule;
   final Clock _clock;
   final Map<int, Completer<void>> _waiters = {};
   int _latestRevision = 0;
@@ -55,6 +59,9 @@ final class SynchronizeMaintenanceReminders {
       final input = _latestInput!;
 
       try {
+        await _reminderSchedule.refreshTimeZone();
+        if (revision != _latestRevision) continue;
+
         final notificationsEnabled = await _preferences
             .getNotificationsEnabled();
         if (revision != _latestRevision) continue;
@@ -67,30 +74,36 @@ final class SynchronizeMaintenanceReminders {
           final now = _clock.now();
           requests = input.predictions
               .map((prediction) {
-                final notificationTime = prediction.predictedDueDate
-                    .subtract(Duration(days: leadTimeDays))
-                    .copyWith(
-                      hour: 12,
-                      minute: 0,
-                      second: 0,
-                      millisecond: 0,
-                      microsecond: 0,
+                final notificationTime = _reminderSchedule
+                    .calculateNotificationTime(
+                      predictedDueDate: prediction.predictedDueDate,
+                      leadTimeDays: leadTimeDays,
+                      now: now,
                     );
-                if (!notificationTime.isAfter(now)) return null;
+                if (notificationTime == null) return null;
 
                 final content = input.contentBuilder(prediction);
+                final vehicleId = prediction.vehicle.id;
+                final planItemId = prediction.planItem.id;
+                if (vehicleId == null ||
+                    vehicleId <= 0 ||
+                    planItemId == null ||
+                    planItemId <= 0) {
+                  return null;
+                }
                 return NotificationRequest(
                   id: maintenanceNotificationId(
-                    vehicleId: prediction.vehicle.id!,
-                    planItemId: prediction.planItem.id!,
+                    vehicleId: vehicleId,
+                    planItemId: planItemId,
                   ),
                   title: content.title,
                   body: content.body,
                   scheduledDateTime: notificationTime,
-                  payload:
-                      'vehicleId=${prediction.vehicle.id}'
-                      '&planItemId=${prediction.planItem.id}'
-                      '&scheduledDateTime=${notificationTime.toIso8601String()}',
+                  payload: MaintenanceReminderPayload(
+                    vehicleId: vehicleId,
+                    planItemId: planItemId,
+                    scheduledAt: notificationTime,
+                  ).encode(),
                 );
               })
               .whereType<NotificationRequest>()

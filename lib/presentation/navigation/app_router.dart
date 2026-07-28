@@ -60,8 +60,10 @@ class AppRouter {
             arguments.vehicleId != null) {
           return MaterialPageRoute(
             settings: settings,
-            builder: (_) =>
-                VehicleDetailsScreen(vehicleId: arguments.vehicleId!),
+            builder: (_) => VehicleDetailsScreen(
+              vehicleId: arguments.vehicleId!,
+              initialTab: arguments.initialTab,
+            ),
           );
         }
         return _errorRoute(settings);

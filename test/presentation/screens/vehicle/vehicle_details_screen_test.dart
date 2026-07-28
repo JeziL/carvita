@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:carvita/application/ports/clock.dart';
+import 'package:carvita/application/ports/reminder_schedule_port.dart';
 import 'package:carvita/application/use_cases/load_upcoming_maintenance.dart';
 import 'package:carvita/application/use_cases/maintenance_plan_use_cases.dart';
 import 'package:carvita/application/use_cases/service_log_use_cases.dart';
@@ -28,6 +29,7 @@ import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/presentation/manager/locale_provider.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_cubit.dart';
+import 'package:carvita/presentation/navigation/app_route_arguments.dart';
 import 'package:carvita/presentation/screens/vehicle/vehicle_details_screen.dart';
 
 void main() {
@@ -104,6 +106,7 @@ void main() {
         serviceLogUseCases: serviceLogUseCases,
         child: VehicleDetailsScreen(
           vehicleId: 1,
+          initialTab: VehicleDetailsTab.maintenancePlan,
           vehicleUseCases: vehicleUseCases,
           maintenancePlanUseCases: maintenancePlanUseCases,
           serviceLogUseCases: serviceLogUseCases,
@@ -113,8 +116,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(FloatingActionButton), findsOne);
-    await tester.tap(find.text('Plan'));
-    await tester.pumpAndSettle();
+    final tabBar = tester.widget<TabBar>(find.byType(TabBar));
+    expect(tabBar.controller?.index, VehicleDetailsTab.maintenancePlan.index);
     await tester.tap(find.text('History'));
     await tester.pumpAndSettle();
     expect(maintenanceRepository.planReads, 1);
@@ -136,7 +139,7 @@ Widget _testApp({
   final preferences = PreferencesService();
   const clock = SystemClock();
   final notificationCoordinator = NotificationCoordinator(
-    NotificationService(clock),
+    _NoopNotificationGateway(),
   );
   return MultiProvider(
     providers: [
@@ -156,6 +159,7 @@ Widget _testApp({
           SynchronizeMaintenanceReminders(
             preferences,
             notificationCoordinator,
+            _FixedReminderSchedule(),
             clock,
           ),
         ),
@@ -194,6 +198,43 @@ class _DeferredVehicleRepository extends VehicleRepository {
 
   @override
   Future<Vehicle?> getVehicleById(int id) => completer.future;
+}
+
+class _NoopNotificationGateway implements NotificationGateway {
+  @override
+  Future<void> cancelAllNotifications() async {}
+
+  @override
+  Future<void> scheduleNotification({
+    required int id,
+    required String title,
+    required String body,
+    required DateTime scheduledDateTime,
+    String? payload,
+  }) async {}
+}
+
+class _FixedReminderSchedule implements ReminderSchedulePort {
+  @override
+  DateTime? calculateNotificationTime({
+    required DateTime predictedDueDate,
+    required int leadTimeDays,
+    required DateTime now,
+  }) {
+    return predictedDueDate
+        .subtract(Duration(days: leadTimeDays))
+        .copyWith(hour: 12);
+  }
+
+  @override
+  Future<ReminderScheduleRefresh> refreshTimeZone() async {
+    return const ReminderScheduleRefresh(
+      timeZoneChanged: false,
+      calendarDateChanged: false,
+      timeZoneId: 'UTC',
+      usedFallback: false,
+    );
+  }
 }
 
 class _CountingMaintenanceRepository extends MaintenanceRepository {

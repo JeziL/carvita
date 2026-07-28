@@ -90,7 +90,8 @@ void main() {
   test('concrete repositories and platform services are composed in main', () {
     final directConstruction = RegExp(
       r'\b(?:VehicleRepository|MaintenanceRepository|BackupService|'
-      r'NotificationService|PredictionService)\s*\(',
+      r'NotificationService|PredictionService|ReminderScheduleService|'
+      r'MethodChannelDeviceTimeZone|MaintenanceReminderTapService)\s*\(',
     );
     final violations = _dartFilesUnder('lib')
         .where((file) {

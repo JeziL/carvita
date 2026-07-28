@@ -6,7 +6,9 @@ import 'package:intl/intl_standalone.dart';
 import 'package:provider/provider.dart';
 
 import 'package:carvita/application/ports/clock.dart';
+import 'package:carvita/application/ports/notification_tap_port.dart';
 import 'package:carvita/application/ports/platform_ports.dart';
+import 'package:carvita/application/ports/reminder_schedule_port.dart';
 import 'package:carvita/application/use_cases/load_upcoming_maintenance.dart';
 import 'package:carvita/application/use_cases/maintenance_plan_use_cases.dart';
 import 'package:carvita/application/use_cases/service_log_use_cases.dart';
@@ -15,6 +17,8 @@ import 'package:carvita/application/use_cases/vehicle_use_cases.dart';
 import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/constants/app_routes.dart';
 import 'package:carvita/core/services/backup_service.dart';
+import 'package:carvita/core/services/device_time_zone_service.dart';
+import 'package:carvita/core/services/maintenance_reminder_tap_service.dart';
 import 'package:carvita/core/services/navigation_service.dart';
 import 'package:carvita/core/services/notification_coordinator.dart';
 import 'package:carvita/core/services/notification_service.dart';
@@ -22,6 +26,7 @@ import 'package:carvita/core/services/plugin_platform_service.dart';
 import 'package:carvita/core/services/prediction_service.dart';
 import 'package:carvita/core/services/preferences_service.dart';
 import 'package:carvita/core/services/quick_action_service.dart';
+import 'package:carvita/core/services/reminder_schedule_service.dart';
 import 'package:carvita/core/theme/app_theme.dart';
 import 'package:carvita/data/repositories/maintenance_repository.dart';
 import 'package:carvita/data/repositories/vehicle_repository.dart';
@@ -32,6 +37,7 @@ import 'package:carvita/presentation/manager/theme_provider.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_cubit.dart';
 import 'package:carvita/presentation/navigation/app_router.dart';
+import 'package:carvita/presentation/navigation/default_maintenance_reminder_navigation.dart';
 import 'package:carvita/presentation/navigation/default_quick_action_navigation.dart';
 
 final RouteObserver<ModalRoute<void>> routeObserver =
@@ -60,17 +66,11 @@ final appSupportedLocales = [
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   const clock = SystemClock();
-  final notificationService = NotificationService(clock);
-  await notificationService.initialize();
-  await findSystemLocale();
   final preferencesService = PreferencesService();
   final databaseHelper = DatabaseHelper();
   final vehicleRepository = VehicleRepository(dbHelper: databaseHelper);
   final maintenanceRepository = MaintenanceRepository(dbHelper: databaseHelper);
   final predictionService = PredictionService(clock);
-  final notificationCoordinator = NotificationCoordinator(notificationService);
-  final backupService = BackupService(clock: clock.now);
-  const pluginPlatformService = PluginPlatformService();
   final vehicleUseCases = VehicleUseCases(
     vehicleRepository,
     preferencesService,
@@ -79,6 +79,25 @@ Future<void> main() async {
     maintenanceRepository,
   );
   final serviceLogUseCases = ServiceLogUseCases(maintenanceRepository);
+  final maintenanceReminderTaps = MaintenanceReminderTapService(
+    vehicleRepository,
+    maintenanceRepository,
+    const DefaultMaintenanceReminderNavigation(),
+  );
+  final reminderSchedule = ReminderScheduleService(
+    const MethodChannelDeviceTimeZone(),
+    clock,
+  );
+  await reminderSchedule.refreshTimeZone();
+  final notificationService = NotificationService(
+    clock,
+    maintenanceReminderTaps,
+  );
+  await notificationService.initialize();
+  await findSystemLocale();
+  final notificationCoordinator = NotificationCoordinator(notificationService);
+  final backupService = BackupService(clock: clock.now);
+  const pluginPlatformService = PluginPlatformService();
   final loadUpcomingMaintenance = LoadUpcomingMaintenance(
     vehicleRepository,
     maintenanceRepository,
@@ -88,6 +107,7 @@ Future<void> main() async {
   final synchronizeMaintenanceReminders = SynchronizeMaintenanceReminders(
     preferencesService,
     notificationCoordinator,
+    reminderSchedule,
     clock,
   );
   final quickActionNavigation = DefaultQuickActionNavigation(
@@ -106,6 +126,8 @@ Future<void> main() async {
     MultiProvider(
       providers: [
         Provider<QuickActionService>.value(value: quickActionService),
+        Provider<NotificationTapPort>.value(value: maintenanceReminderTaps),
+        Provider<ReminderSchedulePort>.value(value: reminderSchedule),
         Provider<PreferencesService>.value(value: preferencesService),
         Provider<VehicleUseCases>.value(value: vehicleUseCases),
         Provider<MaintenancePlanUseCases>.value(value: maintenancePlanUseCases),
@@ -256,9 +278,29 @@ class ShortcutLocalizationWrapper extends StatefulWidget {
 }
 
 class _ShortcutLocalizationWrapperState
-    extends State<ShortcutLocalizationWrapper> {
+    extends State<ShortcutLocalizationWrapper>
+    with WidgetsBindingObserver {
   Locale? _lastResolvedLocale;
   bool _initialRefreshScheduled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _refreshReminderContextAfterResume();
+    }
+  }
 
   @override
   void didChangeDependencies() {
@@ -286,6 +328,7 @@ class _ShortcutLocalizationWrapperState
     if (l10n == null) return;
 
     final quickActionService = context.read<QuickActionService>();
+    context.read<NotificationTapPort>().navigatorReady();
     quickActionService.navigatorReady();
     try {
       await quickActionService.updateShortcutItems(
@@ -311,6 +354,26 @@ class _ShortcutLocalizationWrapperState
       debugPrint(
         'Failed to refresh localized maintenance services: '
         '$error\n$stackTrace',
+      );
+    }
+  }
+
+  Future<void> _refreshReminderContextAfterResume() async {
+    if (!mounted) return;
+    try {
+      final refresh = await context
+          .read<ReminderSchedulePort>()
+          .refreshTimeZone();
+      if (!refresh.contextChanged || !mounted) return;
+
+      final l10n = AppLocalizations.of(context);
+      if (l10n == null) return;
+      await context
+          .read<UpcomingMaintenanceCubit>()
+          .rescheduleNotificationsBasedOnNewSettings(l10n);
+    } catch (error, stackTrace) {
+      debugPrint(
+        'Failed to refresh reminders after resume: $error\n$stackTrace',
       );
     }
   }
