@@ -4,12 +4,13 @@ import 'package:collection/collection.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
+import 'package:carvita/application/ports/notification_permission_port.dart';
 import 'package:carvita/application/ports/platform_ports.dart';
+import 'package:carvita/application/use_cases/reconcile_notification_permission.dart';
 import 'package:carvita/application/use_cases/vehicle_use_cases.dart';
 import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/constants/app_routes.dart';
 import 'package:carvita/core/failures/app_failure.dart';
-import 'package:carvita/core/services/notification_service.dart';
 import 'package:carvita/core/services/preferences_service.dart';
 import 'package:carvita/core/theme/app_theme.dart';
 import 'package:carvita/core/utils/preference_selection.dart';
@@ -37,7 +38,8 @@ class SettingsScreen extends StatefulWidget {
   State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> {
+class _SettingsScreenState extends State<SettingsScreen>
+    with WidgetsBindingObserver {
   late final PreferencesService _preferencesService;
   late final VehicleUseCases _vehicleUseCases;
   late final AppPackageInfoPort _packageInfoProvider;
@@ -48,6 +50,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _maintenanceRemindersEnabled = false;
   int _selectedLeadTimeDays = 7;
   late final NotificationPermissionGateway _notificationService;
+  late final ReconcileNotificationPermission _reconcileNotificationPermission;
   DueReminderThresholdValue _selectedThreshold =
       DueReminderThresholdValue.halfYear;
   int _selectedReminderItemCount = 3;
@@ -59,12 +62,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _preferencesService = context.read<PreferencesService>();
     _vehicleUseCases = context.read<VehicleUseCases>();
     _notificationService = context.read<NotificationPermissionGateway>();
+    _reconcileNotificationPermission = context
+        .read<ReconcileNotificationPermission>();
     _packageInfoProvider = context.read<AppPackageInfoPort>();
     _externalUrl = context.read<ExternalUrlPort>();
+    WidgetsBinding.instance.addObserver(this);
     _loadDefaultVehicleInfo();
     _loadReminderSettings();
     _loadNotificationSettings();
     _initPackageInfo();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _loadNotificationSettings();
+    }
   }
 
   Future<void> _loadDefaultVehicleInfo() async {
@@ -222,6 +241,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _loadNotificationSettings() async {
+    try {
+      await _reconcileNotificationPermission();
+    } catch (error, stackTrace) {
+      debugPrint(
+        'Failed to reconcile notification permission in settings: '
+        '$error\n$stackTrace',
+      );
+    }
     final enabled = await _preferencesService.getNotificationsEnabled();
     final leadTime = await _preferencesService.getReminderLeadTimeDays();
     if (mounted) {

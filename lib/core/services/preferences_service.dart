@@ -139,6 +139,7 @@ class PreferencesService
     return prefs.getInt(_dueReminderItemCountKey) ?? 3;
   }
 
+  @override
   Future<void> setNotificationsEnabled(bool enabled) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_notificationsEnabledKey, enabled);

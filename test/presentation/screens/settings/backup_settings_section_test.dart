@@ -4,9 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:provider/provider.dart';
 
+import 'package:carvita/application/ports/notification_permission_port.dart';
 import 'package:carvita/application/ports/platform_ports.dart';
 import 'package:carvita/core/services/backup_service.dart';
-import 'package:carvita/core/services/notification_service.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/presentation/screens/settings/backup_settings_section.dart';
 

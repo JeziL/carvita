@@ -10,10 +10,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:carvita/application/ports/app_startup_port.dart';
 import 'package:carvita/application/ports/clock.dart';
+import 'package:carvita/application/ports/notification_permission_port.dart';
 import 'package:carvita/application/ports/notification_tap_port.dart';
 import 'package:carvita/application/ports/reminder_schedule_port.dart';
 import 'package:carvita/application/queries/maintenance_data_snapshot.dart';
 import 'package:carvita/application/use_cases/load_upcoming_maintenance.dart';
+import 'package:carvita/application/use_cases/reconcile_notification_permission.dart';
 import 'package:carvita/application/use_cases/synchronize_maintenance_reminders.dart';
 import 'package:carvita/core/services/notification_coordinator.dart';
 import 'package:carvita/core/services/notification_service.dart';
@@ -61,6 +63,12 @@ void main() {
           Provider<QuickActionService>.value(value: quickActionService),
           Provider<NotificationTapPort>.value(value: notificationTaps),
           Provider<ReminderSchedulePort>.value(value: reminderSchedule),
+          Provider<ReconcileNotificationPermission>.value(
+            value: ReconcileNotificationPermission(
+              preferences,
+              _NotificationPermissions(),
+            ),
+          ),
           BlocProvider<UpcomingMaintenanceCubit>.value(value: upcomingCubit),
         ],
         child: MaterialApp(
@@ -115,6 +123,12 @@ void main() {
           Provider<QuickActionService>.value(value: quickActionService),
           Provider<NotificationTapPort>.value(value: notificationTaps),
           Provider<ReminderSchedulePort>.value(value: reminderSchedule),
+          Provider<ReconcileNotificationPermission>.value(
+            value: ReconcileNotificationPermission(
+              preferences,
+              _NotificationPermissions(),
+            ),
+          ),
           BlocProvider<UpcomingMaintenanceCubit>.value(value: upcomingCubit),
         ],
         child: MaterialApp(
@@ -167,6 +181,12 @@ void main() {
           Provider<QuickActionService>.value(value: quickActionService),
           Provider<NotificationTapPort>.value(value: _FakeNotificationTaps()),
           Provider<ReminderSchedulePort>.value(value: reminderSchedule),
+          Provider<ReconcileNotificationPermission>.value(
+            value: ReconcileNotificationPermission(
+              preferences,
+              _NotificationPermissions(),
+            ),
+          ),
           BlocProvider<UpcomingMaintenanceCubit>.value(value: upcomingCubit),
         ],
         child: MaterialApp(
@@ -200,6 +220,60 @@ void main() {
     await upcomingCubit.close();
   });
 
+  testWidgets(
+    'startup turns restored reminders off when system permission is missing',
+    (tester) async {
+      final maintenanceRepository = _FakeMaintenanceRepository();
+      final preferences = _FakePreferencesService(notificationsEnabled: true);
+      final permissions = _NotificationPermissions(granted: false);
+      final upcomingCubit = await _pumpPermissionReconciliationApp(
+        tester,
+        maintenanceRepository,
+        preferences,
+        permissions,
+      );
+
+      expect(preferences.notificationsEnabled, isFalse);
+      expect(preferences.setNotificationsEnabledCount, 1);
+      expect(permissions.checkCount, 1);
+      expect(permissions.requestCount, 0);
+      expect(permissions.cancelCount, 1);
+      expect(maintenanceRepository.snapshotReadCount, 1);
+      await upcomingCubit.close();
+    },
+  );
+
+  testWidgets(
+    'resume turns restored reminders off when system permission was revoked',
+    (tester) async {
+      final maintenanceRepository = _FakeMaintenanceRepository();
+      final preferences = _FakePreferencesService(notificationsEnabled: true);
+      final permissions = _NotificationPermissions(granted: true);
+      final upcomingCubit = await _pumpPermissionReconciliationApp(
+        tester,
+        maintenanceRepository,
+        preferences,
+        permissions,
+      );
+
+      expect(preferences.notificationsEnabled, isTrue);
+      expect(permissions.checkCount, 1);
+      expect(maintenanceRepository.snapshotReadCount, 1);
+
+      permissions.granted = false;
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pumpAndSettle();
+
+      expect(preferences.notificationsEnabled, isFalse);
+      expect(preferences.setNotificationsEnabledCount, 1);
+      expect(permissions.checkCount, 2);
+      expect(permissions.requestCount, 0);
+      expect(permissions.cancelCount, 1);
+      expect(maintenanceRepository.snapshotReadCount, 1);
+      await upcomingCubit.close();
+    },
+  );
+
   testWidgets('resolved locale changes refresh shortcuts and reminders', (
     tester,
   ) async {
@@ -229,6 +303,12 @@ void main() {
           Provider<QuickActionService>.value(value: quickActionService),
           Provider<NotificationTapPort>.value(value: _FakeNotificationTaps()),
           Provider<ReminderSchedulePort>.value(value: reminderSchedule),
+          Provider<ReconcileNotificationPermission>.value(
+            value: ReconcileNotificationPermission(
+              preferences,
+              _NotificationPermissions(),
+            ),
+          ),
           BlocProvider<UpcomingMaintenanceCubit>.value(value: upcomingCubit),
         ],
         child: MaterialApp(
@@ -294,6 +374,12 @@ void main() {
             Provider<ReminderSchedulePort>.value(
               value: _FixedReminderSchedule(),
             ),
+            Provider<ReconcileNotificationPermission>.value(
+              value: ReconcileNotificationPermission(
+                preferences,
+                _NotificationPermissions(),
+              ),
+            ),
             BlocProvider<UpcomingMaintenanceCubit>.value(value: upcomingCubit),
           ],
           child: MaterialApp(
@@ -324,6 +410,54 @@ void main() {
       await upcomingCubit.close();
     },
   );
+}
+
+Future<UpcomingMaintenanceCubit> _pumpPermissionReconciliationApp(
+  WidgetTester tester,
+  _FakeMaintenanceRepository maintenanceRepository,
+  _FakePreferencesService preferences,
+  _NotificationPermissions permissions,
+) async {
+  final reminderSchedule = _FixedReminderSchedule();
+  final quickActionService = QuickActionService(
+    vehicleRepository: _CountingVehicleRepository(),
+    preferencesService: preferences,
+    navigation: const _NoopQuickActionNavigation(),
+    platform: _CountingQuickActionPlatform(),
+  );
+  final upcomingCubit = _upcomingCubit(
+    maintenanceRepository,
+    preferences,
+    reminderSchedule,
+  );
+
+  await tester.pumpWidget(
+    MultiProvider(
+      providers: [
+        Provider<AppStartupPort>.value(value: _FakeAppStartup()),
+        Provider<QuickActionService>.value(value: quickActionService),
+        Provider<NotificationTapPort>.value(value: _FakeNotificationTaps()),
+        Provider<ReminderSchedulePort>.value(value: reminderSchedule),
+        Provider<ReconcileNotificationPermission>.value(
+          value: ReconcileNotificationPermission(preferences, permissions),
+        ),
+        BlocProvider<UpcomingMaintenanceCubit>.value(value: upcomingCubit),
+      ],
+      child: MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: const ShortcutLocalizationWrapper(child: SizedBox()),
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
+  return upcomingCubit;
 }
 
 UpcomingMaintenanceCubit _upcomingCubit(
@@ -377,8 +511,45 @@ class _FakeMaintenanceRepository extends MaintenanceRepository {
 }
 
 class _FakePreferencesService extends PreferencesService {
+  _FakePreferencesService({this.notificationsEnabled = false});
+
+  bool notificationsEnabled;
+  int setNotificationsEnabledCount = 0;
+
   @override
-  Future<bool> getNotificationsEnabled() async => false;
+  Future<bool> getNotificationsEnabled() async => notificationsEnabled;
+
+  @override
+  Future<void> setNotificationsEnabled(bool enabled) async {
+    setNotificationsEnabledCount++;
+    notificationsEnabled = enabled;
+  }
+}
+
+class _NotificationPermissions implements NotificationPermissionGateway {
+  _NotificationPermissions({this.granted = true});
+
+  bool granted;
+  int checkCount = 0;
+  int requestCount = 0;
+  int cancelCount = 0;
+
+  @override
+  Future<bool> checkPermissions() async {
+    checkCount++;
+    return granted;
+  }
+
+  @override
+  Future<bool> requestPermissions() async {
+    requestCount++;
+    return granted;
+  }
+
+  @override
+  Future<void> cancelAllNotifications() async {
+    cancelCount++;
+  }
 }
 
 class _CountingQuickActionPlatform implements QuickActionPlatform {

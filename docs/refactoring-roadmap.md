@@ -64,6 +64,7 @@
 
 - manifest 记录 `formatVersion`、数据库 schema version、应用版本、UTC 创建时间、精确内容清单、大小和 SHA-256；
 - 偏好只导出 allowlist 内的 typed 值，包括语言、主题、自定义主题色、里程单位、默认车辆、通知设置和 Dashboard 筛选；不读取或恢复未知键；
+- `notifications_enabled` 表达用户在应用内的提醒意愿，不代表 Android 系统权限；新安装恢复为开启但系统权限未授予时，应用在启动或 resume 检查后把开关归一为关闭并取消提醒，不自动发起权限请求；
 - 导入在关闭当前数据库前完成容器版本、精确文件清单、checksum、SQLite schema/integrity 和偏好类型校验；未知未来版本安全拒绝；
 - 数据库使用同卷 staging、rollback 和原子替换；偏好提交失败会触发数据库回滚，偏好实现同时恢复原白名单值；
 - 继续支持历史裸 v1 `.db` 导入。裸库只恢复四张业务表且不修改当前 `SharedPreferences`，不得描述为完整备份；
@@ -185,6 +186,7 @@ flowchart TD
 | RESUME-001 | P2 | 第二阶段 | **已完成** | 重构前 resume 只重排已有提醒，跨当地日历日或时区后预测本身可能仍是旧结果；离线单进程数据不存在同日按分钟陈旧来源 | 日期或时区变化时单飞完整重载预测并重建提醒；普通同日 resume 不扫描全库；重复 resume 和 locale 变化测试证明无多余数据读取 |
 | NOTIF-002 | P1 | 第二阶段 | **已完成** | 重构前通知服务只初始化 timezone 数据库，没有把设备实际 IANA 时区设置为 `tz.local`；本地中午调度在非默认时区、DST 或时区切换后可能偏移 | Android scoped MethodChannel 通过 application port 提供设备时区并设置 `tz.local`；调度策略按目标当地日历日构造中午，跨 DST 使用目标日 offset；错过原时间后取不晚于到期日的下一个当地中午，否则跳过；时区/日期变化的 resume 单飞重排，重复 resume 不扫描；无效 zone 安全回退；保持一次性 `inexactAllowWhileIdle` |
 | NOTIF-003 | P2 | 第二阶段 | **已完成** | 重构前通知点击回调未消费 payload，前台、后台恢复与冷启动没有统一导航协议 | payload 使用带版本、动作、vehicle ID、plan item ID 和调度批次时间的 typed JSON；运行中回调和冷启动 launch details 进入同一有界去重队列；Navigator 就绪后校验车辆和 active plan，有效对象打开车辆详情保养计划页签，已删除对象打开即将到期列表，非法或恶意 payload 安全忽略；后台 isolate 不直接导航 |
+| NOTIF-004 | P1 | 第三阶段 | **已完成** | 完整备份可恢复开启的提醒偏好，但新安装可能尚未取得 Android 通知权限，导致设置页显示已开启而系统不会送达提醒 | 保留备份中的用户意愿；启动初始化后及每次 resume 检查实际权限，若偏好开启但权限缺失则持久化关闭并取消已有提醒；设置页同步刷新为关闭；检查过程不请求权限，仍仅在用户主动开启开关时弹出系统授权；单飞、冷启动和 resume 回归测试通过 |
 | NAV-002 | P3 | 第三阶段 | **已完成** | 底部导航每次清空整个路由栈，丢失各 tab 滚动、筛选和子栈 | 采用 shell/IndexedStack 或独立 Navigator；切换 tab 保留页面状态；Android 返回行为有集成测试 |
 | PERF-001 | P2 | 第三阶段 | **已完成** | 保养记录关联项按每条日志再次查询，形成 N+1；全局预测还会逐车、逐资源重复访问数据库，数据量增长后查询次数线性放大 | 用 JOIN/批量 `IN`/分组查询或等价 repository query 一次取得关联数据；相同页面加载的查询次数不随日志条数增长；全局预测复用明确快照并保持结果一致；通过 query-count 测试与脱敏大数据基准记录时延、内存和查询数 |
 | IMAGE-001 | P3 | 第三阶段 | **已完成** | 车辆图片以 BLOB 存于主表，普通列表查询也可能携带完整图片，并在卡片中反复解码；这会放大查询内存、备份体积和滚动成本 | 列表摘要查询默认不投影 image BLOB，详情按需加载；使用尺寸感知解码、缩略图和有界缓存；大量车辆/大图场景记录查询字节、峰值内存、滚动帧和备份体积；不擅自放大入库图片；若把图片移出数据库，必须进入第四阶段迁移并同时设计备份兼容 |
@@ -427,6 +429,7 @@ ADR 的“已接受”只表示范围/设计约束已锁定；对应问题项是
 | 2026-07-28 | NAV-002/PERF-001/IMAGE-001/BKP-003 | 启动第三阶段；范围包括持久底部导航、批量数据快照、列表图片按需加载、版本化完整备份和相应页面/性能回归保护；保持 SQLite schema/version、通知 ID、预测、单位与费用语义不变 | `codex/refactor-phase-3-navigation-performance` | `main` 工作区干净；阶段二退出记录为 119 项测试与静态分析通过 | 先建立查询数、导航与备份兼容基线，再逐项实现并记录真实基准 |
 | 2026-07-28 | NAV-002/PERF-001/IMAGE-001 | 完成持久 `MainShell`、外部导航协调、日志 JOIN、单事务预测快照、车辆 summary/image 分离、尺寸感知缩略图和 24 项/16 MiB LRU；Settings 备份流程拆为独立 section | `codex/refactor-phase-3-navigation-performance` | 250 条日志关联为 1 次查询，测试环境 12,589 µs；200 辆车完整预测为固定 4 次查询，快照 13,085 µs；100 辆车 synthetic scroll 只加载可见缩略图且测试 cache ≤ 8 项，导航状态/滚动/Android 返回与 Golden 回归通过 | 对版本化备份和整阶段质量门禁做退出验收 |
 | 2026-07-28 | BKP-003/第三阶段退出验收 | 完成 `.cvbackup` v1 精确三文件容器、manifest/SHA-256/schema/app/preference version、typed allowlist、未知版本前置拒绝、数据库与偏好回滚、裸 v1 `.db` 兼容；恢复提示保持原有简洁文案，并同步 AGENTS 与 ADR-015～017 | `codex/refactor-phase-3-navigation-performance` | 版本化导出样本 1,588 bytes（SQLite 快照 24,576 bytes）；校验和篡改、未知版本、偏好提交失败、数据库回滚和 legacy 偏好不变测试通过；`flutter pub get`、`flutter gen-l10n`、136 文件格式检查、`flutter analyze`、全量 138 项 `flutter test`、`flutter build apk --debug` 和 `git diff --check` 通过 | 第三阶段正式完成；第四阶段按进入条件准备真实 v1 数据样本、迁移决策和 schema 方案 |
+| 2026-07-28 | NOTIF-004 | 修复完整备份恢复提醒意愿与新安装系统权限不一致：application 单飞协调器在启动、resume 和设置页检查实际权限，缺失时关闭偏好并取消提醒；不自动请求权限，也不修改恢复提示文案 | `codex/refactor-phase-3-navigation-performance` | 新增 5 项 use case 测试及冷启动/同日 resume 回归；`flutter gen-l10n`、139 文件格式检查（0 变更）、`flutter analyze`、全量 146 项 `flutter test` 和 `git diff --check` 通过 | 等待维护者真机验证：无权限的新安装恢复开启偏好后显示关闭，用户手动重新开启时才弹系统授权 |
 
 ## 9. PR / 交付检查清单
 

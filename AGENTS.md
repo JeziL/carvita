@@ -88,9 +88,10 @@ assets/icon/                       主图标及其 Cairo 生成脚本
 2. 创建 Clock、偏好服务、数据库、repository 实现、application use case 与平台适配器；
 3. 注入全局 Provider/Cubit 并立即启动 `MaterialApp`；
 4. 首帧后通过 `AppStartupPort` 单飞初始化设备时区、本地通知、系统 locale 与 Android app shortcut 监听；
-5. Navigator 和本地化就绪后更新快捷入口，并首次加载预测和同步提醒。
+5. 通知初始化后协调应用内提醒开关与系统权限；
+6. Navigator 和本地化就绪后更新快捷入口，并首次加载预测和同步提醒。
 
-平台初始化必须逐项隔离失败；可恢复的通知、locale 或快捷入口插件异常不得阻止基础 UI 启动，也不得跳过后续预测加载。通知权限仍只在用户启用提醒时请求。
+平台初始化必须逐项隔离失败；可恢复的通知、locale 或快捷入口插件异常不得阻止基础 UI 启动，也不得跳过后续预测加载。通知权限仍只在用户启用提醒时请求。通知初始化后及每次 App resume 都要协调应用内开关与系统权限：偏好为开启但系统权限缺失时，持久化关闭开关并取消提醒，不自动请求权限。
 
 全局对象：
 
@@ -150,7 +151,7 @@ assets/icon/                       主图标及其 Cairo 生成脚本
 
 当前只有 `onCreate`，没有迁移逻辑。表定义声明了外键和级联规则，但 `openDatabase` 没有在 `onConfigure` 中显式执行 `PRAGMA foreign_keys = ON`。不要假定级联删除一定生效；如果代码要依赖外键行为，应先显式启用并为已有数据制定清理/迁移策略。
 
-设置页的新导出格式是版本化 `.cvbackup` ZIP 容器，固定包含 `manifest.json`、`database/carvita_v1.db` 和 `preferences.json`。manifest 记录容器版本、数据库 schema version、应用版本、UTC 创建时间、内容大小和 SHA-256；偏好只允许 `BackupPreferencesPort` 白名单中的 typed 值。导出前仍需生成并校验一致的 SQLite 快照。
+设置页的新导出格式是版本化 `.cvbackup` ZIP 容器，固定包含 `manifest.json`、`database/carvita_v1.db` 和 `preferences.json`。manifest 记录容器版本、数据库 schema version、应用版本、UTC 创建时间、内容大小和 SHA-256；偏好只允许 `BackupPreferencesPort` 白名单中的 typed 值。导出前仍需生成并校验一致的 SQLite 快照。备份中的 `notifications_enabled` 只表示用户意愿，不表示系统权限；恢复后必须按上一节的权限协调规则处理。
 
 恢复必须先区分新容器与旧裸 SQLite `.db`：旧 `.db` 仍只恢复业务数据库且不得修改偏好；新容器必须在关闭当前库前完成文件清单、版本、checksum、数据库和偏好校验。未知未来版本安全拒绝。新容器的数据库替换和偏好提交属于一个可回滚流程；任一提交或重开失败都要恢复原数据库，偏好实现也要恢复原白名单值。成功恢复后仍要求退出应用。不要把 `.cvbackup` 伪装成 `.db`，不要把未知偏好或非白名单键写入 `SharedPreferences`。
 
@@ -193,7 +194,7 @@ assets/icon/                       主图标及其 Cairo 生成脚本
   - 取消或重新调度通知；
   - 通知文案应使用当前 locale。
 
-`UpcomingMaintenanceCubit.loadAllUpcomingMaintenance` 调用 `LoadUpcomingMaintenance` 遍历所有车辆并重新查询计划、记录和关联，再由 `SynchronizeMaintenanceReminders` 按 latest-wins 协议重建通知。不要把它放入高频 build 或无意义的循环中。
+`UpcomingMaintenanceCubit.loadAllUpcomingMaintenance` 调用 `LoadUpcomingMaintenance` 读取固定 4 次查询的预测快照，再由 `SynchronizeMaintenanceReminders` 按 latest-wins 协议重建通知。不要把它放入高频 build 或无意义的循环中。
 
 通知安排在“到期日前 N 天的设备当前 IANA 时区中午 12:00”，使用 `inexactAllowWhileIdle`。Android 原生时区通过 application port 读取并设置为 `tz.local`；App resume 时只有时区或当地日历日期变化才完整重载预测并重建提醒，普通同日 resume 不扫描全库。若原提醒时间已过，则使用不晚于到期日的下一个当地中午；不存在可用时间时跳过，不立即补发。通知 ID 由车辆 ID 与计划 ID 的组合 hash 得到。
 
