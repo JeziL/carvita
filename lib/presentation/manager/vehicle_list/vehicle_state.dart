@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import 'package:carvita/core/failures/app_failure.dart';
 import 'package:carvita/data/models/vehicle.dart';
 
 abstract class VehicleState extends Equatable {
@@ -16,23 +17,23 @@ class VehicleLoading extends VehicleState {}
 class VehicleLoaded extends VehicleState {
   final List<Vehicle> vehicles;
   final bool isRefreshing;
-  final String? refreshError;
+  final AppFailure? refreshFailure;
 
   const VehicleLoaded(
     this.vehicles, {
     this.isRefreshing = false,
-    this.refreshError,
+    this.refreshFailure,
   });
 
   @override
-  List<Object?> get props => [vehicles, isRefreshing, refreshError];
+  List<Object?> get props => [vehicles, isRefreshing, refreshFailure];
 }
 
 class VehicleError extends VehicleState {
-  final String message;
+  final AppFailure failure;
 
-  const VehicleError(this.message);
+  const VehicleError(this.failure);
 
   @override
-  List<Object> get props => [message];
+  List<Object> get props => [failure];
 }

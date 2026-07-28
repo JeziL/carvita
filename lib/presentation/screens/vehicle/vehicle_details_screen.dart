@@ -6,17 +6,21 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:transparent_image/transparent_image.dart';
 
+import 'package:carvita/application/use_cases/maintenance_plan_use_cases.dart';
+import 'package:carvita/application/use_cases/service_log_use_cases.dart';
+import 'package:carvita/application/use_cases/vehicle_use_cases.dart';
 import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/constants/app_routes.dart';
+import 'package:carvita/core/failures/app_failure.dart';
 import 'package:carvita/core/theme/app_theme.dart';
 import 'package:carvita/core/widgets/gradient_background.dart';
 import 'package:carvita/data/models/vehicle.dart';
-import 'package:carvita/data/repositories/maintenance_repository.dart';
-import 'package:carvita/data/repositories/vehicle_repository.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
+import 'package:carvita/presentation/failures/app_failure_localizer.dart';
 import 'package:carvita/presentation/manager/maintenance_plan/maintenance_plan_cubit.dart';
 import 'package:carvita/presentation/manager/service_log/service_log_cubit.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_cubit.dart';
+import 'package:carvita/presentation/navigation/app_route_arguments.dart';
 import 'package:carvita/presentation/screens/vehicle/tabs/maintenance_plan_tab.dart';
 import 'package:carvita/presentation/screens/vehicle/tabs/overview_tab.dart';
 import 'package:carvita/presentation/screens/vehicle/tabs/service_history_tab.dart';
@@ -26,14 +30,18 @@ import 'package:carvita/presentation/manager/vehicle_list/vehicle_state.dart'
 
 class VehicleDetailsScreen extends StatefulWidget {
   final int vehicleId;
-  final VehicleRepository? vehicleRepository;
-  final MaintenanceRepository? maintenanceRepository;
+  final VehicleDetailsTab initialTab;
+  final VehicleUseCases? vehicleUseCases;
+  final MaintenancePlanUseCases? maintenancePlanUseCases;
+  final ServiceLogUseCases? serviceLogUseCases;
 
   const VehicleDetailsScreen({
     super.key,
     required this.vehicleId,
-    this.vehicleRepository,
-    this.maintenanceRepository,
+    this.initialTab = VehicleDetailsTab.overview,
+    this.vehicleUseCases,
+    this.maintenancePlanUseCases,
+    this.serviceLogUseCases,
   });
 
   @override
@@ -45,38 +53,52 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
   late TabController _tabController;
   Vehicle? _vehicle;
   bool _isLoading = true;
-  String _error = '';
+  AppFailure? _failure;
 
-  late final VehicleRepository _vehicleRepository;
-  late final MaintenanceRepository _maintenanceRepository;
+  late final VehicleUseCases _vehicleUseCases;
+  late final MaintenancePlanUseCases _maintenancePlanUseCases;
+  late final ServiceLogUseCases _serviceLogUseCases;
 
   @override
   void initState() {
     super.initState();
-    _vehicleRepository = widget.vehicleRepository ?? VehicleRepository();
-    _maintenanceRepository =
-        widget.maintenanceRepository ?? MaintenanceRepository();
-    _tabController = TabController(length: 3, vsync: this);
+    _vehicleUseCases =
+        widget.vehicleUseCases ?? context.read<VehicleUseCases>();
+    _maintenancePlanUseCases =
+        widget.maintenancePlanUseCases ??
+        context.read<MaintenancePlanUseCases>();
+    _serviceLogUseCases =
+        widget.serviceLogUseCases ?? context.read<ServiceLogUseCases>();
+    _tabController = TabController(
+      length: 3,
+      initialIndex: widget.initialTab.index,
+      vsync: this,
+    );
     _fetchVehicleDetails();
   }
 
   Future<void> _fetchVehicleDetails() async {
     setState(() {
       _isLoading = true;
-      _error = '';
+      _failure = null;
     });
     try {
-      final vehicle = await _vehicleRepository.getVehicleById(widget.vehicleId);
+      final vehicle = await _vehicleUseCases.getVehicleById(widget.vehicleId);
       if (mounted) {
         setState(() {
           _vehicle = vehicle;
           _isLoading = false;
         });
       }
-    } catch (e) {
+    } catch (error, stackTrace) {
       if (mounted) {
         setState(() {
-          _error = e.toString();
+          _failure = AppFailure.capture(
+            AppFailureKind.load,
+            error,
+            stackTrace,
+            context: 'VehicleDetailsScreen.fetchVehicleDetails',
+          );
           _isLoading = false;
         });
       }
@@ -91,6 +113,13 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
 
   Widget _buildVehicleHeader(BuildContext context, Vehicle vehicle) {
     final themeExtensions = Theme.of(context).extension<AppThemeExtensions>()!;
+    final purchaseYear = DateFormat.y(
+      Localizations.localeOf(context).toLanguageTag(),
+    ).format(vehicle.boughtDate);
+    final model = vehicle.model;
+    final modelAndYear = model != null && model.isNotEmpty
+        ? AppLocalizations.of(context)!.modelAndYear(model, purchaseYear)
+        : purchaseYear;
     return Container(
       padding: EdgeInsets.only(
         top: MediaQuery.of(context).padding.top + 10,
@@ -102,13 +131,14 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Align(
-            alignment: Alignment.topLeft,
+            alignment: AlignmentDirectional.topStart,
             child: IconButton(
               icon: Icon(
                 Icons.arrow_back_ios_new,
                 color: themeExtensions.textColorOnBackground,
                 size: 24,
               ),
+              tooltip: AppLocalizations.of(context)!.back,
               onPressed: () => Navigator.of(context).pop(),
             ),
           ),
@@ -180,7 +210,7 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
           ),
           const SizedBox(height: 5),
           Text(
-            "${vehicle.model != null ? '${vehicle.model} - ' : ''}${DateFormat.y((Localizations.localeOf(context).toLanguageTag())).format(vehicle.boughtDate)}",
+            modelAndYear,
             style: TextStyle(
               color: themeExtensions.textColorOnBackground.withValues(
                 alpha: 0.85,
@@ -279,12 +309,12 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
       providers: [
         BlocProvider<MaintenancePlanCubit>(
           create: (_) =>
-              MaintenancePlanCubit(_maintenanceRepository, vehicle.id!)
+              MaintenancePlanCubit(_maintenancePlanUseCases, vehicle.id!)
                 ..fetchPlanItems(),
         ),
         BlocProvider<ServiceLogCubit>(
           create: (_) =>
-              ServiceLogCubit(_maintenanceRepository, vehicle.id!)
+              ServiceLogCubit(_serviceLogUseCases, vehicle.id!)
                 ..fetchServiceLogs(),
         ),
       ],
@@ -326,18 +356,18 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
               ],
             ),
             floatingActionButton: FloatingActionButton(
+              tooltip: AppLocalizations.of(builderContext)!.logMaintenance,
               onPressed: () {
                 Navigator.pushNamed(
                   builderContext,
                   AppRoutes.logMaintenanceRoute,
-                  arguments: {
-                    'vehicleId': vehicle.id!,
-                    'vehicleName': vehicle.name,
-                    'logToEdit': null,
-                    'serviceLogCubit': builderContext.read<ServiceLogCubit>(),
-                    'maintenancePlanCubit': builderContext
+                  arguments: LogMaintenanceRouteArguments(
+                    vehicleId: vehicle.id!,
+                    vehicleName: vehicle.name,
+                    serviceLogCubit: builderContext.read<ServiceLogCubit>(),
+                    maintenancePlanCubit: builderContext
                         .read<MaintenancePlanCubit>(),
-                  },
+                  ),
                 );
               },
               backgroundColor: Theme.of(context).colorScheme.primary,
@@ -400,10 +430,15 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
                   ),
                 ),
               )
-            : _error.isNotEmpty
+            : _failure != null
             ? Scaffold(
                 backgroundColor: Colors.transparent,
-                body: _buildUnavailableState(context: context, message: _error),
+                body: _buildUnavailableState(
+                  context: context,
+                  message: _failure!.toLocalizedMessage(
+                    AppLocalizations.of(context)!,
+                  ),
+                ),
               )
             : _vehicle?.id == null
             ? Scaffold(

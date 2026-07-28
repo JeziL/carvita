@@ -42,7 +42,15 @@ class BackupRestoreException extends BackupException {
   const BackupRestoreException(super.message, {super.cause});
 }
 
-class BackupService {
+abstract interface class BackupGateway {
+  Future<String> createExportSnapshot();
+
+  Future<void> deleteExportSnapshot(String snapshotPath);
+
+  Future<void> restoreDatabase(String selectedPath);
+}
+
+class BackupService implements BackupGateway {
   BackupService({
     BackupDatabaseController? databaseController,
     DatabaseFactory? sqliteFactory,
@@ -129,6 +137,7 @@ class BackupService {
 
   Future<void> _operationTail = Future<void>.value();
 
+  @override
   Future<String> createExportSnapshot() {
     return _serialize(() async {
       final databaseDirectory = await _databaseDirectoryProvider();
@@ -199,6 +208,7 @@ class BackupService {
     });
   }
 
+  @override
   Future<void> deleteExportSnapshot(String snapshotPath) async {
     try {
       final temporaryDirectory = await _temporaryDirectoryProvider();
@@ -222,6 +232,7 @@ class BackupService {
     }
   }
 
+  @override
   Future<void> restoreDatabase(String sourcePath) {
     return _serialize(() async {
       final sourceFile = File(sourcePath);

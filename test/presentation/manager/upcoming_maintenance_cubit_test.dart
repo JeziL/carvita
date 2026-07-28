@@ -5,6 +5,11 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:intl/date_symbol_data_local.dart';
 
+import 'package:carvita/application/ports/clock.dart';
+import 'package:carvita/application/ports/reminder_schedule_port.dart';
+import 'package:carvita/application/reminders/maintenance_reminder_payload.dart';
+import 'package:carvita/application/use_cases/load_upcoming_maintenance.dart';
+import 'package:carvita/application/use_cases/synchronize_maintenance_reminders.dart';
 import 'package:carvita/core/services/notification_coordinator.dart';
 import 'package:carvita/core/services/notification_service.dart';
 import 'package:carvita/core/services/prediction_service.dart';
@@ -66,6 +71,9 @@ void main() {
     expect(request.title, 'Maintenance Reminder: Vehicle');
     expect(request.body, contains('Oil'));
     expect(request.scheduledDateTime, DateTime(2026, 12, 29, 12));
+    final payload = MaintenanceReminderPayload.tryParse(request.payload);
+    expect(payload?.vehicleId, 1);
+    expect(payload?.planItemId, 1);
     await cubit.close();
   });
 
@@ -145,13 +153,12 @@ void main() {
       final gateway = _RecordingNotificationGateway();
       final maintenanceRepository = _BlockingMaintenanceRepository();
       final preferences = _FakePreferencesService(notificationsEnabled: false);
-      final cubit = UpcomingMaintenanceCubit(
+      final cubit = _buildCubit(
         _FakeVehicleRepository(),
         maintenanceRepository,
-        PredictionService(),
-        NotificationCoordinator(gateway),
+        gateway,
         preferences,
-        now: () => now,
+        now,
       );
       final l10n = await AppLocalizations.delegate.load(const Locale('en'));
 
@@ -182,13 +189,12 @@ void main() {
     () async {
       final gateway = _RecordingNotificationGateway();
       final maintenanceRepository = _TwoBlockedMaintenanceRepository();
-      final cubit = UpcomingMaintenanceCubit(
+      final cubit = _buildCubit(
         _FakeVehicleRepository(),
         maintenanceRepository,
-        PredictionService(),
-        NotificationCoordinator(gateway),
+        gateway,
         _FakePreferencesService(notificationsEnabled: false),
-        now: () => now,
+        now,
       );
       final l10n = await AppLocalizations.delegate.load(const Locale('en'));
 
@@ -234,13 +240,36 @@ UpcomingMaintenanceCubit _cubit({
   required _FakePreferencesService preferences,
   required DateTime now,
 }) {
-  return UpcomingMaintenanceCubit(
+  return _buildCubit(
     _FakeVehicleRepository(),
     _FakeMaintenanceRepository(),
-    PredictionService(),
-    NotificationCoordinator(gateway),
+    gateway,
     preferences,
-    now: () => now,
+    now,
+  );
+}
+
+UpcomingMaintenanceCubit _buildCubit(
+  VehicleRepository vehicleRepository,
+  MaintenanceRepository maintenanceRepository,
+  NotificationGateway gateway,
+  PreferencesService preferences,
+  DateTime now,
+) {
+  final clock = _FixedClock(now);
+  return UpcomingMaintenanceCubit(
+    LoadUpcomingMaintenance(
+      vehicleRepository,
+      maintenanceRepository,
+      PredictionService(clock),
+      clock,
+    ),
+    SynchronizeMaintenanceReminders(
+      preferences,
+      NotificationCoordinator(gateway),
+      _FixedReminderSchedule(),
+      clock,
+    ),
   );
 }
 
@@ -406,6 +435,45 @@ class _RecordingNotificationGateway implements NotificationGateway {
         scheduledDateTime: scheduledDateTime,
         payload: payload,
       ),
+    );
+  }
+}
+
+class _FixedClock implements Clock {
+  const _FixedClock(this.value);
+
+  final DateTime value;
+
+  @override
+  DateTime now() => value;
+}
+
+class _FixedReminderSchedule implements ReminderSchedulePort {
+  @override
+  DateTime? calculateNotificationTime({
+    required DateTime predictedDueDate,
+    required int leadTimeDays,
+    required DateTime now,
+  }) {
+    final result = predictedDueDate
+        .subtract(Duration(days: leadTimeDays))
+        .copyWith(
+          hour: 12,
+          minute: 0,
+          second: 0,
+          millisecond: 0,
+          microsecond: 0,
+        );
+    return result.isAfter(now) ? result : null;
+  }
+
+  @override
+  Future<ReminderScheduleRefresh> refreshTimeZone() async {
+    return const ReminderScheduleRefresh(
+      timeZoneChanged: false,
+      calendarDateChanged: false,
+      timeZoneId: 'UTC',
+      usedFallback: false,
     );
   }
 }

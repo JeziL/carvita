@@ -7,11 +7,13 @@ import 'package:carvita/core/constants/app_routes.dart';
 import 'package:carvita/core/utils/operation_result.dart';
 import 'package:carvita/data/models/maintenance_plan_item.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
+import 'package:carvita/presentation/failures/app_failure_localizer.dart';
 import 'package:carvita/presentation/manager/locale_provider.dart';
 import 'package:carvita/presentation/manager/maintenance_plan/maintenance_plan_cubit.dart';
 import 'package:carvita/presentation/manager/maintenance_plan/maintenance_plan_state.dart';
 import 'package:carvita/presentation/manager/service_log/service_log_cubit.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
+import 'package:carvita/presentation/navigation/app_route_arguments.dart';
 
 class MaintenancePlanTab extends StatefulWidget {
   final int vehicleId;
@@ -85,7 +87,9 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
       } else if (result is OperationFailure) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(result.error.toString()),
+            content: Text(
+              result.failure.toLocalizedMessage(AppLocalizations.of(context)!),
+            ),
             backgroundColor: AppColors.urgentReminderText,
           ),
         );
@@ -109,7 +113,11 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
       );
     }
     if (parts.isEmpty) return ""; // should not happen
-    return "${AppLocalizations.of(context)!.regularInterval}: ${parts.join(' / ')}";
+    final l10n = AppLocalizations.of(context)!;
+    final interval = parts.length == 1
+        ? parts.single
+        : l10n.combinedValues(parts.first, parts.last);
+    return l10n.labeledValue(l10n.regularInterval, interval);
   }
 
   @override
@@ -122,7 +130,7 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                state.message,
+                state.failure.toLocalizedMessage(AppLocalizations.of(context)!),
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.onPrimary,
                 ),
@@ -131,10 +139,14 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
             ),
           );
         } else if (state is MaintenancePlanLoaded &&
-            state.refreshError != null) {
+            state.refreshFailure != null) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.refreshError!),
+              content: Text(
+                state.refreshFailure!.toLocalizedMessage(
+                  AppLocalizations.of(context)!,
+                ),
+              ),
               backgroundColor: AppColors.urgentReminderText,
             ),
           );
@@ -164,13 +176,12 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
                       Navigator.pushNamed(
                         context,
                         AppRoutes.addManualItemRoute,
-                        arguments: {
-                          'vehicleId': widget.vehicleId,
-                          'vehicleName': widget.vehicleName,
-                          'planItem': null, // Adding new item
-                          'cubitInstance': maintenancePlanCubit,
-                          'serviceLogCubit': context.read<ServiceLogCubit>(),
-                        },
+                        arguments: AddEditMaintenancePlanItemRouteArguments(
+                          vehicleId: widget.vehicleId,
+                          vehicleName: widget.vehicleName,
+                          maintenancePlanCubit: maintenancePlanCubit,
+                          serviceLogCubit: context.read<ServiceLogCubit>(),
+                        ),
                       );
                     },
                     icon: Icon(
@@ -277,7 +288,12 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
                                     if (item.notes != null &&
                                         item.notes!.isNotEmpty)
                                       Text(
-                                        "${AppLocalizations.of(context)!.notes}: ${item.notes}",
+                                        AppLocalizations.of(
+                                          context,
+                                        )!.labeledValue(
+                                          AppLocalizations.of(context)!.notes,
+                                          item.notes!,
+                                        ),
                                         style: TextStyle(
                                           fontSize: 13,
                                           color: Theme.of(context)
@@ -300,14 +316,16 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
                                     Navigator.pushNamed(
                                       context,
                                       AppRoutes.addManualItemRoute,
-                                      arguments: {
-                                        'vehicleId': widget.vehicleId,
-                                        'vehicleName': widget.vehicleName,
-                                        'planItem': item,
-                                        'cubitInstance': maintenancePlanCubit,
-                                        'serviceLogCubit': context
-                                            .read<ServiceLogCubit>(),
-                                      },
+                                      arguments:
+                                          AddEditMaintenancePlanItemRouteArguments(
+                                            vehicleId: widget.vehicleId,
+                                            vehicleName: widget.vehicleName,
+                                            planItem: item,
+                                            maintenancePlanCubit:
+                                                maintenancePlanCubit,
+                                            serviceLogCubit: context
+                                                .read<ServiceLogCubit>(),
+                                          ),
                                     );
                                   } else if (value == 'delete') {
                                     _confirmDeleteItem(context, item);

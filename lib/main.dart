@@ -5,14 +5,30 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl_standalone.dart';
 import 'package:provider/provider.dart';
 
+import 'package:carvita/application/ports/app_startup_port.dart';
+import 'package:carvita/application/ports/clock.dart';
+import 'package:carvita/application/ports/notification_tap_port.dart';
+import 'package:carvita/application/ports/platform_ports.dart';
+import 'package:carvita/application/ports/reminder_schedule_port.dart';
+import 'package:carvita/application/use_cases/load_upcoming_maintenance.dart';
+import 'package:carvita/application/use_cases/maintenance_plan_use_cases.dart';
+import 'package:carvita/application/use_cases/service_log_use_cases.dart';
+import 'package:carvita/application/use_cases/synchronize_maintenance_reminders.dart';
+import 'package:carvita/application/use_cases/vehicle_use_cases.dart';
 import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/constants/app_routes.dart';
+import 'package:carvita/core/services/app_startup_service.dart';
+import 'package:carvita/core/services/backup_service.dart';
+import 'package:carvita/core/services/device_time_zone_service.dart';
+import 'package:carvita/core/services/maintenance_reminder_tap_service.dart';
 import 'package:carvita/core/services/navigation_service.dart';
 import 'package:carvita/core/services/notification_coordinator.dart';
 import 'package:carvita/core/services/notification_service.dart';
+import 'package:carvita/core/services/plugin_platform_service.dart';
 import 'package:carvita/core/services/prediction_service.dart';
 import 'package:carvita/core/services/preferences_service.dart';
 import 'package:carvita/core/services/quick_action_service.dart';
+import 'package:carvita/core/services/reminder_schedule_service.dart';
 import 'package:carvita/core/theme/app_theme.dart';
 import 'package:carvita/data/repositories/maintenance_repository.dart';
 import 'package:carvita/data/repositories/vehicle_repository.dart';
@@ -23,6 +39,8 @@ import 'package:carvita/presentation/manager/theme_provider.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_cubit.dart';
 import 'package:carvita/presentation/navigation/app_router.dart';
+import 'package:carvita/presentation/navigation/default_maintenance_reminder_navigation.dart';
+import 'package:carvita/presentation/navigation/default_quick_action_navigation.dart';
 
 final RouteObserver<ModalRoute<void>> routeObserver =
     RouteObserver<ModalRoute<void>>();
@@ -49,26 +67,88 @@ final appSupportedLocales = [
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final notificationService = NotificationService();
-  await notificationService.initialize();
-  await findSystemLocale();
+  const clock = SystemClock();
   final preferencesService = PreferencesService();
   final databaseHelper = DatabaseHelper();
   final vehicleRepository = VehicleRepository(dbHelper: databaseHelper);
   final maintenanceRepository = MaintenanceRepository(dbHelper: databaseHelper);
-  final predictionService = PredictionService();
+  final predictionService = PredictionService(clock);
+  final vehicleUseCases = VehicleUseCases(
+    vehicleRepository,
+    preferencesService,
+  );
+  final maintenancePlanUseCases = MaintenancePlanUseCases(
+    maintenanceRepository,
+  );
+  final serviceLogUseCases = ServiceLogUseCases(maintenanceRepository);
+  final maintenanceReminderTaps = MaintenanceReminderTapService(
+    vehicleRepository,
+    maintenanceRepository,
+    const DefaultMaintenanceReminderNavigation(),
+  );
+  final reminderSchedule = ReminderScheduleService(
+    const MethodChannelDeviceTimeZone(),
+    clock,
+  );
+  final notificationService = NotificationService(
+    clock,
+    maintenanceReminderTaps,
+  );
   final notificationCoordinator = NotificationCoordinator(notificationService);
+  final backupService = BackupService(clock: clock.now);
+  const pluginPlatformService = PluginPlatformService();
+  final loadUpcomingMaintenance = LoadUpcomingMaintenance(
+    vehicleRepository,
+    maintenanceRepository,
+    predictionService,
+    clock,
+  );
+  final synchronizeMaintenanceReminders = SynchronizeMaintenanceReminders(
+    preferencesService,
+    notificationCoordinator,
+    reminderSchedule,
+    clock,
+  );
+  final quickActionNavigation = DefaultQuickActionNavigation(
+    maintenancePlanUseCases,
+    serviceLogUseCases,
+  );
 
   final quickActionService = QuickActionService(
     vehicleRepository: vehicleRepository,
-    maintenanceRepository: maintenanceRepository,
     preferencesService: preferencesService,
+    navigation: quickActionNavigation,
+    platform: const PluginQuickActionPlatform(),
   );
-  quickActionService.initializeListener();
+  final appStartup = AppStartupService(
+    refreshReminderSchedule: reminderSchedule.refreshTimeZone,
+    initializeNotifications: notificationService.initialize,
+    initializeSystemLocale: () async {
+      await findSystemLocale();
+    },
+    initializeQuickActions: quickActionService.initializeListener,
+  );
   runApp(
     MultiProvider(
       providers: [
+        Provider<AppStartupPort>.value(value: appStartup),
         Provider<QuickActionService>.value(value: quickActionService),
+        Provider<NotificationTapPort>.value(value: maintenanceReminderTaps),
+        Provider<ReminderSchedulePort>.value(value: reminderSchedule),
+        Provider<PreferencesService>.value(value: preferencesService),
+        Provider<VehicleUseCases>.value(value: vehicleUseCases),
+        Provider<MaintenancePlanUseCases>.value(value: maintenancePlanUseCases),
+        Provider<ServiceLogUseCases>.value(value: serviceLogUseCases),
+        Provider<NotificationPermissionGateway>.value(
+          value: notificationService,
+        ),
+        Provider<BackupGateway>.value(value: backupService),
+        Provider<VehicleImagePickerPort>.value(value: pluginPlatformService),
+        Provider<BackupFilePickerPort>.value(value: pluginPlatformService),
+        Provider<FileSharePort>.value(value: pluginPlatformService),
+        Provider<AppPackageInfoPort>.value(value: pluginPlatformService),
+        Provider<ExternalUrlPort>.value(value: pluginPlatformService),
+        Provider<AppExitPort>.value(value: pluginPlatformService),
         ChangeNotifierProvider(
           create: (_) => LocaleProvider(preferencesService),
         ),
@@ -78,10 +158,9 @@ Future<void> main() async {
       ],
       child: CarVitaApp(
         preferencesService: preferencesService,
-        vehicleRepository: vehicleRepository,
-        maintenanceRepository: maintenanceRepository,
-        predictionService: predictionService,
-        notificationCoordinator: notificationCoordinator,
+        vehicleUseCases: vehicleUseCases,
+        loadUpcomingMaintenance: loadUpcomingMaintenance,
+        synchronizeMaintenanceReminders: synchronizeMaintenanceReminders,
       ),
     ),
   );
@@ -89,17 +168,15 @@ Future<void> main() async {
 
 class CarVitaApp extends StatelessWidget {
   final PreferencesService preferencesService;
-  final VehicleRepository vehicleRepository;
-  final MaintenanceRepository maintenanceRepository;
-  final PredictionService predictionService;
-  final NotificationCoordinator notificationCoordinator;
+  final VehicleUseCases vehicleUseCases;
+  final LoadUpcomingMaintenance loadUpcomingMaintenance;
+  final SynchronizeMaintenanceReminders synchronizeMaintenanceReminders;
   const CarVitaApp({
     super.key,
     required this.preferencesService,
-    required this.vehicleRepository,
-    required this.maintenanceRepository,
-    required this.predictionService,
-    required this.notificationCoordinator,
+    required this.vehicleUseCases,
+    required this.loadUpcomingMaintenance,
+    required this.synchronizeMaintenanceReminders,
   });
 
   @override
@@ -107,18 +184,12 @@ class CarVitaApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider<VehicleCubit>(
-          create: (context) => VehicleCubit(
-            vehicleRepository,
-            preferencesService: preferencesService,
-          )..fetchVehicles(),
+          create: (context) => VehicleCubit(vehicleUseCases)..fetchVehicles(),
         ),
         BlocProvider<UpcomingMaintenanceCubit>(
           create: (context) => UpcomingMaintenanceCubit(
-            vehicleRepository,
-            maintenanceRepository,
-            predictionService,
-            notificationCoordinator,
-            preferencesService,
+            loadUpcomingMaintenance,
+            synchronizeMaintenanceReminders,
           ),
         ),
       ],
@@ -183,18 +254,7 @@ class CarVitaApp extends StatelessWidget {
             locale: localeProvider.appLocale,
 
             builder: (context, child) {
-              final MediaQueryData data = MediaQuery.of(context);
-              return ShortcutLocalizationWrapper(
-                child: MediaQuery(
-                  data: data.copyWith(
-                    textScaler: data.textScaler.clamp(
-                      minScaleFactor: 0.8,
-                      maxScaleFactor: 1.2,
-                    ), // restrict text scaling
-                  ),
-                  child: child!,
-                ),
-              );
+              return ShortcutLocalizationWrapper(child: child!);
             },
           );
         },
@@ -214,9 +274,29 @@ class ShortcutLocalizationWrapper extends StatefulWidget {
 }
 
 class _ShortcutLocalizationWrapperState
-    extends State<ShortcutLocalizationWrapper> {
+    extends State<ShortcutLocalizationWrapper>
+    with WidgetsBindingObserver {
   Locale? _lastResolvedLocale;
   bool _initialRefreshScheduled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _refreshReminderContextAfterResume();
+    }
+  }
 
   @override
   void didChangeDependencies() {
@@ -244,9 +324,32 @@ class _ShortcutLocalizationWrapperState
     if (l10n == null) return;
 
     final quickActionService = context.read<QuickActionService>();
+    context.read<NotificationTapPort>().navigatorReady();
     quickActionService.navigatorReady();
+    if (loadPredictions) {
+      try {
+        final result = await context.read<AppStartupPort>().initialize();
+        assert(() {
+          for (final failure in result.failures) {
+            debugPrint(
+              'Recoverable startup failure in ${failure.step.name}: '
+              '${failure.error}\n${failure.stackTrace}',
+            );
+          }
+          return true;
+        }());
+      } catch (error, stackTrace) {
+        debugPrint(
+          'Unexpected startup initialization failure: $error\n$stackTrace',
+        );
+      }
+      if (!mounted) return;
+    }
     try {
-      await quickActionService.updateShortcutItems(context);
+      await quickActionService.updateShortcutItems(
+        logMaintenanceTitle: l10n.logMaintenance,
+        upcomingMaintenanceTitle: l10n.upcomingMaintenance,
+      );
     } catch (error, stackTrace) {
       debugPrint(
         'Failed to update localized quick actions: $error\n$stackTrace',
@@ -266,6 +369,26 @@ class _ShortcutLocalizationWrapperState
       debugPrint(
         'Failed to refresh localized maintenance services: '
         '$error\n$stackTrace',
+      );
+    }
+  }
+
+  Future<void> _refreshReminderContextAfterResume() async {
+    if (!mounted) return;
+    try {
+      final refresh = await context
+          .read<ReminderSchedulePort>()
+          .refreshTimeZone();
+      if (!refresh.contextChanged || !mounted) return;
+
+      final l10n = AppLocalizations.of(context);
+      if (l10n == null) return;
+      await context.read<UpcomingMaintenanceCubit>().loadAllUpcomingMaintenance(
+        l10n,
+      );
+    } catch (error, stackTrace) {
+      debugPrint(
+        'Failed to refresh reminders after resume: $error\n$stackTrace',
       );
     }
   }

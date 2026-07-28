@@ -1,7 +1,6 @@
-import 'package:flutter/material.dart';
-
 import 'package:collection/collection.dart';
 
+import 'package:carvita/application/ports/clock.dart';
 import 'package:carvita/core/utils/mileage_estimator.dart';
 import 'package:carvita/data/models/maintenance_plan_item.dart';
 import 'package:carvita/data/models/predicted_maintenance.dart';
@@ -10,6 +9,10 @@ import 'package:carvita/data/models/service_log_performed_item_link.dart';
 import 'package:carvita/data/models/vehicle.dart';
 
 class PredictionService {
+  const PredictionService(this._clock);
+
+  final Clock _clock;
+
   /// Calculate the next service date for an item.
   PredictedMaintenanceInfo? calculateNextServiceForItem({
     required Vehicle vehicle,
@@ -182,7 +185,7 @@ class PredictionService {
     Duration horizon = const Duration(days: 365), // 1 year by default
     DateTime? currentDateOverride,
   }) {
-    final DateTime now = currentDateOverride ?? DateTime.now();
+    final DateTime now = currentDateOverride ?? _clock.now();
     final DateTime endDate = now.add(horizon);
     List<PredictedMaintenanceInfo> predictions = [];
 
@@ -214,7 +217,7 @@ class PredictionService {
     var newMonth = (date.month + months - 1) % 12 + 1;
     var newDay = date.day;
 
-    var daysInNewMonth = DateUtils.getDaysInMonth(newYear, newMonth);
+    var daysInNewMonth = _daysInMonth(newYear, newMonth);
     if (newDay > daysInNewMonth) {
       newDay = daysInNewMonth;
     }
@@ -226,5 +229,12 @@ class PredictionService {
       date.minute,
       date.second,
     );
+  }
+
+  int _daysInMonth(int year, int month) {
+    final firstDayOfFollowingMonth = month == DateTime.december
+        ? DateTime(year + 1)
+        : DateTime(year, month + 1);
+    return firstDayOfFollowingMonth.subtract(const Duration(days: 1)).day;
   }
 }

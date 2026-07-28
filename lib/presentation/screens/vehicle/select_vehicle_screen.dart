@@ -3,11 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:transparent_image/transparent_image.dart';
 
+import 'package:carvita/application/use_cases/maintenance_plan_use_cases.dart';
+import 'package:carvita/application/use_cases/service_log_use_cases.dart';
 import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/theme/app_theme.dart';
 import 'package:carvita/core/widgets/gradient_background.dart';
 import 'package:carvita/data/models/vehicle.dart';
-import 'package:carvita/data/repositories/maintenance_repository.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/presentation/manager/maintenance_plan/maintenance_plan_cubit.dart';
 import 'package:carvita/presentation/manager/service_log/service_log_cubit.dart';
@@ -23,7 +24,8 @@ class SelectVehicleScreen extends StatelessWidget {
     int vehicleId,
     String vehicleName,
   ) {
-    final maintenanceRepository = MaintenanceRepository();
+    final maintenancePlanUseCases = context.read<MaintenancePlanUseCases>();
+    final serviceLogUseCases = context.read<ServiceLogUseCases>();
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
@@ -31,12 +33,12 @@ class SelectVehicleScreen extends StatelessWidget {
           providers: [
             BlocProvider(
               create: (_) =>
-                  MaintenancePlanCubit(maintenanceRepository, vehicleId)
+                  MaintenancePlanCubit(maintenancePlanUseCases, vehicleId)
                     ..fetchPlanItems(),
             ),
             BlocProvider(
               create: (_) =>
-                  ServiceLogCubit(maintenanceRepository, vehicleId)
+                  ServiceLogCubit(serviceLogUseCases, vehicleId)
                     ..fetchServiceLogs(),
             ),
           ],
@@ -124,8 +126,10 @@ class SelectVehicleScreen extends StatelessWidget {
                     );
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Invalid vehicle ID."),
+                      SnackBar(
+                        content: Text(
+                          AppLocalizations.of(context)!.loadErrorMessage,
+                        ),
                         backgroundColor: AppColors.urgentReminderText,
                       ),
                     );

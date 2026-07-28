@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:carvita/core/constants/app_colors.dart';
@@ -9,6 +7,8 @@ import 'package:carvita/core/utils/operation_result.dart';
 import 'package:carvita/core/widgets/gradient_background.dart';
 import 'package:carvita/data/models/maintenance_plan_item.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
+import 'package:carvita/presentation/failures/app_failure_localizer.dart';
+import 'package:carvita/presentation/formatters/localized_number_input.dart';
 import 'package:carvita/presentation/manager/locale_provider.dart';
 import 'package:carvita/presentation/manager/maintenance_plan/maintenance_plan_cubit.dart';
 import 'package:carvita/presentation/manager/service_log/service_log_cubit.dart';
@@ -79,6 +79,7 @@ class _AddEditMaintenancePlanItemScreenState
 
   void _submitForm() async {
     if (_isSubmitting) return;
+    final inputLocale = Localizations.localeOf(context);
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
@@ -86,15 +87,27 @@ class _AddEditMaintenancePlanItemScreenState
 
       final String regularTimeText = _intervalTimeMonthsController.text.trim();
       final String regularMileageText = _intervalMileageController.text.trim();
-      final int? intervalTimeMonths = int.tryParse(regularTimeText);
-      final int? intervalMileage = int.tryParse(regularMileageText);
+      final int? intervalTimeMonths = LocalizedNumberInput.parseInt(
+        regularTimeText,
+        inputLocale,
+      );
+      final int? intervalMileage = LocalizedNumberInput.parseInt(
+        regularMileageText,
+        inputLocale,
+      );
 
       final String firstTimeText = _firstIntervalTimeMonthsController.text
           .trim();
       final String firstMileageText = _firstIntervalMileageController.text
           .trim();
-      final int? firstIntervalTimeMonths = int.tryParse(firstTimeText);
-      final int? firstIntervalMileage = int.tryParse(firstMileageText);
+      final int? firstIntervalTimeMonths = LocalizedNumberInput.parseInt(
+        firstTimeText,
+        inputLocale,
+      );
+      final int? firstIntervalMileage = LocalizedNumberInput.parseInt(
+        firstMileageText,
+        inputLocale,
+      );
 
       final String notes = _notesController.text.trim();
 
@@ -211,11 +224,23 @@ class _AddEditMaintenancePlanItemScreenState
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(result.error.toString()),
+            content: Text(
+              result.failure.toLocalizedMessage(AppLocalizations.of(context)!),
+            ),
             backgroundColor: AppColors.urgentReminderText,
           ),
         );
         return;
+      }
+      if (result case OperationSuccess(followUpFailure: final failure?)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              failure.failure.toLocalizedMessage(AppLocalizations.of(context)!),
+            ),
+            backgroundColor: AppColors.urgentReminderText,
+          ),
+        );
       }
 
       await context.read<ServiceLogCubit>().fetchServiceLogs();
@@ -236,6 +261,7 @@ class _AddEditMaintenancePlanItemScreenState
     required String mileageHint,
   }) {
     final themeExtensions = Theme.of(context).extension<AppThemeExtensions>()!;
+    final inputLocale = Localizations.localeOf(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -253,6 +279,7 @@ class _AddEditMaintenancePlanItemScreenState
           children: [
             Expanded(
               child: TextFormField(
+                key: const ValueKey('plan-time-field'),
                 controller: timeController,
                 style: TextStyle(color: themeExtensions.textColorOnBackground),
                 decoration: InputDecoration(
@@ -260,12 +287,15 @@ class _AddEditMaintenancePlanItemScreenState
                   labelText: timeHint,
                 ),
                 keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                inputFormatters: [
+                  LocalizedNumberTextInputFormatter.integer(inputLocale),
+                ],
               ),
             ),
             const SizedBox(width: 15),
             Expanded(
               child: TextFormField(
+                key: const ValueKey('plan-mileage-field'),
                 controller: mileageController,
                 style: TextStyle(color: themeExtensions.textColorOnBackground),
                 decoration: InputDecoration(
@@ -273,7 +303,9 @@ class _AddEditMaintenancePlanItemScreenState
                   labelText: mileageHint,
                 ),
                 keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                inputFormatters: [
+                  LocalizedNumberTextInputFormatter.integer(inputLocale),
+                ],
               ),
             ),
           ],
@@ -315,6 +347,7 @@ class _AddEditMaintenancePlanItemScreenState
           elevation: 0,
           leading: IconButton(
             icon: Icon(Icons.arrow_back_ios_new),
+            tooltip: AppLocalizations.of(context)!.back,
             onPressed: () => Navigator.of(context).pop(),
           ),
         ),
@@ -347,7 +380,9 @@ class _AddEditMaintenancePlanItemScreenState
                     color: themeExtensions.textColorOnBackground,
                   ),
                   decoration: InputDecoration(
-                    labelText: '${AppLocalizations.of(context)!.itemName}*',
+                    labelText: AppLocalizations.of(context)!.requiredFieldLabel(
+                      AppLocalizations.of(context)!.itemName,
+                    ),
                     hintText: AppLocalizations.of(context)!.itemNameHint,
                   ),
                   validator: (value) {
@@ -376,8 +411,10 @@ class _AddEditMaintenancePlanItemScreenState
                     color: themeExtensions.textColorOnBackground,
                   ),
                   decoration: InputDecoration(
-                    labelText:
-                        "${AppLocalizations.of(context)!.notes} (${AppLocalizations.of(context)!.optionalEntry})",
+                    labelText: AppLocalizations.of(context)!.optionalFieldLabel(
+                      AppLocalizations.of(context)!.notes,
+                      AppLocalizations.of(context)!.optionalEntry,
+                    ),
                     hintText: AppLocalizations.of(
                       context,
                     )!.noteMaintenanceItemHint,

@@ -850,5 +850,168 @@
   "themeColor": "Theme color",
   "@themeColor": {
     "description": "The settings entry label for custom theme color"
+  },
+  "routeErrorTitle": "Unable to open page",
+  "@routeErrorTitle": {
+    "description": "The title shown when a route cannot be opened safely"
+  },
+  "routeErrorMessage": "The page information is incomplete or no longer available. Go back and try again.",
+  "@routeErrorMessage": {
+    "description": "The message shown when route information is missing or invalid"
+  },
+  "goToHome": "Go to home",
+  "@goToHome": {
+    "description": "The label for returning to the dashboard from an error page"
+  },
+  "loadErrorMessage": "Unable to load data. Try again.",
+  "@loadErrorMessage": {
+    "description": "The generic user-facing message for an initial data load failure"
+  },
+  "saveErrorMessage": "Unable to save changes. Try again.",
+  "@saveErrorMessage": {
+    "description": "The generic user-facing message for a save failure"
+  },
+  "deleteErrorMessage": "Unable to delete. Try again.",
+  "@deleteErrorMessage": {
+    "description": "The generic user-facing message for a delete failure"
+  },
+  "refreshErrorMessage": "Unable to refresh right now. Try again.",
+  "@refreshErrorMessage": {
+    "description": "The generic user-facing message for a refresh failure"
+  },
+  "reminderUpdateErrorMessage": "Saved, but reminder update failed.",
+  "@reminderUpdateErrorMessage": {
+    "description": "The message shown when data is saved but reminders cannot be updated"
+  },
+  "exportErrorMessage": "Unable to export data. Try again.",
+  "@exportErrorMessage": {
+    "description": "The user-facing message for a data export failure"
+  },
+  "restoreErrorMessage": "Unable to restore data. Check the backup file and try again.",
+  "@restoreErrorMessage": {
+    "description": "The user-facing message for a data restore failure"
+  },
+  "requiredFieldLabel": "{label}*",
+  "@requiredFieldLabel": {
+    "description": "A required form field label",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "requiredFieldWithUnit": "{label} ({unit})*",
+  "@requiredFieldWithUnit": {
+    "description": "A required numeric form field label with its displayed unit",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "optionalFieldLabel": "{label} ({optional})",
+  "@optionalFieldLabel": {
+    "description": "An optional form field label",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "optional": {
+        "type": "String"
+      }
+    }
+  },
+  "labeledValue": "{label}: {value}",
+  "@labeledValue": {
+    "description": "A label and its displayed value",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "sectionHeading": "{label}:",
+  "@sectionHeading": {
+    "description": "A form section heading followed by punctuation",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "dateWithMileage": "{date} @ {mileage}",
+  "@dateWithMileage": {
+    "description": "A maintenance date displayed with the mileage recorded on that date",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "mileage": {
+        "type": "String"
+      }
+    }
+  },
+  "dateWithRelative": "{date} ({relative})",
+  "@dateWithRelative": {
+    "description": "A formatted date followed by a relative due description",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "relative": {
+        "type": "String"
+      }
+    }
+  },
+  "combinedValues": "{first} / {second}",
+  "@combinedValues": {
+    "description": "Two related values displayed together",
+    "placeholders": {
+      "first": {
+        "type": "String"
+      },
+      "second": {
+        "type": "String"
+      }
+    }
+  },
+  "modelAndYear": "{model} - {year}",
+  "@modelAndYear": {
+    "description": "A vehicle model displayed with its purchase year",
+    "placeholders": {
+      "model": {
+        "type": "String"
+      },
+      "year": {
+        "type": "String"
+      }
+    }
+  },
+  "nextMaintenanceSummary": "Next: {item} - {due}",
+  "@nextMaintenanceSummary": {
+    "description": "A compact summary of the next maintenance item and when it is due",
+    "placeholders": {
+      "item": {
+        "type": "String"
+      },
+      "due": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationTitle": "Maintenance Reminder: {vehicleName}",
+  "@notificationTitle": {
+    "description": "The maintenance reminder notification title for a vehicle",
+    "placeholders": {
+      "vehicleName": {
+        "type": "String"
+      }
+    }
   }
 }

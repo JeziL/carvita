@@ -1,27 +1,18 @@
 import 'dart:async';
 import 'dart:collection';
-
-import 'package:flutter/material.dart';
+import 'dart:developer' as developer;
 
 import 'package:collection/collection.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quick_actions/quick_actions.dart';
 
-import 'package:carvita/core/constants/app_colors.dart';
-import 'package:carvita/core/constants/app_routes.dart';
-import 'package:carvita/core/services/preferences_service.dart';
+import 'package:carvita/application/ports/preferences_ports.dart';
+import 'package:carvita/application/ports/vehicle_repository_port.dart';
 import 'package:carvita/data/models/vehicle.dart';
-import 'package:carvita/data/repositories/maintenance_repository.dart';
-import 'package:carvita/data/repositories/vehicle_repository.dart';
-import 'package:carvita/i18n/generated/app_localizations.dart';
-import 'package:carvita/presentation/manager/maintenance_plan/maintenance_plan_cubit.dart';
-import 'package:carvita/presentation/manager/service_log/service_log_cubit.dart';
-import 'package:carvita/presentation/screens/maintenance/log_maintenance_screen.dart';
-import 'package:carvita/presentation/screens/vehicle/select_vehicle_screen.dart';
-import 'navigation_service.dart';
+
+typedef ShortcutHandler = void Function(String shortcutType);
 
 abstract interface class QuickActionPlatform {
-  void initialize(ValueChanged<String> onShortcut);
+  void initialize(ShortcutHandler onShortcut);
 
   Future<void> setShortcutItems({
     required String logMaintenanceTitle,
@@ -33,7 +24,7 @@ class PluginQuickActionPlatform implements QuickActionPlatform {
   const PluginQuickActionPlatform();
 
   @override
-  void initialize(ValueChanged<String> onShortcut) {
+  void initialize(ShortcutHandler onShortcut) {
     const QuickActions().initialize(onShortcut);
   }
 
@@ -57,38 +48,51 @@ class PluginQuickActionPlatform implements QuickActionPlatform {
   }
 }
 
+abstract interface class QuickActionNavigation {
+  bool get isReady;
+
+  void openUpcomingMaintenance();
+
+  void openLogMaintenance({
+    required int vehicleId,
+    required String vehicleName,
+  });
+
+  void openVehicleSelection(List<Vehicle> vehicles);
+
+  void showNoVehicleMessage();
+}
+
 class QuickActionService {
   static const String logMaintenanceAction = 'action_log';
   static const String upcomingMaintenanceAction = 'action_upcoming_list';
 
-  final VehicleRepository vehicleRepository;
-  final MaintenanceRepository maintenanceRepository;
-  final PreferencesService preferencesService;
+  final VehicleRepositoryPort vehicleRepository;
+  final DefaultVehiclePreferences preferencesService;
   final QuickActionPlatform platform;
-  final BuildContext? Function() _navigatorContextProvider;
+  final QuickActionNavigation navigation;
   final Queue<String> _pendingActions = Queue<String>();
   String? _activeAction;
   bool _isDraining = false;
 
   QuickActionService({
     required this.vehicleRepository,
-    required this.maintenanceRepository,
     required this.preferencesService,
-    this.platform = const PluginQuickActionPlatform(),
-    BuildContext? Function()? navigatorContextProvider,
-  }) : _navigatorContextProvider =
-           navigatorContextProvider ??
-           (() => NavigationService.navigatorKey.currentContext);
+    required this.navigation,
+    required this.platform,
+  });
 
   void initializeListener() {
     platform.initialize(_enqueueShortcut);
   }
 
-  Future<void> updateShortcutItems(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+  Future<void> updateShortcutItems({
+    required String logMaintenanceTitle,
+    required String upcomingMaintenanceTitle,
+  }) {
     return platform.setShortcutItems(
-      logMaintenanceTitle: l10n.logMaintenance,
-      upcomingMaintenanceTitle: l10n.upcomingMaintenance,
+      logMaintenanceTitle: logMaintenanceTitle,
+      upcomingMaintenanceTitle: upcomingMaintenanceTitle,
     );
   }
 
@@ -111,30 +115,30 @@ class QuickActionService {
 
   Future<void> _drainPendingActions() async {
     if (_isDraining) return;
-    final initialContext = _navigatorContextProvider();
-    if (initialContext == null || !initialContext.mounted) return;
+    if (!navigation.isReady) return;
 
     _isDraining = true;
     try {
       while (_pendingActions.isNotEmpty) {
-        final context = _navigatorContextProvider();
-        if (context == null || !context.mounted) return;
+        if (!navigation.isReady) return;
         final action = _pendingActions.removeFirst();
         _activeAction = action;
         try {
           if (action == logMaintenanceAction) {
-            await handleLogMaintenanceRequest(context);
+            await handleLogMaintenanceRequest();
           } else {
-            Navigator.pushNamedAndRemoveUntil(
-              context,
-              AppRoutes.upcomingMaintenanceRoute,
-              (_) => false,
-            );
+            navigation.openUpcomingMaintenance();
           }
         } catch (error, stackTrace) {
-          debugPrint(
-            'Failed to handle quick action $action: $error\n$stackTrace',
-          );
+          assert(() {
+            developer.log(
+              'Failed to handle quick action $action',
+              name: 'carvita.quick_actions',
+              error: error,
+              stackTrace: stackTrace,
+            );
+            return true;
+          }());
         } finally {
           _activeAction = null;
         }
@@ -144,81 +148,38 @@ class QuickActionService {
     }
   }
 
-  void _navigateToLogMaintenance(
-    BuildContext context,
-    int vehicleId,
-    String vehicleName,
-  ) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (newRouteContext) => MultiBlocProvider(
-          providers: [
-            BlocProvider(
-              create: (_) =>
-                  MaintenancePlanCubit(maintenanceRepository, vehicleId)
-                    ..fetchPlanItems(),
-            ),
-            BlocProvider(
-              create: (_) =>
-                  ServiceLogCubit(maintenanceRepository, vehicleId)
-                    ..fetchServiceLogs(),
-            ),
-          ],
-          child: LogMaintenanceScreen(
-            vehicleId: vehicleId,
-            vehicleName: vehicleName,
-            logToEdit: null,
-          ),
-        ),
-      ),
+  void _navigateToLogMaintenance(int vehicleId, String vehicleName) {
+    navigation.openLogMaintenance(
+      vehicleId: vehicleId,
+      vehicleName: vehicleName,
     );
   }
 
-  Future<void> handleLogMaintenanceRequest(BuildContext context) async {
-    final AppLocalizations l10n = AppLocalizations.of(context)!;
+  Future<void> handleLogMaintenanceRequest() async {
     final List<Vehicle> vehicles = await vehicleRepository.getVehicles();
-    if (!context.mounted) return;
+    if (!navigation.isReady) return;
 
     if (vehicles.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.errNoVehicleToLog),
-          backgroundColor: AppColors.urgentReminderText,
-        ),
-      );
+      navigation.showNoVehicleMessage();
     } else if (vehicles.length == 1) {
-      _navigateToLogMaintenance(
-        context,
-        vehicles.first.id!,
-        vehicles.first.name,
-      );
+      _navigateToLogMaintenance(vehicles.first.id!, vehicles.first.name);
     } else {
       final defaultVehicleId = await preferencesService.getDefaultVehicleId();
-      if (!context.mounted) return;
+      if (!navigation.isReady) return;
       if (defaultVehicleId != null) {
         final defaultVehicle = vehicles.firstWhereOrNull(
           (v) => v.id == defaultVehicleId,
         );
         if (defaultVehicle != null) {
-          _navigateToLogMaintenance(
-            context,
-            defaultVehicle.id!,
-            defaultVehicle.name,
-          );
+          _navigateToLogMaintenance(defaultVehicle.id!, defaultVehicle.name);
           return;
         } else {
           await preferencesService.setDefaultVehicleId(null);
-          if (!context.mounted) return;
+          if (!navigation.isReady) return;
         }
       }
-      if (!context.mounted) return;
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => SelectVehicleScreen(vehicles: vehicles),
-        ),
-      );
+      if (!navigation.isReady) return;
+      navigation.openVehicleSelection(vehicles);
     }
   }
 }

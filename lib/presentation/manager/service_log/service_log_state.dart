@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import 'package:carvita/core/failures/app_failure.dart';
 import 'package:carvita/data/models/service_log_entry.dart';
 
 abstract class ServiceLogState extends Equatable {
@@ -16,23 +17,23 @@ class ServiceLogLoading extends ServiceLogState {}
 class ServiceLogLoaded extends ServiceLogState {
   final List<ServiceLogWithItems> serviceLogs;
   final bool isRefreshing;
-  final String? refreshError;
+  final AppFailure? refreshFailure;
 
   const ServiceLogLoaded(
     this.serviceLogs, {
     this.isRefreshing = false,
-    this.refreshError,
+    this.refreshFailure,
   });
 
   @override
-  List<Object?> get props => [serviceLogs, isRefreshing, refreshError];
+  List<Object?> get props => [serviceLogs, isRefreshing, refreshFailure];
 }
 
 class ServiceLogError extends ServiceLogState {
-  final String message;
+  final AppFailure failure;
 
-  const ServiceLogError(this.message);
+  const ServiceLogError(this.failure);
 
   @override
-  List<Object> get props => [message];
+  List<Object> get props => [failure];
 }

@@ -1,25 +1,13 @@
-import 'package:flutter/material.dart';
+import 'dart:ui';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:carvita/i18n/generated/app_localizations.dart';
+import 'package:carvita/application/ports/preferences_ports.dart';
 
 enum AppThemePreference { system, light, dark, custom }
 
 extension AppThemePreferenceDetails on AppThemePreference {
   String get keyString => name;
-  String displayString(BuildContext context) {
-    switch (this) {
-      case AppThemePreference.system:
-        return AppLocalizations.of(context)!.themeSystem;
-      case AppThemePreference.light:
-        return AppLocalizations.of(context)!.themeLight;
-      case AppThemePreference.dark:
-        return AppLocalizations.of(context)!.themeDark;
-      case AppThemePreference.custom:
-        return AppLocalizations.of(context)!.themeCustom;
-    }
-  }
 }
 
 enum DueReminderThresholdValue { week, month, halfYear }
@@ -36,21 +24,11 @@ extension DueReminderThresholdDetails on DueReminderThresholdValue {
     }
   }
 
-  String displayString(BuildContext context) {
-    switch (this) {
-      case DueReminderThresholdValue.week:
-        return AppLocalizations.of(context)!.thresholdWeek;
-      case DueReminderThresholdValue.month:
-        return AppLocalizations.of(context)!.thresholdMonth;
-      case DueReminderThresholdValue.halfYear:
-        return AppLocalizations.of(context)!.thresholdHalfYear;
-    }
-  }
-
   String get keyString => name;
 }
 
-class PreferencesService {
+class PreferencesService
+    implements DefaultVehiclePreferences, ReminderPreferences {
   static const String _defaultVehicleIdKey = 'default_vehicle_id';
   static const String _dueReminderThresholdKey = 'due_reminder_threshold';
   static const String _dueReminderItemCountKey = 'due_reminder_item_count';
@@ -63,6 +41,7 @@ class PreferencesService {
   static const String _themePreferenceKey = 'theme_preference';
   static const String _customThemeSeedColorKey = 'custom_theme_seed_color';
 
+  @override
   Future<void> setDefaultVehicleId(int? vehicleId) async {
     final prefs = await SharedPreferences.getInstance();
     if (vehicleId == null) {
@@ -72,6 +51,7 @@ class PreferencesService {
     }
   }
 
+  @override
   Future<int?> getDefaultVehicleId() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getInt(_defaultVehicleIdKey);
@@ -111,6 +91,7 @@ class PreferencesService {
     await prefs.setBool(_notificationsEnabledKey, enabled);
   }
 
+  @override
   Future<bool> getNotificationsEnabled() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_notificationsEnabledKey) ?? false;
@@ -123,6 +104,7 @@ class PreferencesService {
     await prefs.setInt(_reminderLeadTimeDaysKey, days);
   }
 
+  @override
   Future<int> getReminderLeadTimeDays() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getInt(_reminderLeadTimeDaysKey) ?? 7;

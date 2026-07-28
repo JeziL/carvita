@@ -1,42 +1,14 @@
 import 'dart:async';
 
+import 'package:carvita/application/ports/notification_replacement_port.dart';
 import 'package:carvita/core/services/notification_service.dart';
 
-int maintenanceNotificationId({
-  required int vehicleId,
-  required int planItemId,
-}) {
-  var hash = 0x811c9dc5;
-  for (final value in [vehicleId, planItemId]) {
-    var remaining = value;
-    for (var byteIndex = 0; byteIndex < 8; byteIndex++) {
-      hash ^= remaining & 0xff;
-      hash = (hash * 0x01000193) & 0xffffffff;
-      remaining >>= 8;
-    }
-  }
-  return hash & 0x7fffffff;
-}
-
-class NotificationRequest {
-  final int id;
-  final String title;
-  final String body;
-  final DateTime scheduledDateTime;
-  final String? payload;
-
-  const NotificationRequest({
-    required this.id,
-    required this.title,
-    required this.body,
-    required this.scheduledDateTime,
-    this.payload,
-  });
-}
+export 'package:carvita/application/ports/notification_replacement_port.dart'
+    show NotificationRequest, maintenanceNotificationId;
 
 /// Serializes notification replacement so an older refresh cannot finish after
 /// a newer one and leave stale reminders registered with the platform.
-class NotificationCoordinator {
+class NotificationCoordinator implements NotificationReplacementPort {
   final NotificationGateway _notificationGateway;
 
   final Map<int, Completer<void>> _waiters = {};
@@ -46,6 +18,7 @@ class NotificationCoordinator {
 
   NotificationCoordinator(this._notificationGateway);
 
+  @override
   Future<void> replaceAll(List<NotificationRequest> requests) {
     final int revision = ++_latestRevision;
     final completer = Completer<void>();

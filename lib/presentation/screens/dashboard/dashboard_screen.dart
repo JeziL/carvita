@@ -9,15 +9,19 @@ import 'package:carvita/core/constants/app_routes.dart';
 import 'package:carvita/core/services/preferences_service.dart';
 import 'package:carvita/core/services/quick_action_service.dart';
 import 'package:carvita/core/theme/app_theme.dart';
+import 'package:carvita/core/utils/calendar_day.dart';
 import 'package:carvita/core/widgets/gradient_background.dart';
 import 'package:carvita/data/models/predicted_maintenance.dart';
 import 'package:carvita/data/models/vehicle.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/main.dart';
+import 'package:carvita/presentation/failures/app_failure_localizer.dart';
+import 'package:carvita/presentation/formatters/predicted_maintenance_localizer.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_state.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_cubit.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_state.dart';
+import 'package:carvita/presentation/navigation/app_route_arguments.dart';
 import 'package:carvita/presentation/screens/common_widgets/main_bottom_navigation_bar.dart';
 import 'package:carvita/presentation/screens/dashboard/widgets/quick_action_button.dart';
 import 'package:carvita/presentation/screens/dashboard/widgets/vehicle_summary_card.dart';
@@ -31,7 +35,7 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen>
     with WidgetsBindingObserver, RouteAware {
-  final PreferencesService _preferencesService = PreferencesService();
+  late final PreferencesService _preferencesService;
   DueReminderThresholdValue _dashboardThreshold =
       DueReminderThresholdValue.month;
   int _dashboardItemCount = 3;
@@ -39,6 +43,7 @@ class _DashboardScreenState extends State<DashboardScreen>
   @override
   void initState() {
     super.initState();
+    _preferencesService = context.read<PreferencesService>();
     WidgetsBinding.instance.addObserver(this);
     _loadDashboardFilterSettings();
   }
@@ -153,9 +158,9 @@ class _DashboardScreenState extends State<DashboardScreen>
             ...urgentItems.map((prediction) {
               final vehicleName = prediction.vehicle.name;
               final itemName = prediction.planItem.itemName;
-              final daysRemaining = prediction.predictedDueDate
-                  .difference(DateTime.now())
-                  .inDays;
+              final daysRemaining = CalendarDay.daysUntil(
+                prediction.predictedDueDate,
+              );
               String dueText = daysRemaining >= 0
                   ? AppLocalizations.of(context)!.daysLater(daysRemaining)
                   : AppLocalizations.of(context)!.daysOverdue(-daysRemaining);
@@ -205,17 +210,23 @@ class _DashboardScreenState extends State<DashboardScreen>
             }),
             if (filteredPredictions.length > currentItemCount)
               Align(
-                alignment: Alignment.centerRight,
+                alignment: AlignmentDirectional.centerEnd,
                 child: TextButton(
                   onPressed: () => Navigator.pushNamed(
                     context,
                     AppRoutes.upcomingMaintenanceRoute,
                   ),
-                  child: Text(
-                    "${AppLocalizations.of(context)!.viewAll} >>",
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        AppLocalizations.of(context)!.viewAll,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                      const Icon(Icons.chevron_right),
+                    ],
                   ),
                 ),
               ),
@@ -249,7 +260,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         Navigator.pushNamed(
           context,
           AppRoutes.vehicleDetailsRoute,
-          arguments: vehicle.id,
+          arguments: VehicleDetailsRouteArguments(vehicleId: vehicle.id),
         );
       },
     );
@@ -307,6 +318,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                           Navigator.pushNamed(
                             context,
                             AppRoutes.addVehicleRoute,
+                            arguments: const AddEditVehicleRouteArguments(),
                           );
                         },
                       ),
@@ -317,7 +329,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                         onPressed: () {
                           context
                               .read<QuickActionService>()
-                              .handleLogMaintenanceRequest(context);
+                              .handleLogMaintenanceRequest();
                         },
                       ),
                     ],
@@ -347,7 +359,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                     _buildDashboardUrgentReminders(context, allPredictions),
                   if (upcomingState is UpcomingMaintenanceError)
                     Text(
-                      upcomingState.message,
+                      upcomingState.failure.toLocalizedMessage(
+                        AppLocalizations.of(context)!,
+                      ),
                       style: const TextStyle(
                         color: AppColors.urgentReminderText,
                       ),
@@ -401,7 +415,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                       } else if (state is VehicleError) {
                         return Center(
                           child: Text(
-                            state.message,
+                            state.failure.toLocalizedMessage(
+                              AppLocalizations.of(context)!,
+                            ),
                             style: const TextStyle(
                               color: AppColors.urgentReminderText,
                             ),

@@ -8,6 +8,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:carvita/application/ports/clock.dart';
+import 'package:carvita/application/ports/reminder_schedule_port.dart';
+import 'package:carvita/application/use_cases/load_upcoming_maintenance.dart';
+import 'package:carvita/application/use_cases/maintenance_plan_use_cases.dart';
+import 'package:carvita/application/use_cases/service_log_use_cases.dart';
+import 'package:carvita/application/use_cases/synchronize_maintenance_reminders.dart';
+import 'package:carvita/application/use_cases/vehicle_use_cases.dart';
 import 'package:carvita/core/services/notification_coordinator.dart';
 import 'package:carvita/core/services/notification_service.dart';
 import 'package:carvita/core/services/prediction_service.dart';
@@ -22,6 +29,7 @@ import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/presentation/manager/locale_provider.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_cubit.dart';
+import 'package:carvita/presentation/navigation/app_route_arguments.dart';
 import 'package:carvita/presentation/screens/vehicle/vehicle_details_screen.dart';
 
 void main() {
@@ -34,17 +42,27 @@ void main() {
   ) async {
     final vehicleRepository = _DeferredVehicleRepository();
     final maintenanceRepository = _CountingMaintenanceRepository();
-    final vehicleCubit = VehicleCubit(vehicleRepository);
+    final preferences = PreferencesService();
+    final vehicleUseCases = VehicleUseCases(vehicleRepository, preferences);
+    final maintenancePlanUseCases = MaintenancePlanUseCases(
+      maintenanceRepository,
+    );
+    final serviceLogUseCases = ServiceLogUseCases(maintenanceRepository);
+    final vehicleCubit = VehicleCubit(vehicleUseCases);
 
     await tester.pumpWidget(
       _testApp(
         vehicleCubit: vehicleCubit,
         vehicleRepository: vehicleRepository,
         maintenanceRepository: maintenanceRepository,
+        vehicleUseCases: vehicleUseCases,
+        maintenancePlanUseCases: maintenancePlanUseCases,
+        serviceLogUseCases: serviceLogUseCases,
         child: VehicleDetailsScreen(
           vehicleId: 1,
-          vehicleRepository: vehicleRepository,
-          maintenanceRepository: maintenanceRepository,
+          vehicleUseCases: vehicleUseCases,
+          maintenancePlanUseCases: maintenancePlanUseCases,
+          serviceLogUseCases: serviceLogUseCases,
         ),
       ),
     );
@@ -70,30 +88,84 @@ void main() {
     final vehicleRepository = _DeferredVehicleRepository()
       ..completer.complete(_vehicle());
     final maintenanceRepository = _CountingMaintenanceRepository();
-    final vehicleCubit = VehicleCubit(vehicleRepository);
+    final preferences = PreferencesService();
+    final vehicleUseCases = VehicleUseCases(vehicleRepository, preferences);
+    final maintenancePlanUseCases = MaintenancePlanUseCases(
+      maintenanceRepository,
+    );
+    final serviceLogUseCases = ServiceLogUseCases(maintenanceRepository);
+    final vehicleCubit = VehicleCubit(vehicleUseCases);
 
     await tester.pumpWidget(
       _testApp(
         vehicleCubit: vehicleCubit,
         vehicleRepository: vehicleRepository,
         maintenanceRepository: maintenanceRepository,
+        vehicleUseCases: vehicleUseCases,
+        maintenancePlanUseCases: maintenancePlanUseCases,
+        serviceLogUseCases: serviceLogUseCases,
         child: VehicleDetailsScreen(
           vehicleId: 1,
-          vehicleRepository: vehicleRepository,
-          maintenanceRepository: maintenanceRepository,
+          initialTab: VehicleDetailsTab.maintenancePlan,
+          vehicleUseCases: vehicleUseCases,
+          maintenancePlanUseCases: maintenancePlanUseCases,
+          serviceLogUseCases: serviceLogUseCases,
         ),
       ),
     );
     await tester.pumpAndSettle();
 
     expect(find.byType(FloatingActionButton), findsOne);
-    await tester.tap(find.text('Plan'));
-    await tester.pumpAndSettle();
+    final tabBar = tester.widget<TabBar>(find.byType(TabBar));
+    expect(tabBar.controller?.index, VehicleDetailsTab.maintenancePlan.index);
     await tester.tap(find.text('History'));
     await tester.pumpAndSettle();
     expect(maintenanceRepository.planReads, 1);
     expect(maintenanceRepository.logReads, 1);
     expect(tester.takeException(), isNull);
+    await vehicleCubit.close();
+  });
+
+  testWidgets('loaded vehicle details fit at 200 percent text scaling', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final vehicleRepository = _DeferredVehicleRepository()
+      ..completer.complete(_vehicle());
+    final maintenanceRepository = _CountingMaintenanceRepository();
+    final preferences = PreferencesService();
+    final vehicleUseCases = VehicleUseCases(vehicleRepository, preferences);
+    final maintenancePlanUseCases = MaintenancePlanUseCases(
+      maintenanceRepository,
+    );
+    final serviceLogUseCases = ServiceLogUseCases(maintenanceRepository);
+    final vehicleCubit = VehicleCubit(vehicleUseCases);
+
+    await tester.pumpWidget(
+      _testApp(
+        vehicleCubit: vehicleCubit,
+        vehicleRepository: vehicleRepository,
+        maintenanceRepository: maintenanceRepository,
+        vehicleUseCases: vehicleUseCases,
+        maintenancePlanUseCases: maintenancePlanUseCases,
+        serviceLogUseCases: serviceLogUseCases,
+        textScaler: const TextScaler.linear(2),
+        child: VehicleDetailsScreen(
+          vehicleId: 1,
+          vehicleUseCases: vehicleUseCases,
+          maintenancePlanUseCases: maintenancePlanUseCases,
+          serviceLogUseCases: serviceLogUseCases,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.byTooltip('Log Maintenance'), findsOne);
     await vehicleCubit.close();
   });
 }
@@ -102,20 +174,38 @@ Widget _testApp({
   required VehicleCubit vehicleCubit,
   required VehicleRepository vehicleRepository,
   required MaintenanceRepository maintenanceRepository,
+  required VehicleUseCases vehicleUseCases,
+  required MaintenancePlanUseCases maintenancePlanUseCases,
+  required ServiceLogUseCases serviceLogUseCases,
   required Widget child,
+  TextScaler textScaler = TextScaler.noScaling,
 }) {
   final preferences = PreferencesService();
+  const clock = SystemClock();
+  final notificationCoordinator = NotificationCoordinator(
+    _NoopNotificationGateway(),
+  );
   return MultiProvider(
     providers: [
       ChangeNotifierProvider(create: (_) => LocaleProvider(preferences)),
+      Provider<VehicleUseCases>.value(value: vehicleUseCases),
+      Provider<MaintenancePlanUseCases>.value(value: maintenancePlanUseCases),
+      Provider<ServiceLogUseCases>.value(value: serviceLogUseCases),
       BlocProvider<VehicleCubit>.value(value: vehicleCubit),
       BlocProvider(
         create: (_) => UpcomingMaintenanceCubit(
-          vehicleRepository,
-          maintenanceRepository,
-          PredictionService(),
-          NotificationCoordinator(NotificationService()),
-          preferences,
+          LoadUpcomingMaintenance(
+            vehicleRepository,
+            maintenanceRepository,
+            PredictionService(clock),
+            clock,
+          ),
+          SynchronizeMaintenanceReminders(
+            preferences,
+            notificationCoordinator,
+            _FixedReminderSchedule(),
+            clock,
+          ),
         ),
       ),
     ],
@@ -132,6 +222,13 @@ Widget _testApp({
         ColorScheme.fromSeed(seedColor: Colors.blue),
         Brightness.light,
       ),
+      builder: (context, appChild) {
+        final mediaQuery = MediaQuery.of(context);
+        return MediaQuery(
+          data: mediaQuery.copyWith(textScaler: textScaler),
+          child: appChild!,
+        );
+      },
       home: child,
     ),
   );
@@ -152,6 +249,43 @@ class _DeferredVehicleRepository extends VehicleRepository {
 
   @override
   Future<Vehicle?> getVehicleById(int id) => completer.future;
+}
+
+class _NoopNotificationGateway implements NotificationGateway {
+  @override
+  Future<void> cancelAllNotifications() async {}
+
+  @override
+  Future<void> scheduleNotification({
+    required int id,
+    required String title,
+    required String body,
+    required DateTime scheduledDateTime,
+    String? payload,
+  }) async {}
+}
+
+class _FixedReminderSchedule implements ReminderSchedulePort {
+  @override
+  DateTime? calculateNotificationTime({
+    required DateTime predictedDueDate,
+    required int leadTimeDays,
+    required DateTime now,
+  }) {
+    return predictedDueDate
+        .subtract(Duration(days: leadTimeDays))
+        .copyWith(hour: 12);
+  }
+
+  @override
+  Future<ReminderScheduleRefresh> refreshTimeZone() async {
+    return const ReminderScheduleRefresh(
+      timeZoneChanged: false,
+      calendarDateChanged: false,
+      timeZoneId: 'UTC',
+      usedFallback: false,
+    );
+  }
 }
 
 class _CountingMaintenanceRepository extends MaintenanceRepository {

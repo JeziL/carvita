@@ -8,9 +8,11 @@ import 'package:carvita/core/constants/app_routes.dart';
 import 'package:carvita/core/utils/operation_result.dart';
 import 'package:carvita/data/models/vehicle.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
+import 'package:carvita/presentation/failures/app_failure_localizer.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_cubit.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_state.dart';
+import 'package:carvita/presentation/navigation/app_route_arguments.dart';
 import 'package:carvita/presentation/screens/common_widgets/main_bottom_navigation_bar.dart';
 
 class VehicleListScreen extends StatefulWidget {
@@ -73,7 +75,9 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
       } else if (result is OperationFailure) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(result.error.toString()),
+            content: Text(
+              result.failure.toLocalizedMessage(AppLocalizations.of(context)!),
+            ),
             backgroundColor: AppColors.urgentReminderText,
           ),
         );
@@ -103,7 +107,9 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
-                  state.message,
+                  state.failure.toLocalizedMessage(
+                    AppLocalizations.of(context)!,
+                  ),
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.onPrimary,
                   ),
@@ -111,10 +117,14 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
                 backgroundColor: AppColors.urgentReminderText,
               ),
             );
-          } else if (state is VehicleLoaded && state.refreshError != null) {
+          } else if (state is VehicleLoaded && state.refreshFailure != null) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(state.refreshError!),
+                content: Text(
+                  state.refreshFailure!.toLocalizedMessage(
+                    AppLocalizations.of(context)!,
+                  ),
+                ),
                 backgroundColor: AppColors.urgentReminderText,
               ),
             );
@@ -217,7 +227,10 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
                       children: [
                         (vehicle.model != null && vehicle.model!.isNotEmpty)
                             ? Text(
-                                "${AppLocalizations.of(context)!.vehicleModel}: ${vehicle.model!}",
+                                AppLocalizations.of(context)!.labeledValue(
+                                  AppLocalizations.of(context)!.vehicleModel,
+                                  vehicle.model!,
+                                ),
                                 style: TextStyle(
                                   color: Theme.of(context).colorScheme.onSurface
                                       .withValues(alpha: 0.7),
@@ -242,11 +255,14 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
                             Icons.edit_outlined,
                             color: Theme.of(context).colorScheme.primary,
                           ),
+                          tooltip: AppLocalizations.of(context)!.edit,
                           onPressed: () {
                             Navigator.pushNamed(
                               context,
                               AppRoutes.addVehicleRoute,
-                              arguments: vehicle,
+                              arguments: AddEditVehicleRouteArguments(
+                                vehicle: vehicle,
+                              ),
                             );
                           },
                         ),
@@ -255,6 +271,7 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
                             Icons.delete_outline,
                             color: AppColors.urgentReminderText,
                           ),
+                          tooltip: AppLocalizations.of(context)!.delete,
                           onPressed: () => _confirmDelete(context, vehicle),
                         ),
                       ],
@@ -263,7 +280,9 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
                       Navigator.pushNamed(
                         context,
                         AppRoutes.vehicleDetailsRoute,
-                        arguments: vehicle.id,
+                        arguments: VehicleDetailsRouteArguments(
+                          vehicleId: vehicle.id,
+                        ),
                       );
                     },
                   ),
@@ -273,7 +292,7 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
           } else if (state is VehicleError) {
             return Center(
               child: Text(
-                state.message,
+                state.failure.toLocalizedMessage(AppLocalizations.of(context)!),
                 style: const TextStyle(color: AppColors.urgentReminderText),
               ),
             );
@@ -287,8 +306,13 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton(
+        tooltip: AppLocalizations.of(context)!.addVehicle,
         onPressed: () {
-          Navigator.pushNamed(context, AppRoutes.addVehicleRoute);
+          Navigator.pushNamed(
+            context,
+            AppRoutes.addVehicleRoute,
+            arguments: const AddEditVehicleRouteArguments(),
+          );
         },
         backgroundColor: Theme.of(context).colorScheme.primary,
         shape: const CircleBorder(),

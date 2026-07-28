@@ -3,11 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:carvita/core/constants/app_routes.dart';
-import 'package:carvita/data/models/maintenance_plan_item.dart';
-import 'package:carvita/data/models/service_log_entry.dart';
-import 'package:carvita/data/models/vehicle.dart';
-import 'package:carvita/presentation/manager/maintenance_plan/maintenance_plan_cubit.dart';
-import 'package:carvita/presentation/manager/service_log/service_log_cubit.dart';
+import 'package:carvita/i18n/generated/app_localizations.dart';
+import 'package:carvita/presentation/navigation/app_route_arguments.dart';
 import 'package:carvita/presentation/screens/dashboard/dashboard_screen.dart';
 import 'package:carvita/presentation/screens/maintenance/add_edit_maintenance_plan_item_screen.dart';
 import 'package:carvita/presentation/screens/maintenance/log_maintenance_screen.dart';
@@ -22,100 +19,154 @@ class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case AppRoutes.dashboardRoute:
-        return MaterialPageRoute(builder: (_) => const DashboardScreen());
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => const DashboardScreen(),
+        );
       case AppRoutes.vehicleListRoute:
-        return MaterialPageRoute(builder: (_) => const VehicleListScreen());
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => const VehicleListScreen(),
+        );
       case AppRoutes.settingsRoute:
-        return MaterialPageRoute(builder: (_) => const SettingsScreen());
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => const SettingsScreen(),
+        );
       case AppRoutes.upcomingMaintenanceRoute:
         return MaterialPageRoute(
+          settings: settings,
           builder: (_) => const UpcomingMaintenanceListScreen(),
         );
       case AppRoutes.privacyRoute:
-        return MaterialPageRoute(builder: (_) => const PrivacyScreen());
-      case AppRoutes.addVehicleRoute:
-        final vehicleToEdit = settings.arguments as Vehicle?;
         return MaterialPageRoute(
-          builder: (_) => AddEditVehicleScreen(vehicle: vehicleToEdit),
+          settings: settings,
+          builder: (_) => const PrivacyScreen(),
+        );
+      case AppRoutes.addVehicleRoute:
+        final arguments = settings.arguments;
+        if (arguments != null && arguments is! AddEditVehicleRouteArguments) {
+          return _errorRoute(settings);
+        }
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => AddEditVehicleScreen(
+            vehicle: (arguments as AddEditVehicleRouteArguments?)?.vehicle,
+          ),
         );
       case AppRoutes.vehicleDetailsRoute:
-        final vehicleId = settings.arguments as int?;
-        if (vehicleId != null) {
+        final arguments = settings.arguments;
+        if (arguments is VehicleDetailsRouteArguments &&
+            arguments.vehicleId != null) {
           return MaterialPageRoute(
-            builder: (_) => VehicleDetailsScreen(vehicleId: vehicleId),
+            settings: settings,
+            builder: (_) => VehicleDetailsScreen(
+              vehicleId: arguments.vehicleId!,
+              initialTab: arguments.initialTab,
+            ),
           );
         }
-        return _errorRoute("Vehicle ID missing for vehicleDetailsRoute");
+        return _errorRoute(settings);
       case AppRoutes.addManualItemRoute:
-        final arguments = settings.arguments as Map<String, dynamic>?;
-        final int? vehicleId = arguments?['vehicleId'] as int?;
-        final String? vehicleName = arguments?['vehicleName'] as String?;
-        final MaintenancePlanItem? planItem =
-            arguments?['planItem'] as MaintenancePlanItem?;
-        final MaintenancePlanCubit? cubitInstance =
-            arguments?['cubitInstance'] as MaintenancePlanCubit?;
-        final ServiceLogCubit? serviceLogCubit =
-            arguments?['serviceLogCubit'] as ServiceLogCubit?;
+        final arguments = settings.arguments;
 
-        if (vehicleId != null &&
-            cubitInstance != null &&
-            vehicleName != null &&
-            serviceLogCubit != null) {
+        if (arguments is AddEditMaintenancePlanItemRouteArguments) {
           return MaterialPageRoute(
+            settings: settings,
             builder: (_) => MultiBlocProvider(
               providers: [
-                BlocProvider.value(value: cubitInstance),
-                BlocProvider.value(value: serviceLogCubit),
+                BlocProvider.value(value: arguments.maintenancePlanCubit),
+                BlocProvider.value(value: arguments.serviceLogCubit),
               ],
               child: AddEditMaintenancePlanItemScreen(
-                vehicleId: vehicleId,
-                planItemToEdit: planItem,
-                vehicleName: vehicleName,
+                vehicleId: arguments.vehicleId,
+                planItemToEdit: arguments.planItem,
+                vehicleName: arguments.vehicleName,
               ),
             ),
           );
         }
-        return _errorRoute(
-          "Vehicle ID missing for add/edit maintenance plan item",
-        );
+        return _errorRoute(settings);
       case AppRoutes.logMaintenanceRoute:
-        final arguments = settings.arguments as Map<String, dynamic>?;
-        final int? vehicleId = arguments?['vehicleId'] as int?;
-        final String? vehicleName = arguments?['vehicleName'] as String?;
-        final ServiceLogWithItems? logToEdit =
-            arguments?['logToEdit'] as ServiceLogWithItems?;
-        final ServiceLogCubit serviceLogCubit =
-            arguments?['serviceLogCubit'] as ServiceLogCubit;
-        final MaintenancePlanCubit maintenancePlanCubit =
-            arguments?['maintenancePlanCubit'] as MaintenancePlanCubit;
+        final arguments = settings.arguments;
 
-        if (vehicleId != null && vehicleName != null) {
+        if (arguments is LogMaintenanceRouteArguments) {
           return MaterialPageRoute(
+            settings: settings,
             builder: (_) => MultiBlocProvider(
               providers: [
-                BlocProvider.value(value: serviceLogCubit),
-                BlocProvider.value(value: maintenancePlanCubit),
+                BlocProvider.value(value: arguments.serviceLogCubit),
+                BlocProvider.value(value: arguments.maintenancePlanCubit),
               ],
               child: LogMaintenanceScreen(
-                vehicleId: vehicleId,
-                vehicleName: vehicleName,
-                logToEdit: logToEdit,
+                vehicleId: arguments.vehicleId,
+                vehicleName: arguments.vehicleName,
+                logToEdit: arguments.logToEdit,
               ),
             ),
           );
         }
-        return _errorRoute("Missing arguments for LogMaintenanceScreen");
+        return _errorRoute(settings);
       default:
-        return _errorRoute("No route defined for ${settings.name}");
+        return _errorRoute(settings);
     }
   }
 
-  static Route<dynamic> _errorRoute(String message) {
+  static Route<dynamic> _errorRoute(RouteSettings settings) {
     return MaterialPageRoute(
-      builder: (_) => Scaffold(
-        appBar: AppBar(title: const Text('Error')),
-        body: Center(child: Text(message)),
-      ),
+      settings: settings,
+      builder: (context) {
+        final l10n = AppLocalizations.of(context)!;
+        final navigator = Navigator.of(context);
+        return Scaffold(
+          appBar: AppBar(title: Text(l10n.routeErrorTitle)),
+          body: SafeArea(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 48,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      l10n.routeErrorMessage,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                    const SizedBox(height: 24),
+                    Wrap(
+                      alignment: WrapAlignment.center,
+                      spacing: 12,
+                      runSpacing: 12,
+                      children: [
+                        if (navigator.canPop())
+                          OutlinedButton(
+                            onPressed: navigator.pop,
+                            child: Text(l10n.back),
+                          ),
+                        FilledButton(
+                          onPressed: () {
+                            navigator.pushNamedAndRemoveUntil(
+                              AppRoutes.dashboardRoute,
+                              (_) => false,
+                            );
+                          },
+                          child: Text(l10n.goToHome),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

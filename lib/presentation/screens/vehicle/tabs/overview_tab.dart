@@ -10,6 +10,7 @@ import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/presentation/manager/locale_provider.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_state.dart';
+import 'package:carvita/presentation/navigation/app_route_arguments.dart';
 import 'package:carvita/presentation/screens/vehicle/widgets/info_grid_item.dart';
 import 'package:carvita/presentation/screens/vehicle/widgets/maintenance_list_item_card.dart';
 
@@ -54,7 +55,9 @@ class OverviewTab extends StatelessWidget {
                       Navigator.pushNamed(
                         context,
                         AppRoutes.addVehicleRoute,
-                        arguments: vehicle,
+                        arguments: AddEditVehicleRouteArguments(
+                          vehicle: vehicle,
+                        ),
                       );
                     },
                     child: Text(
@@ -68,37 +71,50 @@ class OverviewTab extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 10),
-              GridView.count(
-                padding: const EdgeInsets.all(0),
-                crossAxisCount: 2,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                crossAxisSpacing: 15,
-                mainAxisSpacing: 10,
-                childAspectRatio: 2.2, // Adjust for content height
-                children: [
-                  InfoGridItem(
-                    label: AppLocalizations.of(
-                      context,
-                    )!.mileageLabelWithUnit(""),
-                    value: AppLocalizations.of(context)!.nMileage(
-                      vehicle.mileage.round(),
-                      localeProvider.mileageUnit,
-                    ),
-                  ),
-                  InfoGridItem(
-                    label: AppLocalizations.of(context)!.plateNumber,
-                    value: vehicle.plateNumber ?? "--",
-                  ),
-                  InfoGridItem(
-                    label: AppLocalizations.of(context)!.engineNumber,
-                    value: vehicle.engineNumber ?? "--",
-                  ),
-                  InfoGridItem(
-                    label: AppLocalizations.of(context)!.vin,
-                    value: vehicle.vin ?? "--",
-                  ),
-                ],
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  const spacing = 15.0;
+                  final itemWidth = (constraints.maxWidth - spacing) / 2;
+                  return Wrap(
+                    spacing: spacing,
+                    runSpacing: 10,
+                    children: [
+                      SizedBox(
+                        width: itemWidth,
+                        child: InfoGridItem(
+                          label: AppLocalizations.of(
+                            context,
+                          )!.mileageLabelWithUnit(""),
+                          value: AppLocalizations.of(context)!.nMileage(
+                            vehicle.mileage.round(),
+                            localeProvider.mileageUnit,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        width: itemWidth,
+                        child: InfoGridItem(
+                          label: AppLocalizations.of(context)!.plateNumber,
+                          value: vehicle.plateNumber ?? "--",
+                        ),
+                      ),
+                      SizedBox(
+                        width: itemWidth,
+                        child: InfoGridItem(
+                          label: AppLocalizations.of(context)!.engineNumber,
+                          value: vehicle.engineNumber ?? "--",
+                        ),
+                      ),
+                      SizedBox(
+                        width: itemWidth,
+                        child: InfoGridItem(
+                          label: AppLocalizations.of(context)!.vin,
+                          value: vehicle.vin ?? "--",
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
               const SizedBox(height: 25),
               Text(

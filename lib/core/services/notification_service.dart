@@ -1,8 +1,12 @@
 import 'package:flutter/foundation.dart';
 
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
+
+import 'package:carvita/application/ports/clock.dart';
+import 'package:carvita/application/ports/notification_tap_port.dart';
+
+typedef NotificationPayloadCallback = void Function(String? payload);
 
 abstract interface class NotificationGateway {
   Future<void> scheduleNotification({
@@ -16,60 +20,130 @@ abstract interface class NotificationGateway {
   Future<void> cancelAllNotifications();
 }
 
-class NotificationService implements NotificationGateway {
-  static final NotificationService _instance = NotificationService._internal();
-  factory NotificationService() => _instance;
-  NotificationService._internal();
+abstract interface class NotificationPermissionGateway {
+  Future<bool> requestPermissions();
 
-  final FlutterLocalNotificationsPlugin _notificationsPlugin =
-      FlutterLocalNotificationsPlugin();
+  Future<bool> checkPermissions();
+
+  Future<void> cancelAllNotifications();
+}
+
+abstract interface class LocalNotificationsPlatform {
+  Future<void> initialize(NotificationPayloadCallback onNotificationTap);
+
+  Future<String?> getLaunchPayload();
+
+  Future<bool> requestPermissions();
+
+  Future<bool> checkPermissions();
+
+  Future<void> scheduleNotification({
+    required int id,
+    required String title,
+    required String body,
+    required DateTime scheduledDateTime,
+    String? payload,
+  });
+
+  Future<void> cancelAllNotifications();
+}
+
+class NotificationService
+    implements NotificationGateway, NotificationPermissionGateway {
+  NotificationService(
+    this._clock,
+    this._notificationTaps, {
+    LocalNotificationsPlatform? platform,
+  }) : _platform = platform ?? PluginLocalNotificationsPlatform();
+
+  final Clock _clock;
+  final NotificationTapPort _notificationTaps;
+  final LocalNotificationsPlatform _platform;
 
   Future<void> initialize() async {
-    tz.initializeTimeZones();
+    await _platform.initialize(_notificationTaps.enqueuePayload);
+    final launchPayload = await _platform.getLaunchPayload();
+    if (launchPayload != null) {
+      _notificationTaps.enqueuePayload(launchPayload);
+    }
+  }
 
-    const AndroidInitializationSettings androidInitializationSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+  @override
+  Future<bool> requestPermissions() {
+    return _platform.requestPermissions();
+  }
 
-    // final DarwinInitializationSettings darwinInitializationSettings =
-    //     DarwinInitializationSettings(
-    //   requestAlertPermission: false,
-    //   requestBadgePermission: false,
-    //   requestSoundPermission: false,
-    //   onDidReceiveLocalNotification: onDidReceiveLocalNotification,
-    // );
+  @override
+  Future<bool> checkPermissions() {
+    return _platform.checkPermissions();
+  }
 
-    final InitializationSettings initializationSettings =
-        InitializationSettings(
-          android: androidInitializationSettings,
-          // iOS: darwinInitializationSettings,
-          // macOS: darwinInitializationSettings,
-        );
+  @override
+  Future<void> scheduleNotification({
+    required int id,
+    required String title,
+    required String body,
+    required DateTime scheduledDateTime,
+    String? payload,
+  }) async {
+    if (!scheduledDateTime.isAfter(_clock.now())) {
+      return;
+    }
+    await _platform.scheduleNotification(
+      id: id,
+      title: title,
+      body: body,
+      scheduledDateTime: scheduledDateTime,
+      payload: payload,
+    );
+  }
+
+  @override
+  Future<void> cancelAllNotifications() {
+    return _platform.cancelAllNotifications();
+  }
+}
+
+class PluginLocalNotificationsPlatform implements LocalNotificationsPlatform {
+  PluginLocalNotificationsPlatform({
+    FlutterLocalNotificationsPlugin? notificationsPlugin,
+  }) : _notificationsPlugin =
+           notificationsPlugin ?? FlutterLocalNotificationsPlugin();
+
+  final FlutterLocalNotificationsPlugin _notificationsPlugin;
+
+  @override
+  Future<void> initialize(NotificationPayloadCallback onNotificationTap) async {
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
+    const initializationSettings = InitializationSettings(
+      android: androidSettings,
+    );
 
     await _notificationsPlugin.initialize(
       initializationSettings,
-      onDidReceiveNotificationResponse: onDidReceiveNotificationResponse,
+      onDidReceiveNotificationResponse: (response) {
+        onNotificationTap(response.payload);
+      },
       onDidReceiveBackgroundNotificationResponse:
           onDidReceiveBackgroundNotificationResponse,
     );
   }
 
-  static void onDidReceiveNotificationResponse(
-    NotificationResponse notificationResponse,
-  ) {
-    // handle the navigation or action when the notification is tapped
+  @override
+  Future<String?> getLaunchPayload() async {
+    final launchDetails = await _notificationsPlugin
+        .getNotificationAppLaunchDetails();
+    if (launchDetails?.didNotificationLaunchApp != true) return null;
+    return launchDetails?.notificationResponse?.payload;
   }
 
-  @pragma('vm:entry-point') // Needed for background isolate
-  static void onDidReceiveBackgroundNotificationResponse(
-    NotificationResponse notificationResponse,
-  ) {
-    // handle the navigation or action when the notification is tapped
-  }
-
+  @override
   Future<bool> requestPermissions() async {
     if (defaultTargetPlatform == TargetPlatform.iOS ||
         defaultTargetPlatform == TargetPlatform.macOS) {
-      final bool? result = await _notificationsPlugin
+      final result = await _notificationsPlugin
           .resolvePlatformSpecificImplementation<
             IOSFlutterLocalNotificationsPlugin
           >()
@@ -78,24 +152,22 @@ class NotificationService implements NotificationGateway {
     }
 
     if (defaultTargetPlatform == TargetPlatform.android) {
-      final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
-          _notificationsPlugin
-              .resolvePlatformSpecificImplementation<
-                AndroidFlutterLocalNotificationsPlugin
-              >();
-      final bool? result = await androidImplementation
+      final androidImplementation = _notificationsPlugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
+      final result = await androidImplementation
           ?.requestNotificationsPermission();
-      // final bool? resultExact = await androidImplementation?.requestExactAlarmsPermission();
-      return (result ?? false); // && (resultExact ?? false);
+      return result ?? false;
     }
     return true;
   }
 
-  // check if the user has granted permission
+  @override
   Future<bool> checkPermissions() async {
     if (defaultTargetPlatform == TargetPlatform.iOS ||
         defaultTargetPlatform == TargetPlatform.macOS) {
-      final NotificationsEnabledOptions? result = await _notificationsPlugin
+      final result = await _notificationsPlugin
           .resolvePlatformSpecificImplementation<
             IOSFlutterLocalNotificationsPlugin
           >()
@@ -103,13 +175,11 @@ class NotificationService implements NotificationGateway {
       return result?.isEnabled ?? false;
     }
     if (defaultTargetPlatform == TargetPlatform.android) {
-      final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
-          _notificationsPlugin
-              .resolvePlatformSpecificImplementation<
-                AndroidFlutterLocalNotificationsPlugin
-              >();
-      final bool? result = await androidImplementation
-          ?.areNotificationsEnabled();
+      final androidImplementation = _notificationsPlugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
+      final result = await androidImplementation?.areNotificationsEnabled();
       return result ?? false;
     }
     return true;
@@ -123,15 +193,7 @@ class NotificationService implements NotificationGateway {
     required DateTime scheduledDateTime,
     String? payload,
   }) async {
-    // ensure scheduledDateTime is in the future
-    if (scheduledDateTime.isBefore(DateTime.now())) {
-      return;
-    }
-
-    final tz.TZDateTime tzScheduledDate = tz.TZDateTime.from(
-      scheduledDateTime,
-      tz.local,
-    );
+    final tzScheduledDate = tz.TZDateTime.from(scheduledDateTime, tz.local);
 
     await _notificationsPlugin.zonedSchedule(
       id,
@@ -140,8 +202,8 @@ class NotificationService implements NotificationGateway {
       tzScheduledDate,
       const NotificationDetails(
         android: AndroidNotificationDetails(
-          'carvita_channel_id', // Channel ID
-          'CarVita Reminders', // Channel Name
+          'carvita_channel_id',
+          'CarVita Reminders',
           channelDescription: 'Channel for CarVita maintenance reminders.',
           importance: Importance.max,
           priority: Priority.high,
@@ -155,27 +217,19 @@ class NotificationService implements NotificationGateway {
       ),
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       payload: payload,
-      // Intentionally omit matchDateTimeComponents: maintenance reminders are
-      // one-shot notifications and must not repeat every year.
     );
   }
 
-  Future<void> cancelNotification(int id) async {
-    await _notificationsPlugin.cancel(id);
-  }
-
   @override
-  Future<void> cancelAllNotifications() async {
-    await _notificationsPlugin.cancelAll();
+  Future<void> cancelAllNotifications() {
+    return _notificationsPlugin.cancelAll();
   }
+}
 
-  // check pending notifications (for debugging)
-  Future<void> checkPendingNotifications() async {
-    // final List<PendingNotificationRequest> pendingNotificationRequests =
-    //     await _notificationsPlugin.pendingNotificationRequests();
-    // print('Pending notifications: ${pendingNotificationRequests.length}');
-    // for (var request in pendingNotificationRequests) {
-    //   print(' ID: ${request.id}, Title: ${request.title}, Body: ${request.body}, Payload: ${request.payload}');
-    // }
-  }
+@pragma('vm:entry-point')
+void onDidReceiveBackgroundNotificationResponse(
+  NotificationResponse notificationResponse,
+) {
+  // Background isolates must not navigate. A normal notification tap is
+  // delivered through the main callback or cold-start launch details.
 }

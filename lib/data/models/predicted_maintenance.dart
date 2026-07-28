@@ -1,10 +1,7 @@
-import 'package:flutter/material.dart';
-
 import 'package:equatable/equatable.dart';
 
 import 'package:carvita/data/models/maintenance_plan_item.dart';
 import 'package:carvita/data/models/vehicle.dart';
-import 'package:carvita/i18n/generated/app_localizations.dart';
 
 enum PredictionBasis { time, mileage, timeAndMileageCombined, unknown }
 
@@ -33,11 +30,6 @@ class PredictedMaintenanceInfo extends Equatable {
       return dateComparison;
     }
     return planItem.itemName.compareTo(other.planItem.itemName);
-  }
-
-  String displayInfo(BuildContext context) {
-    final daysRemaining = predictedDueDate.difference(DateTime.now()).inDays;
-    return "${AppLocalizations.of(context)!.nextMaintenanceShort}: ${planItem.itemName} - ${daysRemaining >= 0 ? AppLocalizations.of(context)!.daysLater(daysRemaining) : AppLocalizations.of(context)!.daysOverdue(-daysRemaining)}";
   }
 
   @override
