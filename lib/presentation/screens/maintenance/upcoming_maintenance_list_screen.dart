@@ -8,6 +8,7 @@ import 'package:carvita/core/constants/app_routes.dart';
 import 'package:carvita/data/models/predicted_maintenance.dart';
 import 'package:carvita/data/models/vehicle.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
+import 'package:carvita/presentation/failures/app_failure_localizer.dart';
 import 'package:carvita/presentation/manager/locale_provider.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_state.dart';
@@ -220,7 +221,7 @@ class _UpcomingMaintenanceListScreenState
           if (state is UpcomingMaintenanceError) {
             return Center(
               child: Text(
-                state.message,
+                state.failure.toLocalizedMessage(AppLocalizations.of(context)!),
                 style: const TextStyle(color: AppColors.urgentReminderText),
               ),
             );

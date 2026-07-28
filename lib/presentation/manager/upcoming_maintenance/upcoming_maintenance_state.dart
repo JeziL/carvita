@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import 'package:carvita/core/failures/app_failure.dart';
 import 'package:carvita/data/models/predicted_maintenance.dart';
 
 abstract class UpcomingMaintenanceState extends Equatable {
@@ -22,8 +23,8 @@ class UpcomingMaintenanceLoaded extends UpcomingMaintenanceState {
 }
 
 class UpcomingMaintenanceError extends UpcomingMaintenanceState {
-  final String message;
-  const UpcomingMaintenanceError(this.message);
+  final AppFailure failure;
+  const UpcomingMaintenanceError(this.failure);
   @override
-  List<Object> get props => [message];
+  List<Object> get props => [failure];
 }

@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import 'package:collection/collection.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-import 'package:package_info_plus/package_info_plus.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:url_launcher/url_launcher.dart';
 
+import 'package:carvita/application/ports/platform_ports.dart';
+import 'package:carvita/application/use_cases/vehicle_use_cases.dart';
 import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/constants/app_routes.dart';
+import 'package:carvita/core/failures/app_failure.dart';
 import 'package:carvita/core/services/backup_service.dart';
 import 'package:carvita/core/services/notification_service.dart';
 import 'package:carvita/core/services/preferences_service.dart';
@@ -18,9 +16,10 @@ import 'package:carvita/core/theme/app_theme.dart';
 import 'package:carvita/core/utils/preference_selection.dart';
 import 'package:carvita/core/widgets/gradient_background.dart';
 import 'package:carvita/data/models/vehicle.dart';
-import 'package:carvita/data/repositories/vehicle_repository.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/main.dart';
+import 'package:carvita/presentation/failures/app_failure_localizer.dart';
+import 'package:carvita/presentation/formatters/preference_localizer.dart';
 import 'package:carvita/presentation/manager/locale_provider.dart';
 import 'package:carvita/presentation/manager/theme_provider.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
@@ -39,30 +38,39 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  final BackupService _backupService = BackupService();
-  final PreferencesService _preferencesService = PreferencesService();
-  final VehicleRepository _vehicleRepository = VehicleRepository();
+  late final BackupGateway _backupService;
+  late final PreferencesService _preferencesService;
+  late final VehicleUseCases _vehicleUseCases;
+  late final BackupFilePickerPort _backupFilePicker;
+  late final FileSharePort _fileShare;
+  late final AppPackageInfoPort _packageInfoProvider;
+  late final ExternalUrlPort _externalUrl;
+  late final AppExitPort _appExit;
 
   String _defaultVehicleName = "";
   int? _currentDefaultVehicleId;
   bool _maintenanceRemindersEnabled = false;
   int _selectedLeadTimeDays = 7;
-  final NotificationService _notificationService = NotificationService();
+  late final NotificationPermissionGateway _notificationService;
   DueReminderThresholdValue _selectedThreshold =
       DueReminderThresholdValue.halfYear;
   int _selectedReminderItemCount = 3;
   bool _isExporting = false;
   bool _isImporting = false;
-  PackageInfo _packageInfo = PackageInfo(
-    appName: '',
-    packageName: '',
-    version: '',
-    buildNumber: '',
-  );
+  String _appVersion = '';
 
   @override
   void initState() {
     super.initState();
+    _backupService = context.read<BackupGateway>();
+    _preferencesService = context.read<PreferencesService>();
+    _vehicleUseCases = context.read<VehicleUseCases>();
+    _notificationService = context.read<NotificationPermissionGateway>();
+    _backupFilePicker = context.read<BackupFilePickerPort>();
+    _fileShare = context.read<FileSharePort>();
+    _packageInfoProvider = context.read<AppPackageInfoPort>();
+    _externalUrl = context.read<ExternalUrlPort>();
+    _appExit = context.read<AppExitPort>();
     _loadDefaultVehicleInfo();
     _loadReminderSettings();
     _loadNotificationSettings();
@@ -82,7 +90,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           (v) => v.id == defaultId,
         );
       }
-      vehicle ??= await _vehicleRepository.getVehicleById(defaultId);
+      vehicle ??= await _vehicleUseCases.getVehicleById(defaultId);
 
       if (vehicle != null) {
         if (mounted) setState(() => _defaultVehicleName = vehicle!.name);
@@ -235,11 +243,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       snapshotPath = await _backupService.createExportSnapshot();
 
-      final shareResult = await SharePlus.instance.share(
-        ShareParams(files: [XFile(snapshotPath)]),
-      );
+      final shareResult = await _fileShare.shareFile(snapshotPath);
 
-      if (shareResult.status == ShareResultStatus.success) {
+      if (shareResult == ShareFileOutcome.success) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -248,7 +254,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           );
         }
-      } else if (shareResult.status == ShareResultStatus.dismissed) {
+      } else if (shareResult == ShareFileOutcome.dismissed) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -258,9 +264,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
         }
       } else {
         if (mounted) {
+          final failure = AppFailure.capture(
+            AppFailureKind.export,
+            StateError('Share failed with status $shareResult'),
+            StackTrace.current,
+            context: 'SettingsScreen.exportDatabase.share',
+          );
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(shareResult.status.toString()),
+              content: Text(
+                failure.toLocalizedMessage(AppLocalizations.of(context)!),
+              ),
               backgroundColor: AppColors.urgentReminderText,
             ),
           );
@@ -275,11 +289,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         );
       }
-    } catch (e) {
+    } catch (error, stackTrace) {
       if (mounted) {
+        final failure = AppFailure.capture(
+          AppFailureKind.export,
+          error,
+          stackTrace,
+          context: 'SettingsScreen.exportDatabase',
+        );
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(e.toString()),
+            content: Text(
+              failure.toLocalizedMessage(AppLocalizations.of(context)!),
+            ),
             backgroundColor: AppColors.urgentReminderText,
           ),
         );
@@ -344,10 +366,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
 
     try {
-      FilePickerResult? result = await FilePicker.platform.pickFiles();
+      final selectedPath = await _backupFilePicker.pickBackupFile();
 
-      if (result != null && result.files.single.path != null) {
-        await _backupService.restoreDatabase(result.files.single.path!);
+      if (selectedPath != null) {
+        await _backupService.restoreDatabase(selectedPath);
         try {
           await _notificationService.cancelAllNotifications();
         } catch (error) {
@@ -382,7 +404,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   actions: <Widget>[
                     TextButton(
-                      onPressed: SystemNavigator.pop,
+                      onPressed: () {
+                        _appExit.exitApplication();
+                      },
                       child: Text(
                         AppLocalizations.of(context)!.exitButton,
                         style: TextStyle(
@@ -406,11 +430,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
           );
         }
       }
-    } catch (e) {
+    } catch (error, stackTrace) {
       if (mounted) {
+        final failure = AppFailure.capture(
+          AppFailureKind.restore,
+          error,
+          stackTrace,
+          context: 'SettingsScreen.importDatabase',
+        );
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(e.toString()),
+            content: Text(
+              failure.toLocalizedMessage(AppLocalizations.of(context)!),
+            ),
             backgroundColor: AppColors.urgentReminderText,
           ),
         );
@@ -485,8 +517,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
             l10n ?? AppLocalizations.of(context),
           );
     } catch (error, stackTrace) {
-      debugPrint(
-        'Failed to reschedule maintenance notifications: $error\n$stackTrace',
+      final failure = AppFailure.capture(
+        AppFailureKind.reminderUpdate,
+        error,
+        stackTrace,
+        context: 'SettingsScreen.triggerNotificationReschedule',
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            failure.toLocalizedMessage(l10n ?? AppLocalizations.of(context)!),
+          ),
+          backgroundColor: AppColors.urgentReminderText,
+        ),
       );
     }
   }
@@ -665,10 +709,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _initPackageInfo() async {
     try {
-      final info = await PackageInfo.fromPlatform();
+      final info = await _packageInfoProvider.loadPackageInfo();
       if (!mounted) return;
       setState(() {
-        _packageInfo = info;
+        _appVersion = info.version;
       });
     } catch (error, stackTrace) {
       debugPrint('Failed to load package information: $error\n$stackTrace');
@@ -1010,14 +1054,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _buildSettingItem(
                   icon: Icons.info_outline,
                   label: AppLocalizations.of(context)!.appVersionEntry,
-                  value: _packageInfo.version,
+                  value: _appVersion,
                 ),
                 _buildSettingItem(
                   icon: Icons.help_outline,
                   label: AppLocalizations.of(context)!.helpAndSupport,
                   onTap: () {
                     final url = Uri.parse('https://github.com/JeziL/carvita');
-                    launchUrl(url);
+                    _externalUrl.openExternalUrl(url);
                   },
                 ),
                 _buildSettingItem(
@@ -1046,9 +1090,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               ),
                             ),
                           ),
-                          child: LicensePage(
-                            applicationVersion: _packageInfo.version,
-                          ),
+                          child: LicensePage(applicationVersion: _appVersion),
                         ),
                       ),
                     );

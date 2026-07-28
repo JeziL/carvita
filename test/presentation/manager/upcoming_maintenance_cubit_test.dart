@@ -5,6 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:intl/date_symbol_data_local.dart';
 
+import 'package:carvita/application/ports/clock.dart';
+import 'package:carvita/application/use_cases/load_upcoming_maintenance.dart';
+import 'package:carvita/application/use_cases/synchronize_maintenance_reminders.dart';
 import 'package:carvita/core/services/notification_coordinator.dart';
 import 'package:carvita/core/services/notification_service.dart';
 import 'package:carvita/core/services/prediction_service.dart';
@@ -145,13 +148,12 @@ void main() {
       final gateway = _RecordingNotificationGateway();
       final maintenanceRepository = _BlockingMaintenanceRepository();
       final preferences = _FakePreferencesService(notificationsEnabled: false);
-      final cubit = UpcomingMaintenanceCubit(
+      final cubit = _buildCubit(
         _FakeVehicleRepository(),
         maintenanceRepository,
-        PredictionService(),
-        NotificationCoordinator(gateway),
+        gateway,
         preferences,
-        now: () => now,
+        now,
       );
       final l10n = await AppLocalizations.delegate.load(const Locale('en'));
 
@@ -182,13 +184,12 @@ void main() {
     () async {
       final gateway = _RecordingNotificationGateway();
       final maintenanceRepository = _TwoBlockedMaintenanceRepository();
-      final cubit = UpcomingMaintenanceCubit(
+      final cubit = _buildCubit(
         _FakeVehicleRepository(),
         maintenanceRepository,
-        PredictionService(),
-        NotificationCoordinator(gateway),
+        gateway,
         _FakePreferencesService(notificationsEnabled: false),
-        now: () => now,
+        now,
       );
       final l10n = await AppLocalizations.delegate.load(const Locale('en'));
 
@@ -234,13 +235,35 @@ UpcomingMaintenanceCubit _cubit({
   required _FakePreferencesService preferences,
   required DateTime now,
 }) {
-  return UpcomingMaintenanceCubit(
+  return _buildCubit(
     _FakeVehicleRepository(),
     _FakeMaintenanceRepository(),
-    PredictionService(),
-    NotificationCoordinator(gateway),
+    gateway,
     preferences,
-    now: () => now,
+    now,
+  );
+}
+
+UpcomingMaintenanceCubit _buildCubit(
+  VehicleRepository vehicleRepository,
+  MaintenanceRepository maintenanceRepository,
+  NotificationGateway gateway,
+  PreferencesService preferences,
+  DateTime now,
+) {
+  final clock = _FixedClock(now);
+  return UpcomingMaintenanceCubit(
+    LoadUpcomingMaintenance(
+      vehicleRepository,
+      maintenanceRepository,
+      PredictionService(clock),
+      clock,
+    ),
+    SynchronizeMaintenanceReminders(
+      preferences,
+      NotificationCoordinator(gateway),
+      clock,
+    ),
   );
 }
 
@@ -408,4 +431,13 @@ class _RecordingNotificationGateway implements NotificationGateway {
       ),
     );
   }
+}
+
+class _FixedClock implements Clock {
+  const _FixedClock(this.value);
+
+  final DateTime value;
+
+  @override
+  DateTime now() => value;
 }

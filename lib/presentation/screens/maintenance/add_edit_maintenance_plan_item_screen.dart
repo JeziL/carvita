@@ -9,6 +9,7 @@ import 'package:carvita/core/utils/operation_result.dart';
 import 'package:carvita/core/widgets/gradient_background.dart';
 import 'package:carvita/data/models/maintenance_plan_item.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
+import 'package:carvita/presentation/failures/app_failure_localizer.dart';
 import 'package:carvita/presentation/manager/locale_provider.dart';
 import 'package:carvita/presentation/manager/maintenance_plan/maintenance_plan_cubit.dart';
 import 'package:carvita/presentation/manager/service_log/service_log_cubit.dart';
@@ -211,11 +212,23 @@ class _AddEditMaintenancePlanItemScreenState
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(result.error.toString()),
+            content: Text(
+              result.failure.toLocalizedMessage(AppLocalizations.of(context)!),
+            ),
             backgroundColor: AppColors.urgentReminderText,
           ),
         );
         return;
+      }
+      if (result case OperationSuccess(followUpFailure: final failure?)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              failure.failure.toLocalizedMessage(AppLocalizations.of(context)!),
+            ),
+            backgroundColor: AppColors.urgentReminderText,
+          ),
+        );
       }
 
       await context.read<ServiceLogCubit>().fetchServiceLogs();

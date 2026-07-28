@@ -1,27 +1,24 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:carvita/core/services/preferences_service.dart';
+import 'package:carvita/application/use_cases/vehicle_use_cases.dart';
+import 'package:carvita/core/failures/app_failure.dart';
 import 'package:carvita/core/utils/operation_result.dart';
 import 'package:carvita/data/models/vehicle.dart';
-import 'package:carvita/data/repositories/vehicle_repository.dart';
 import 'vehicle_state.dart';
 
 class VehicleCubit extends Cubit<VehicleState> {
-  final VehicleRepository _vehicleRepository;
-  final PreferencesService _preferencesService;
+  final VehicleUseCases _useCases;
   int _loadRevision = 0;
 
-  VehicleCubit(
-    this._vehicleRepository, {
-    PreferencesService? preferencesService,
-  }) : _preferencesService = preferencesService ?? PreferencesService(),
-       super(VehicleInitial());
+  VehicleCubit(this._useCases) : super(VehicleInitial());
 
   Future<OperationResult> fetchVehicles() async {
     if (isClosed) {
-      return OperationFailure(
+      return OperationFailure.capture(
+        AppFailureKind.load,
         StateError('VehicleCubit is closed'),
         StackTrace.current,
+        context: 'VehicleCubit.fetchVehicles.closed',
       );
     }
     final revision = ++_loadRevision;
@@ -34,51 +31,70 @@ class VehicleCubit extends Cubit<VehicleState> {
       emit(VehicleLoaded(previousVehicles, isRefreshing: true));
     }
     try {
-      final vehicles = await _vehicleRepository.getVehicles();
+      final vehicles = await _useCases.getVehicles();
       if (isClosed || revision != _loadRevision) {
         return OperationSuccess();
       }
       emit(VehicleLoaded(vehicles));
       return OperationSuccess();
     } catch (error, stackTrace) {
+      final failure = OperationFailure.capture(
+        previousVehicles == null ? AppFailureKind.load : AppFailureKind.refresh,
+        error,
+        stackTrace,
+        context: 'VehicleCubit.fetchVehicles',
+      );
       if (!isClosed && revision == _loadRevision) {
         if (previousVehicles == null) {
-          emit(VehicleError(error.toString()));
+          emit(VehicleError(failure.failure));
         } else {
-          emit(VehicleLoaded(previousVehicles, refreshError: error.toString()));
+          emit(
+            VehicleLoaded(previousVehicles, refreshFailure: failure.failure),
+          );
         }
       }
-      return OperationFailure(error, stackTrace);
+      return failure;
     }
   }
 
   Future<OperationResult> addVehicle(Vehicle vehicle) async {
     try {
-      await _vehicleRepository.addVehicle(vehicle);
+      await _useCases.addVehicle(vehicle);
     } catch (error, stackTrace) {
-      return OperationFailure(error, stackTrace);
+      return OperationFailure.capture(
+        AppFailureKind.save,
+        error,
+        stackTrace,
+        context: 'VehicleCubit.addVehicle',
+      );
     }
     return _successAfterRefresh();
   }
 
   Future<OperationResult> updateVehicle(Vehicle vehicle) async {
     try {
-      await _vehicleRepository.updateVehicle(vehicle);
+      await _useCases.updateVehicle(vehicle);
     } catch (error, stackTrace) {
-      return OperationFailure(error, stackTrace);
+      return OperationFailure.capture(
+        AppFailureKind.save,
+        error,
+        stackTrace,
+        context: 'VehicleCubit.updateVehicle',
+      );
     }
     return _successAfterRefresh();
   }
 
   Future<OperationResult> deleteVehicle(int id) async {
     try {
-      await _vehicleRepository.deleteVehicle(id);
-      final defaultVehicleId = await _preferencesService.getDefaultVehicleId();
-      if (defaultVehicleId == id) {
-        await _preferencesService.setDefaultVehicleId(null);
-      }
+      await _useCases.deleteVehicle(id);
     } catch (error, stackTrace) {
-      return OperationFailure(error, stackTrace);
+      return OperationFailure.capture(
+        AppFailureKind.delete,
+        error,
+        stackTrace,
+        context: 'VehicleCubit.deleteVehicle',
+      );
     }
     return _successAfterRefresh();
   }

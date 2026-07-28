@@ -9,6 +9,9 @@ import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:carvita/application/use_cases/maintenance_plan_use_cases.dart';
+import 'package:carvita/application/use_cases/service_log_use_cases.dart';
+import 'package:carvita/application/use_cases/vehicle_use_cases.dart';
 import 'package:carvita/core/services/preferences_service.dart';
 import 'package:carvita/core/theme/app_theme.dart';
 import 'package:carvita/data/models/maintenance_plan_item.dart';
@@ -34,7 +37,9 @@ void main() {
     tester,
   ) async {
     final repository = _BlockingVehicleRepository();
-    final cubit = VehicleCubit(repository);
+    final cubit = VehicleCubit(
+      VehicleUseCases(repository, PreferencesService()),
+    );
 
     await tester.pumpWidget(
       _testApp(
@@ -61,8 +66,11 @@ void main() {
 
   testWidgets('plan form ignores a second submit while saving', (tester) async {
     final repository = _BlockingMaintenanceRepository();
-    final planCubit = MaintenancePlanCubit(repository, 1);
-    final logCubit = ServiceLogCubit(repository, 1);
+    final planCubit = MaintenancePlanCubit(
+      MaintenancePlanUseCases(repository),
+      1,
+    );
+    final logCubit = ServiceLogCubit(ServiceLogUseCases(repository), 1);
 
     await tester.pumpWidget(
       _testApp(
@@ -99,8 +107,11 @@ void main() {
     tester,
   ) async {
     final repository = _BlockingMaintenanceRepository();
-    final planCubit = MaintenancePlanCubit(repository, 1);
-    final logCubit = ServiceLogCubit(repository, 1);
+    final planCubit = MaintenancePlanCubit(
+      MaintenancePlanUseCases(repository),
+      1,
+    );
+    final logCubit = ServiceLogCubit(ServiceLogUseCases(repository), 1);
 
     await tester.pumpWidget(
       _testApp(
@@ -138,7 +149,9 @@ void main() {
   ) async {
     final repository = _BlockingVehicleRepository()
       ..writeError = StateError('write failed');
-    final cubit = VehicleCubit(repository);
+    final cubit = VehicleCubit(
+      VehicleUseCases(repository, PreferencesService()),
+    );
 
     await tester.pumpWidget(
       _testApp(
@@ -154,7 +167,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Vehicle'), findsWidgets);
-    expect(find.text('Bad state: write failed'), findsOne);
+    expect(find.text('Unable to save changes. Try again.'), findsOne);
+    expect(find.textContaining('write failed'), findsNothing);
     expect(
       tester
           .widget<ElevatedButton>(
@@ -175,6 +189,9 @@ Widget _testApp({
   final preferences = PreferencesService();
   return MultiProvider(
     providers: [
+      Provider<VehicleUseCases>.value(
+        value: VehicleUseCases(VehicleRepository(), preferences),
+      ),
       ChangeNotifierProvider<LocaleProvider>(
         create: (_) => LocaleProvider(preferences),
       ),

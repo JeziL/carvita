@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
+import 'package:carvita/application/use_cases/vehicle_use_cases.dart';
 import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/theme/app_theme.dart';
 import 'package:carvita/core/utils/operation_result.dart';
@@ -12,8 +13,8 @@ import 'package:carvita/core/widgets/gradient_background.dart';
 import 'package:carvita/data/models/maintenance_plan_item.dart';
 import 'package:carvita/data/models/service_log_entry.dart';
 import 'package:carvita/data/models/vehicle.dart';
-import 'package:carvita/data/repositories/vehicle_repository.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
+import 'package:carvita/presentation/failures/app_failure_localizer.dart';
 import 'package:carvita/presentation/manager/locale_provider.dart';
 import 'package:carvita/presentation/manager/maintenance_plan/maintenance_plan_cubit.dart';
 import 'package:carvita/presentation/manager/service_log/service_log_cubit.dart';
@@ -41,7 +42,7 @@ class LogMaintenanceScreen extends StatefulWidget {
 
 class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _vehicleRepository = VehicleRepository();
+  late final VehicleUseCases _vehicleUseCases;
 
   late TextEditingController _dateController;
   late TextEditingController _mileageController;
@@ -62,6 +63,7 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
   @override
   void initState() {
     super.initState();
+    _vehicleUseCases = context.read<VehicleUseCases>();
     final log = widget.logToEdit?.entry;
 
     _selectedServiceDate = log?.serviceDate ?? DateTime.now();
@@ -208,7 +210,9 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(result.error.toString()),
+          content: Text(
+            result.failure.toLocalizedMessage(AppLocalizations.of(context)!),
+          ),
           backgroundColor: AppColors.urgentReminderText,
         ),
       );
@@ -216,7 +220,17 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
     }
 
     if (result is OperationSuccess) {
-      Vehicle? currentVehicle = await _vehicleRepository.getVehicleById(
+      if (result.followUpFailure case final failure?) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              failure.failure.toLocalizedMessage(AppLocalizations.of(context)!),
+            ),
+            backgroundColor: AppColors.urgentReminderText,
+          ),
+        );
+      }
+      Vehicle? currentVehicle = await _vehicleUseCases.getVehicleById(
         widget.vehicleId,
       );
       if (!mounted) return;

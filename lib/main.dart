@@ -5,11 +5,20 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl_standalone.dart';
 import 'package:provider/provider.dart';
 
+import 'package:carvita/application/ports/clock.dart';
+import 'package:carvita/application/ports/platform_ports.dart';
+import 'package:carvita/application/use_cases/load_upcoming_maintenance.dart';
+import 'package:carvita/application/use_cases/maintenance_plan_use_cases.dart';
+import 'package:carvita/application/use_cases/service_log_use_cases.dart';
+import 'package:carvita/application/use_cases/synchronize_maintenance_reminders.dart';
+import 'package:carvita/application/use_cases/vehicle_use_cases.dart';
 import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/constants/app_routes.dart';
+import 'package:carvita/core/services/backup_service.dart';
 import 'package:carvita/core/services/navigation_service.dart';
 import 'package:carvita/core/services/notification_coordinator.dart';
 import 'package:carvita/core/services/notification_service.dart';
+import 'package:carvita/core/services/plugin_platform_service.dart';
 import 'package:carvita/core/services/prediction_service.dart';
 import 'package:carvita/core/services/preferences_service.dart';
 import 'package:carvita/core/services/quick_action_service.dart';
@@ -23,6 +32,7 @@ import 'package:carvita/presentation/manager/theme_provider.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_cubit.dart';
 import 'package:carvita/presentation/navigation/app_router.dart';
+import 'package:carvita/presentation/navigation/default_quick_action_navigation.dart';
 
 final RouteObserver<ModalRoute<void>> routeObserver =
     RouteObserver<ModalRoute<void>>();
@@ -49,26 +59,67 @@ final appSupportedLocales = [
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final notificationService = NotificationService();
+  const clock = SystemClock();
+  final notificationService = NotificationService(clock);
   await notificationService.initialize();
   await findSystemLocale();
   final preferencesService = PreferencesService();
   final databaseHelper = DatabaseHelper();
   final vehicleRepository = VehicleRepository(dbHelper: databaseHelper);
   final maintenanceRepository = MaintenanceRepository(dbHelper: databaseHelper);
-  final predictionService = PredictionService();
+  final predictionService = PredictionService(clock);
   final notificationCoordinator = NotificationCoordinator(notificationService);
+  final backupService = BackupService(clock: clock.now);
+  const pluginPlatformService = PluginPlatformService();
+  final vehicleUseCases = VehicleUseCases(
+    vehicleRepository,
+    preferencesService,
+  );
+  final maintenancePlanUseCases = MaintenancePlanUseCases(
+    maintenanceRepository,
+  );
+  final serviceLogUseCases = ServiceLogUseCases(maintenanceRepository);
+  final loadUpcomingMaintenance = LoadUpcomingMaintenance(
+    vehicleRepository,
+    maintenanceRepository,
+    predictionService,
+    clock,
+  );
+  final synchronizeMaintenanceReminders = SynchronizeMaintenanceReminders(
+    preferencesService,
+    notificationCoordinator,
+    clock,
+  );
+  final quickActionNavigation = DefaultQuickActionNavigation(
+    maintenancePlanUseCases,
+    serviceLogUseCases,
+  );
 
   final quickActionService = QuickActionService(
     vehicleRepository: vehicleRepository,
-    maintenanceRepository: maintenanceRepository,
     preferencesService: preferencesService,
+    navigation: quickActionNavigation,
+    platform: const PluginQuickActionPlatform(),
   );
   quickActionService.initializeListener();
   runApp(
     MultiProvider(
       providers: [
         Provider<QuickActionService>.value(value: quickActionService),
+        Provider<PreferencesService>.value(value: preferencesService),
+        Provider<VehicleUseCases>.value(value: vehicleUseCases),
+        Provider<MaintenancePlanUseCases>.value(value: maintenancePlanUseCases),
+        Provider<ServiceLogUseCases>.value(value: serviceLogUseCases),
+        Provider<NotificationPermissionGateway>.value(
+          value: notificationService,
+        ),
+        Provider<BackupGateway>.value(value: backupService),
+        Provider<VehicleImagePickerPort>.value(value: pluginPlatformService),
+        Provider<BackupFilePickerPort>.value(value: pluginPlatformService),
+        Provider<FileSharePort>.value(value: pluginPlatformService),
+        Provider<AppPackageInfoPort>.value(value: pluginPlatformService),
+        Provider<ExternalUrlPort>.value(value: pluginPlatformService),
+        Provider<AppExitPort>.value(value: pluginPlatformService),
         ChangeNotifierProvider(
           create: (_) => LocaleProvider(preferencesService),
         ),
@@ -78,10 +129,9 @@ Future<void> main() async {
       ],
       child: CarVitaApp(
         preferencesService: preferencesService,
-        vehicleRepository: vehicleRepository,
-        maintenanceRepository: maintenanceRepository,
-        predictionService: predictionService,
-        notificationCoordinator: notificationCoordinator,
+        vehicleUseCases: vehicleUseCases,
+        loadUpcomingMaintenance: loadUpcomingMaintenance,
+        synchronizeMaintenanceReminders: synchronizeMaintenanceReminders,
       ),
     ),
   );
@@ -89,17 +139,15 @@ Future<void> main() async {
 
 class CarVitaApp extends StatelessWidget {
   final PreferencesService preferencesService;
-  final VehicleRepository vehicleRepository;
-  final MaintenanceRepository maintenanceRepository;
-  final PredictionService predictionService;
-  final NotificationCoordinator notificationCoordinator;
+  final VehicleUseCases vehicleUseCases;
+  final LoadUpcomingMaintenance loadUpcomingMaintenance;
+  final SynchronizeMaintenanceReminders synchronizeMaintenanceReminders;
   const CarVitaApp({
     super.key,
     required this.preferencesService,
-    required this.vehicleRepository,
-    required this.maintenanceRepository,
-    required this.predictionService,
-    required this.notificationCoordinator,
+    required this.vehicleUseCases,
+    required this.loadUpcomingMaintenance,
+    required this.synchronizeMaintenanceReminders,
   });
 
   @override
@@ -107,18 +155,12 @@ class CarVitaApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider<VehicleCubit>(
-          create: (context) => VehicleCubit(
-            vehicleRepository,
-            preferencesService: preferencesService,
-          )..fetchVehicles(),
+          create: (context) => VehicleCubit(vehicleUseCases)..fetchVehicles(),
         ),
         BlocProvider<UpcomingMaintenanceCubit>(
           create: (context) => UpcomingMaintenanceCubit(
-            vehicleRepository,
-            maintenanceRepository,
-            predictionService,
-            notificationCoordinator,
-            preferencesService,
+            loadUpcomingMaintenance,
+            synchronizeMaintenanceReminders,
           ),
         ),
       ],
@@ -246,7 +288,10 @@ class _ShortcutLocalizationWrapperState
     final quickActionService = context.read<QuickActionService>();
     quickActionService.navigatorReady();
     try {
-      await quickActionService.updateShortcutItems(context);
+      await quickActionService.updateShortcutItems(
+        logMaintenanceTitle: l10n.logMaintenance,
+        upcomingMaintenanceTitle: l10n.upcomingMaintenance,
+      );
     } catch (error, stackTrace) {
       debugPrint(
         'Failed to update localized quick actions: $error\n$stackTrace',

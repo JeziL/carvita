@@ -8,6 +8,7 @@ import 'package:carvita/core/constants/app_routes.dart';
 import 'package:carvita/core/utils/operation_result.dart';
 import 'package:carvita/data/models/vehicle.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
+import 'package:carvita/presentation/failures/app_failure_localizer.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_cubit.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_state.dart';
@@ -74,7 +75,9 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
       } else if (result is OperationFailure) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(result.error.toString()),
+            content: Text(
+              result.failure.toLocalizedMessage(AppLocalizations.of(context)!),
+            ),
             backgroundColor: AppColors.urgentReminderText,
           ),
         );
@@ -104,7 +107,9 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
-                  state.message,
+                  state.failure.toLocalizedMessage(
+                    AppLocalizations.of(context)!,
+                  ),
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.onPrimary,
                   ),
@@ -112,10 +117,14 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
                 backgroundColor: AppColors.urgentReminderText,
               ),
             );
-          } else if (state is VehicleLoaded && state.refreshError != null) {
+          } else if (state is VehicleLoaded && state.refreshFailure != null) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(state.refreshError!),
+                content: Text(
+                  state.refreshFailure!.toLocalizedMessage(
+                    AppLocalizations.of(context)!,
+                  ),
+                ),
                 backgroundColor: AppColors.urgentReminderText,
               ),
             );
@@ -278,7 +287,7 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
           } else if (state is VehicleError) {
             return Center(
               child: Text(
-                state.message,
+                state.failure.toLocalizedMessage(AppLocalizations.of(context)!),
                 style: const TextStyle(color: AppColors.urgentReminderText),
               ),
             );

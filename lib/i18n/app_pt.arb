@@ -166,5 +166,15 @@
   "ok": "OK",
   "chooseTheme": "Escolher tema",
   "theme": "Tema",
-  "themeColor": "Cor do tema"
+  "themeColor": "Cor do tema",
+  "routeErrorTitle": "Não foi possível abrir a página",
+  "routeErrorMessage": "As informações da página estão incompletas ou não estão mais disponíveis. Volte e tente novamente.",
+  "goToHome": "Ir para o início",
+  "loadErrorMessage": "Não foi possível carregar os dados. Tente novamente.",
+  "saveErrorMessage": "Não foi possível salvar as alterações. Tente novamente.",
+  "deleteErrorMessage": "Não foi possível excluir. Tente novamente.",
+  "refreshErrorMessage": "Não foi possível atualizar no momento. Tente novamente.",
+  "reminderUpdateErrorMessage": "Salvo, mas não foi possível atualizar o lembrete.",
+  "exportErrorMessage": "Não foi possível exportar os dados. Tente novamente.",
+  "restoreErrorMessage": "Não foi possível restaurar os dados. Verifique o arquivo de backup e tente novamente."
 }

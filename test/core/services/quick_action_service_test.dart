@@ -7,6 +7,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:carvita/application/use_cases/maintenance_plan_use_cases.dart';
+import 'package:carvita/application/use_cases/service_log_use_cases.dart';
 import 'package:carvita/core/services/navigation_service.dart';
 import 'package:carvita/core/services/preferences_service.dart';
 import 'package:carvita/core/services/quick_action_service.dart';
@@ -16,6 +18,7 @@ import 'package:carvita/data/repositories/maintenance_repository.dart';
 import 'package:carvita/data/repositories/vehicle_repository.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/presentation/manager/locale_provider.dart';
+import 'package:carvita/presentation/navigation/default_quick_action_navigation.dart';
 import 'package:carvita/presentation/screens/vehicle/select_vehicle_screen.dart';
 
 void main() {
@@ -97,10 +100,14 @@ QuickActionService _service({
   _FakeVehicleRepository? vehicleRepository,
   _FakePreferencesService? preferencesService,
 }) {
+  final maintenanceRepository = _FakeMaintenanceRepository();
   return QuickActionService(
     vehicleRepository: vehicleRepository ?? _FakeVehicleRepository(),
-    maintenanceRepository: _FakeMaintenanceRepository(),
     preferencesService: preferencesService ?? _FakePreferencesService(),
+    navigation: DefaultQuickActionNavigation(
+      MaintenancePlanUseCases(maintenanceRepository),
+      ServiceLogUseCases(maintenanceRepository),
+    ),
     platform: platform,
   );
 }

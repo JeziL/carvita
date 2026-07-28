@@ -4,6 +4,8 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
+import 'package:carvita/application/ports/clock.dart';
+
 abstract interface class NotificationGateway {
   Future<void> scheduleNotification({
     required int id,
@@ -16,11 +18,19 @@ abstract interface class NotificationGateway {
   Future<void> cancelAllNotifications();
 }
 
-class NotificationService implements NotificationGateway {
-  static final NotificationService _instance = NotificationService._internal();
-  factory NotificationService() => _instance;
-  NotificationService._internal();
+abstract interface class NotificationPermissionGateway {
+  Future<bool> requestPermissions();
 
+  Future<bool> checkPermissions();
+
+  Future<void> cancelAllNotifications();
+}
+
+class NotificationService
+    implements NotificationGateway, NotificationPermissionGateway {
+  NotificationService(this._clock);
+
+  final Clock _clock;
   final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
@@ -66,6 +76,7 @@ class NotificationService implements NotificationGateway {
     // handle the navigation or action when the notification is tapped
   }
 
+  @override
   Future<bool> requestPermissions() async {
     if (defaultTargetPlatform == TargetPlatform.iOS ||
         defaultTargetPlatform == TargetPlatform.macOS) {
@@ -92,6 +103,7 @@ class NotificationService implements NotificationGateway {
   }
 
   // check if the user has granted permission
+  @override
   Future<bool> checkPermissions() async {
     if (defaultTargetPlatform == TargetPlatform.iOS ||
         defaultTargetPlatform == TargetPlatform.macOS) {
@@ -124,7 +136,7 @@ class NotificationService implements NotificationGateway {
     String? payload,
   }) async {
     // ensure scheduledDateTime is in the future
-    if (scheduledDateTime.isBefore(DateTime.now())) {
+    if (scheduledDateTime.isBefore(_clock.now())) {
       return;
     }
 

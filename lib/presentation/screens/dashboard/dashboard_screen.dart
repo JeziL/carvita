@@ -14,6 +14,8 @@ import 'package:carvita/data/models/predicted_maintenance.dart';
 import 'package:carvita/data/models/vehicle.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/main.dart';
+import 'package:carvita/presentation/failures/app_failure_localizer.dart';
+import 'package:carvita/presentation/formatters/predicted_maintenance_localizer.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_state.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_cubit.dart';
@@ -32,7 +34,7 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen>
     with WidgetsBindingObserver, RouteAware {
-  final PreferencesService _preferencesService = PreferencesService();
+  late final PreferencesService _preferencesService;
   DueReminderThresholdValue _dashboardThreshold =
       DueReminderThresholdValue.month;
   int _dashboardItemCount = 3;
@@ -40,6 +42,7 @@ class _DashboardScreenState extends State<DashboardScreen>
   @override
   void initState() {
     super.initState();
+    _preferencesService = context.read<PreferencesService>();
     WidgetsBinding.instance.addObserver(this);
     _loadDashboardFilterSettings();
   }
@@ -319,7 +322,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                         onPressed: () {
                           context
                               .read<QuickActionService>()
-                              .handleLogMaintenanceRequest(context);
+                              .handleLogMaintenanceRequest();
                         },
                       ),
                     ],
@@ -349,7 +352,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                     _buildDashboardUrgentReminders(context, allPredictions),
                   if (upcomingState is UpcomingMaintenanceError)
                     Text(
-                      upcomingState.message,
+                      upcomingState.failure.toLocalizedMessage(
+                        AppLocalizations.of(context)!,
+                      ),
                       style: const TextStyle(
                         color: AppColors.urgentReminderText,
                       ),
@@ -403,7 +408,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                       } else if (state is VehicleError) {
                         return Center(
                           child: Text(
-                            state.message,
+                            state.failure.toLocalizedMessage(
+                              AppLocalizations.of(context)!,
+                            ),
                             style: const TextStyle(
                               color: AppColors.urgentReminderText,
                             ),

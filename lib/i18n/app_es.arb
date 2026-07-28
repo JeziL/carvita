@@ -166,5 +166,15 @@
   "ok": "Aceptar",
   "chooseTheme": "Elegir tema",
   "theme": "Tema",
-  "themeColor": "Color del tema"
+  "themeColor": "Color del tema",
+  "routeErrorTitle": "No se puede abrir la página",
+  "routeErrorMessage": "La información de la página está incompleta o ya no está disponible. Vuelve atrás e inténtalo de nuevo.",
+  "goToHome": "Ir al inicio",
+  "loadErrorMessage": "No se pudieron cargar los datos. Inténtalo de nuevo.",
+  "saveErrorMessage": "No se pudieron guardar los cambios. Inténtalo de nuevo.",
+  "deleteErrorMessage": "No se pudo eliminar. Inténtalo de nuevo.",
+  "refreshErrorMessage": "No se puede actualizar temporalmente. Inténtalo de nuevo.",
+  "reminderUpdateErrorMessage": "Guardado, pero no se pudo actualizar el recordatorio.",
+  "exportErrorMessage": "No se pudieron exportar los datos. Inténtalo de nuevo.",
+  "restoreErrorMessage": "No se pudieron restaurar los datos. Comprueba el archivo de copia de seguridad e inténtalo de nuevo."
 }

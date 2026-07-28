@@ -6,6 +6,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:carvita/application/ports/clock.dart';
+import 'package:carvita/application/use_cases/load_upcoming_maintenance.dart';
+import 'package:carvita/application/use_cases/synchronize_maintenance_reminders.dart';
 import 'package:carvita/core/services/notification_coordinator.dart';
 import 'package:carvita/core/services/notification_service.dart';
 import 'package:carvita/core/services/prediction_service.dart';
@@ -32,18 +35,14 @@ void main() {
     final platform = _CountingQuickActionPlatform();
     final quickActionService = QuickActionService(
       vehicleRepository: vehicleRepository,
-      maintenanceRepository: maintenanceRepository,
       preferencesService: preferences,
+      navigation: const _NoopQuickActionNavigation(),
       platform: platform,
-      navigatorContextProvider: () => null,
     );
-    final upcomingCubit = UpcomingMaintenanceCubit(
+    final upcomingCubit = _upcomingCubit(
       vehicleRepository,
       maintenanceRepository,
-      PredictionService(),
-      NotificationCoordinator(_NoopNotificationGateway()),
       preferences,
-      now: () => DateTime(2026, 7, 27),
     );
 
     await tester.pumpWidget(
@@ -83,18 +82,14 @@ void main() {
     final platform = _CountingQuickActionPlatform(failSetItems: true);
     final quickActionService = QuickActionService(
       vehicleRepository: vehicleRepository,
-      maintenanceRepository: maintenanceRepository,
       preferencesService: preferences,
+      navigation: const _NoopQuickActionNavigation(),
       platform: platform,
-      navigatorContextProvider: () => null,
     );
-    final upcomingCubit = UpcomingMaintenanceCubit(
+    final upcomingCubit = _upcomingCubit(
       vehicleRepository,
       maintenanceRepository,
-      PredictionService(),
-      NotificationCoordinator(_NoopNotificationGateway()),
       preferences,
-      now: () => DateTime(2026, 7, 27),
     );
 
     await tester.pumpWidget(
@@ -123,6 +118,30 @@ void main() {
     expect(tester.takeException(), isNull);
     await upcomingCubit.close();
   });
+}
+
+UpcomingMaintenanceCubit _upcomingCubit(
+  VehicleRepository vehicleRepository,
+  MaintenanceRepository maintenanceRepository,
+  PreferencesService preferences,
+) {
+  final clock = _FixedClock(DateTime(2026, 7, 27));
+  final notificationCoordinator = NotificationCoordinator(
+    _NoopNotificationGateway(),
+  );
+  return UpcomingMaintenanceCubit(
+    LoadUpcomingMaintenance(
+      vehicleRepository,
+      maintenanceRepository,
+      PredictionService(clock),
+      clock,
+    ),
+    SynchronizeMaintenanceReminders(
+      preferences,
+      notificationCoordinator,
+      clock,
+    ),
+  );
 }
 
 class _CountingVehicleRepository extends VehicleRepository {
@@ -159,6 +178,37 @@ class _CountingQuickActionPlatform implements QuickActionPlatform {
     setItemsCount++;
     if (failSetItems) throw StateError('shortcut platform failed');
   }
+}
+
+class _NoopQuickActionNavigation implements QuickActionNavigation {
+  const _NoopQuickActionNavigation();
+
+  @override
+  bool get isReady => false;
+
+  @override
+  void openLogMaintenance({
+    required int vehicleId,
+    required String vehicleName,
+  }) {}
+
+  @override
+  void openUpcomingMaintenance() {}
+
+  @override
+  void openVehicleSelection(List<Vehicle> vehicles) {}
+
+  @override
+  void showNoVehicleMessage() {}
+}
+
+class _FixedClock implements Clock {
+  const _FixedClock(this.value);
+
+  final DateTime value;
+
+  @override
+  DateTime now() => value;
 }
 
 class _NoopNotificationGateway implements NotificationGateway {

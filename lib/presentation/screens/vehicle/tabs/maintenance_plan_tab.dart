@@ -7,6 +7,7 @@ import 'package:carvita/core/constants/app_routes.dart';
 import 'package:carvita/core/utils/operation_result.dart';
 import 'package:carvita/data/models/maintenance_plan_item.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
+import 'package:carvita/presentation/failures/app_failure_localizer.dart';
 import 'package:carvita/presentation/manager/locale_provider.dart';
 import 'package:carvita/presentation/manager/maintenance_plan/maintenance_plan_cubit.dart';
 import 'package:carvita/presentation/manager/maintenance_plan/maintenance_plan_state.dart';
@@ -86,7 +87,9 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
       } else if (result is OperationFailure) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(result.error.toString()),
+            content: Text(
+              result.failure.toLocalizedMessage(AppLocalizations.of(context)!),
+            ),
             backgroundColor: AppColors.urgentReminderText,
           ),
         );
@@ -123,7 +126,7 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                state.message,
+                state.failure.toLocalizedMessage(AppLocalizations.of(context)!),
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.onPrimary,
                 ),
@@ -132,10 +135,14 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
             ),
           );
         } else if (state is MaintenancePlanLoaded &&
-            state.refreshError != null) {
+            state.refreshFailure != null) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.refreshError!),
+              content: Text(
+                state.refreshFailure!.toLocalizedMessage(
+                  AppLocalizations.of(context)!,
+                ),
+              ),
               backgroundColor: AppColors.urgentReminderText,
             ),
           );

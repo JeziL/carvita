@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import 'package:carvita/core/failures/app_failure.dart';
 import 'package:carvita/data/models/maintenance_plan_item.dart';
 
 abstract class MaintenancePlanState extends Equatable {
@@ -16,23 +17,23 @@ class MaintenancePlanLoading extends MaintenancePlanState {}
 class MaintenancePlanLoaded extends MaintenancePlanState {
   final List<MaintenancePlanItem> planItems;
   final bool isRefreshing;
-  final String? refreshError;
+  final AppFailure? refreshFailure;
 
   const MaintenancePlanLoaded(
     this.planItems, {
     this.isRefreshing = false,
-    this.refreshError,
+    this.refreshFailure,
   });
 
   @override
-  List<Object?> get props => [planItems, isRefreshing, refreshError];
+  List<Object?> get props => [planItems, isRefreshing, refreshFailure];
 }
 
 class MaintenancePlanError extends MaintenancePlanState {
-  final String message;
+  final AppFailure failure;
 
-  const MaintenancePlanError(this.message);
+  const MaintenancePlanError(this.failure);
 
   @override
-  List<Object> get props => [message];
+  List<Object> get props => [failure];
 }

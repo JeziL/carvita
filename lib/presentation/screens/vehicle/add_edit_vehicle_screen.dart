@@ -3,15 +3,16 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
+import 'package:carvita/application/ports/platform_ports.dart';
 import 'package:carvita/core/constants/app_colors.dart';
 import 'package:carvita/core/theme/app_theme.dart';
 import 'package:carvita/core/utils/operation_result.dart';
 import 'package:carvita/core/widgets/gradient_background.dart';
 import 'package:carvita/data/models/vehicle.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
+import 'package:carvita/presentation/failures/app_failure_localizer.dart';
 import 'package:carvita/presentation/manager/locale_provider.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_cubit.dart';
@@ -74,19 +75,15 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
     super.dispose();
   }
 
-  Future<void> _pickImage(ImageSource source) async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? imageFile = await picker.pickImage(
-      source: source,
-      imageQuality: 70,
-      maxWidth: 800,
-    );
+  Future<void> _pickImage(VehicleImageSource source) async {
+    final imageBytes = await context
+        .read<VehicleImagePickerPort>()
+        .pickVehicleImage(source);
 
-    if (imageFile != null) {
-      final bytes = await imageFile.readAsBytes();
+    if (imageBytes != null) {
       if (!mounted) return;
       setState(() {
-        _selectedImageBytes = bytes;
+        _selectedImageBytes = imageBytes;
       });
     }
   }
@@ -111,7 +108,7 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
                   ),
                 ),
                 onTap: () {
-                  _pickImage(ImageSource.gallery);
+                  _pickImage(VehicleImageSource.gallery);
                   Navigator.of(context).pop();
                 },
               ),
@@ -127,7 +124,7 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
                   ),
                 ),
                 onTap: () {
-                  _pickImage(ImageSource.camera);
+                  _pickImage(VehicleImageSource.camera);
                   Navigator.of(context).pop();
                 },
               ),
@@ -238,11 +235,23 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(result.error.toString()),
+            content: Text(
+              result.failure.toLocalizedMessage(AppLocalizations.of(context)!),
+            ),
             backgroundColor: AppColors.urgentReminderText,
           ),
         );
         return;
+      }
+      if (result case OperationSuccess(followUpFailure: final failure?)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              failure.failure.toLocalizedMessage(AppLocalizations.of(context)!),
+            ),
+            backgroundColor: AppColors.urgentReminderText,
+          ),
+        );
       }
 
       await context.read<UpcomingMaintenanceCubit>().loadAllUpcomingMaintenance(

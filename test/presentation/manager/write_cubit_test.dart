@@ -2,6 +2,11 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:carvita/application/use_cases/maintenance_plan_use_cases.dart';
+import 'package:carvita/application/use_cases/service_log_use_cases.dart';
+import 'package:carvita/application/use_cases/vehicle_use_cases.dart';
+import 'package:carvita/core/failures/app_failure.dart';
+import 'package:carvita/core/services/preferences_service.dart';
 import 'package:carvita/core/utils/operation_result.dart';
 import 'package:carvita/data/models/maintenance_plan_item.dart';
 import 'package:carvita/data/models/service_log_entry.dart';
@@ -19,7 +24,7 @@ void main() {
   group('VehicleCubit write protocol', () {
     test('waits for refresh before returning success', () async {
       final repository = _FakeVehicleRepository([_vehicle(id: 1)]);
-      final cubit = VehicleCubit(repository);
+      final cubit = _vehicleCubit(repository);
       await cubit.fetchVehicles();
       final emitted = <VehicleState>[];
       final subscription = cubit.stream.listen(emitted.add);
@@ -40,7 +45,7 @@ void main() {
     test('write failure keeps the last successful data', () async {
       final repository = _FakeVehicleRepository([_vehicle(id: 1)])
         ..writeError = StateError('write failed');
-      final cubit = VehicleCubit(repository);
+      final cubit = _vehicleCubit(repository);
       await cubit.fetchVehicles();
       final before = cubit.state;
       final emitted = <VehicleState>[];
@@ -49,6 +54,7 @@ void main() {
       final result = await cubit.updateVehicle(_vehicle(id: 1));
 
       expect(result, isA<OperationFailure>());
+      expect((result as OperationFailure).failure.kind, AppFailureKind.save);
       expect(cubit.state, before);
       expect(emitted, isEmpty);
       await subscription.cancel();
@@ -59,23 +65,19 @@ void main() {
       'refresh failure reports a follow-up failure and keeps old data',
       () async {
         final repository = _FakeVehicleRepository([_vehicle(id: 1)]);
-        final cubit = VehicleCubit(repository);
+        final cubit = _vehicleCubit(repository);
         await cubit.fetchVehicles();
         repository.readError = StateError('refresh failed');
 
         final result = await cubit.addVehicle(_vehicle(id: 2));
 
         expect(result, isA<OperationSuccess>());
-        expect(
-          (result as OperationSuccess).followUpFailure,
-          isA<OperationFailure>(),
-        );
-        expect(
-          cubit.state,
-          VehicleLoaded([
-            _vehicle(id: 1),
-          ], refreshError: 'Bad state: refresh failed'),
-        );
+        final followUpFailure = (result as OperationSuccess).followUpFailure;
+        expect(followUpFailure, isA<OperationFailure>());
+        expect(followUpFailure!.failure.kind, AppFailureKind.refresh);
+        final state = cubit.state as VehicleLoaded;
+        expect(state.vehicles, [_vehicle(id: 1)]);
+        expect(state.refreshFailure?.kind, AppFailureKind.refresh);
         await cubit.close();
       },
     );
@@ -86,7 +88,7 @@ void main() {
       final repository = _FakeMaintenanceRepository(
         planItems: [_planItem(id: 1)],
       );
-      final cubit = MaintenancePlanCubit(repository, 1);
+      final cubit = _maintenancePlanCubit(repository);
       await cubit.fetchPlanItems();
 
       final result = await cubit.addPlanItem(_planItem(id: 2));
@@ -108,13 +110,14 @@ void main() {
       final repository = _FakeMaintenanceRepository(
         planItems: [_planItem(id: 1)],
       )..planWriteError = StateError('write failed');
-      final cubit = MaintenancePlanCubit(repository, 1);
+      final cubit = _maintenancePlanCubit(repository);
       await cubit.fetchPlanItems();
       final before = cubit.state;
 
       final result = await cubit.updatePlanItem(_planItem(id: 1));
 
       expect(result, isA<OperationFailure>());
+      expect((result as OperationFailure).failure.kind, AppFailureKind.save);
       expect(cubit.state, before);
       await cubit.close();
     });
@@ -125,23 +128,19 @@ void main() {
         final repository = _FakeMaintenanceRepository(
           planItems: [_planItem(id: 1)],
         );
-        final cubit = MaintenancePlanCubit(repository, 1);
+        final cubit = _maintenancePlanCubit(repository);
         await cubit.fetchPlanItems();
         repository.planReadError = StateError('refresh failed');
 
         final result = await cubit.deletePlanItem(1);
 
         expect(result, isA<OperationSuccess>());
-        expect(
-          (result as OperationSuccess).followUpFailure,
-          isA<OperationFailure>(),
-        );
-        expect(
-          cubit.state,
-          MaintenancePlanLoaded([
-            _planItem(id: 1),
-          ], refreshError: 'Bad state: refresh failed'),
-        );
+        final followUpFailure = (result as OperationSuccess).followUpFailure;
+        expect(followUpFailure, isA<OperationFailure>());
+        expect(followUpFailure!.failure.kind, AppFailureKind.refresh);
+        final state = cubit.state as MaintenancePlanLoaded;
+        expect(state.planItems, [_planItem(id: 1)]);
+        expect(state.refreshFailure?.kind, AppFailureKind.refresh);
         await cubit.close();
       },
     );
@@ -152,7 +151,7 @@ void main() {
       final repository = _FakeMaintenanceRepository(
         serviceLogs: [_serviceLog(id: 1)],
       );
-      final cubit = ServiceLogCubit(repository, 1);
+      final cubit = _serviceLogCubit(repository);
       await cubit.fetchServiceLogs();
 
       final result = await cubit.addServiceLog(_serviceEntry(id: 2), const [
@@ -176,7 +175,7 @@ void main() {
       final repository = _FakeMaintenanceRepository(
         serviceLogs: [_serviceLog(id: 1)],
       )..logWriteError = StateError('write failed');
-      final cubit = ServiceLogCubit(repository, 1);
+      final cubit = _serviceLogCubit(repository);
       await cubit.fetchServiceLogs();
       final before = cubit.state;
 
@@ -185,6 +184,7 @@ void main() {
       ]);
 
       expect(result, isA<OperationFailure>());
+      expect((result as OperationFailure).failure.kind, AppFailureKind.save);
       expect(cubit.state, before);
       await cubit.close();
     });
@@ -195,33 +195,116 @@ void main() {
         final repository = _FakeMaintenanceRepository(
           serviceLogs: [_serviceLog(id: 1)],
         );
-        final cubit = ServiceLogCubit(repository, 1);
+        final cubit = _serviceLogCubit(repository);
         await cubit.fetchServiceLogs();
         repository.logReadError = StateError('refresh failed');
 
         final result = await cubit.deleteServiceLog(1);
 
         expect(result, isA<OperationSuccess>());
-        expect(
-          (result as OperationSuccess).followUpFailure,
-          isA<OperationFailure>(),
-        );
-        expect(
-          cubit.state,
-          ServiceLogLoaded([
-            _serviceLog(id: 1),
-          ], refreshError: 'Bad state: refresh failed'),
-        );
+        final followUpFailure = (result as OperationSuccess).followUpFailure;
+        expect(followUpFailure, isA<OperationFailure>());
+        expect(followUpFailure!.failure.kind, AppFailureKind.refresh);
+        final state = cubit.state as ServiceLogLoaded;
+        expect(state.serviceLogs, [_serviceLog(id: 1)]);
+        expect(state.refreshFailure?.kind, AppFailureKind.refresh);
         await cubit.close();
       },
     );
   });
 
+  group('typed failure categories', () {
+    test(
+      'initial reads expose load failures without diagnostic strings',
+      () async {
+        final vehicleCubit = _vehicleCubit(
+          _FakeVehicleRepository(const [])
+            ..readError = StateError('vehicle SQL path'),
+        );
+        final maintenanceRepository = _FakeMaintenanceRepository()
+          ..planReadError = StateError('plan SQL path')
+          ..logReadError = StateError('log SQL path');
+        final planCubit = _maintenancePlanCubit(maintenanceRepository);
+        final logCubit = _serviceLogCubit(maintenanceRepository);
+
+        final vehicleResult = await vehicleCubit.fetchVehicles();
+        final planResult = await planCubit.fetchPlanItems();
+        final logResult = await logCubit.fetchServiceLogs();
+
+        expect(
+          (vehicleResult as OperationFailure).failure.kind,
+          AppFailureKind.load,
+        );
+        expect(
+          (vehicleCubit.state as VehicleError).failure.kind,
+          AppFailureKind.load,
+        );
+        expect(
+          (planResult as OperationFailure).failure.kind,
+          AppFailureKind.load,
+        );
+        expect(
+          (planCubit.state as MaintenancePlanError).failure.kind,
+          AppFailureKind.load,
+        );
+        expect(
+          (logResult as OperationFailure).failure.kind,
+          AppFailureKind.load,
+        );
+        expect(
+          (logCubit.state as ServiceLogError).failure.kind,
+          AppFailureKind.load,
+        );
+
+        await vehicleCubit.close();
+        await planCubit.close();
+        await logCubit.close();
+      },
+    );
+
+    test('delete commands expose delete failures', () async {
+      final vehicleCubit = _vehicleCubit(
+        _FakeVehicleRepository([_vehicle(id: 1)])
+          ..writeError = StateError('vehicle delete failed'),
+      );
+      final maintenanceRepository =
+          _FakeMaintenanceRepository(
+              planItems: [_planItem(id: 1)],
+              serviceLogs: [_serviceLog(id: 1)],
+            )
+            ..planWriteError = StateError('plan delete failed')
+            ..logWriteError = StateError('log delete failed');
+      final planCubit = _maintenancePlanCubit(maintenanceRepository);
+      final logCubit = _serviceLogCubit(maintenanceRepository);
+
+      final vehicleResult = await vehicleCubit.deleteVehicle(1);
+      final planResult = await planCubit.deletePlanItem(1);
+      final logResult = await logCubit.deleteServiceLog(1);
+
+      expect(
+        (vehicleResult as OperationFailure).failure.kind,
+        AppFailureKind.delete,
+      );
+      expect(
+        (planResult as OperationFailure).failure.kind,
+        AppFailureKind.delete,
+      );
+      expect(
+        (logResult as OperationFailure).failure.kind,
+        AppFailureKind.delete,
+      );
+
+      await vehicleCubit.close();
+      await planCubit.close();
+      await logCubit.close();
+    });
+  });
+
   group('initial loading and close safety', () {
     test('Plan and Log constructors do not fetch implicitly', () async {
       final repository = _FakeMaintenanceRepository();
-      final planCubit = MaintenancePlanCubit(repository, 1);
-      final logCubit = ServiceLogCubit(repository, 1);
+      final planCubit = _maintenancePlanCubit(repository);
+      final logCubit = _serviceLogCubit(repository);
 
       await Future<void>.delayed(Duration.zero);
 
@@ -239,7 +322,7 @@ void main() {
       final completer = Completer<List<MaintenancePlanItem>>();
       final repository = _FakeMaintenanceRepository()
         ..blockedPlanRead = completer;
-      final cubit = MaintenancePlanCubit(repository, 1);
+      final cubit = _maintenancePlanCubit(repository);
       final emitted = <MaintenancePlanState>[];
       final subscription = cubit.stream.listen(emitted.add);
 
@@ -253,6 +336,18 @@ void main() {
       await subscription.cancel();
     });
   });
+}
+
+VehicleCubit _vehicleCubit(VehicleRepository repository) {
+  return VehicleCubit(VehicleUseCases(repository, PreferencesService()));
+}
+
+MaintenancePlanCubit _maintenancePlanCubit(MaintenanceRepository repository) {
+  return MaintenancePlanCubit(MaintenancePlanUseCases(repository), 1);
+}
+
+ServiceLogCubit _serviceLogCubit(MaintenanceRepository repository) {
+  return ServiceLogCubit(ServiceLogUseCases(repository), 1);
 }
 
 Vehicle _vehicle({required int id}) {

@@ -850,5 +850,45 @@
   "themeColor": "Theme color",
   "@themeColor": {
     "description": "The settings entry label for custom theme color"
+  },
+  "routeErrorTitle": "Unable to open page",
+  "@routeErrorTitle": {
+    "description": "The title shown when a route cannot be opened safely"
+  },
+  "routeErrorMessage": "The page information is incomplete or no longer available. Go back and try again.",
+  "@routeErrorMessage": {
+    "description": "The message shown when route information is missing or invalid"
+  },
+  "goToHome": "Go to home",
+  "@goToHome": {
+    "description": "The label for returning to the dashboard from an error page"
+  },
+  "loadErrorMessage": "Unable to load data. Try again.",
+  "@loadErrorMessage": {
+    "description": "The generic user-facing message for an initial data load failure"
+  },
+  "saveErrorMessage": "Unable to save changes. Try again.",
+  "@saveErrorMessage": {
+    "description": "The generic user-facing message for a save failure"
+  },
+  "deleteErrorMessage": "Unable to delete. Try again.",
+  "@deleteErrorMessage": {
+    "description": "The generic user-facing message for a delete failure"
+  },
+  "refreshErrorMessage": "Unable to refresh right now. Try again.",
+  "@refreshErrorMessage": {
+    "description": "The generic user-facing message for a refresh failure"
+  },
+  "reminderUpdateErrorMessage": "Saved, but reminder update failed.",
+  "@reminderUpdateErrorMessage": {
+    "description": "The message shown when data is saved but reminders cannot be updated"
+  },
+  "exportErrorMessage": "Unable to export data. Try again.",
+  "@exportErrorMessage": {
+    "description": "The user-facing message for a data export failure"
+  },
+  "restoreErrorMessage": "Unable to restore data. Check the backup file and try again.",
+  "@restoreErrorMessage": {
+    "description": "The user-facing message for a data restore failure"
   }
 }

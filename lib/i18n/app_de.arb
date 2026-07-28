@@ -166,5 +166,15 @@
   "ok": "OK",
   "chooseTheme": "Theme auswählen",
   "theme": "Theme",
-  "themeColor": "Themenfarbe"
+  "themeColor": "Themenfarbe",
+  "routeErrorTitle": "Seite kann nicht geöffnet werden",
+  "routeErrorMessage": "Die Seiteninformationen sind unvollständig oder nicht mehr verfügbar. Kehren Sie zurück und versuchen Sie es erneut.",
+  "goToHome": "Zur Startseite",
+  "loadErrorMessage": "Daten konnten nicht geladen werden. Versuchen Sie es erneut.",
+  "saveErrorMessage": "Änderungen konnten nicht gespeichert werden. Versuchen Sie es erneut.",
+  "deleteErrorMessage": "Löschen fehlgeschlagen. Versuchen Sie es erneut.",
+  "refreshErrorMessage": "Aktualisierung vorübergehend nicht möglich. Versuchen Sie es erneut.",
+  "reminderUpdateErrorMessage": "Gespeichert, aber die Erinnerung konnte nicht aktualisiert werden.",
+  "exportErrorMessage": "Daten konnten nicht exportiert werden. Versuchen Sie es erneut.",
+  "restoreErrorMessage": "Daten konnten nicht wiederhergestellt werden. Prüfen Sie die Sicherungsdatei und versuchen Sie es erneut."
 }

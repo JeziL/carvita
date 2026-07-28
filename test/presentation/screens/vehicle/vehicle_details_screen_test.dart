@@ -8,6 +8,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:carvita/application/ports/clock.dart';
+import 'package:carvita/application/use_cases/load_upcoming_maintenance.dart';
+import 'package:carvita/application/use_cases/maintenance_plan_use_cases.dart';
+import 'package:carvita/application/use_cases/service_log_use_cases.dart';
+import 'package:carvita/application/use_cases/synchronize_maintenance_reminders.dart';
+import 'package:carvita/application/use_cases/vehicle_use_cases.dart';
 import 'package:carvita/core/services/notification_coordinator.dart';
 import 'package:carvita/core/services/notification_service.dart';
 import 'package:carvita/core/services/prediction_service.dart';
@@ -34,17 +40,27 @@ void main() {
   ) async {
     final vehicleRepository = _DeferredVehicleRepository();
     final maintenanceRepository = _CountingMaintenanceRepository();
-    final vehicleCubit = VehicleCubit(vehicleRepository);
+    final preferences = PreferencesService();
+    final vehicleUseCases = VehicleUseCases(vehicleRepository, preferences);
+    final maintenancePlanUseCases = MaintenancePlanUseCases(
+      maintenanceRepository,
+    );
+    final serviceLogUseCases = ServiceLogUseCases(maintenanceRepository);
+    final vehicleCubit = VehicleCubit(vehicleUseCases);
 
     await tester.pumpWidget(
       _testApp(
         vehicleCubit: vehicleCubit,
         vehicleRepository: vehicleRepository,
         maintenanceRepository: maintenanceRepository,
+        vehicleUseCases: vehicleUseCases,
+        maintenancePlanUseCases: maintenancePlanUseCases,
+        serviceLogUseCases: serviceLogUseCases,
         child: VehicleDetailsScreen(
           vehicleId: 1,
-          vehicleRepository: vehicleRepository,
-          maintenanceRepository: maintenanceRepository,
+          vehicleUseCases: vehicleUseCases,
+          maintenancePlanUseCases: maintenancePlanUseCases,
+          serviceLogUseCases: serviceLogUseCases,
         ),
       ),
     );
@@ -70,17 +86,27 @@ void main() {
     final vehicleRepository = _DeferredVehicleRepository()
       ..completer.complete(_vehicle());
     final maintenanceRepository = _CountingMaintenanceRepository();
-    final vehicleCubit = VehicleCubit(vehicleRepository);
+    final preferences = PreferencesService();
+    final vehicleUseCases = VehicleUseCases(vehicleRepository, preferences);
+    final maintenancePlanUseCases = MaintenancePlanUseCases(
+      maintenanceRepository,
+    );
+    final serviceLogUseCases = ServiceLogUseCases(maintenanceRepository);
+    final vehicleCubit = VehicleCubit(vehicleUseCases);
 
     await tester.pumpWidget(
       _testApp(
         vehicleCubit: vehicleCubit,
         vehicleRepository: vehicleRepository,
         maintenanceRepository: maintenanceRepository,
+        vehicleUseCases: vehicleUseCases,
+        maintenancePlanUseCases: maintenancePlanUseCases,
+        serviceLogUseCases: serviceLogUseCases,
         child: VehicleDetailsScreen(
           vehicleId: 1,
-          vehicleRepository: vehicleRepository,
-          maintenanceRepository: maintenanceRepository,
+          vehicleUseCases: vehicleUseCases,
+          maintenancePlanUseCases: maintenancePlanUseCases,
+          serviceLogUseCases: serviceLogUseCases,
         ),
       ),
     );
@@ -102,20 +128,36 @@ Widget _testApp({
   required VehicleCubit vehicleCubit,
   required VehicleRepository vehicleRepository,
   required MaintenanceRepository maintenanceRepository,
+  required VehicleUseCases vehicleUseCases,
+  required MaintenancePlanUseCases maintenancePlanUseCases,
+  required ServiceLogUseCases serviceLogUseCases,
   required Widget child,
 }) {
   final preferences = PreferencesService();
+  const clock = SystemClock();
+  final notificationCoordinator = NotificationCoordinator(
+    NotificationService(clock),
+  );
   return MultiProvider(
     providers: [
       ChangeNotifierProvider(create: (_) => LocaleProvider(preferences)),
+      Provider<VehicleUseCases>.value(value: vehicleUseCases),
+      Provider<MaintenancePlanUseCases>.value(value: maintenancePlanUseCases),
+      Provider<ServiceLogUseCases>.value(value: serviceLogUseCases),
       BlocProvider<VehicleCubit>.value(value: vehicleCubit),
       BlocProvider(
         create: (_) => UpcomingMaintenanceCubit(
-          vehicleRepository,
-          maintenanceRepository,
-          PredictionService(),
-          NotificationCoordinator(NotificationService()),
-          preferences,
+          LoadUpcomingMaintenance(
+            vehicleRepository,
+            maintenanceRepository,
+            PredictionService(clock),
+            clock,
+          ),
+          SynchronizeMaintenanceReminders(
+            preferences,
+            notificationCoordinator,
+            clock,
+          ),
         ),
       ),
     ],
