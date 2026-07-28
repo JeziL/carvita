@@ -21,6 +21,7 @@ import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maint
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_state.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_cubit.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_state.dart';
+import 'package:carvita/presentation/navigation/main_navigation_controller.dart';
 import 'package:carvita/presentation/navigation/app_route_arguments.dart';
 import 'package:carvita/presentation/screens/common_widgets/main_bottom_navigation_bar.dart';
 import 'package:carvita/presentation/screens/dashboard/widgets/quick_action_button.dart';
@@ -39,6 +40,7 @@ class _DashboardScreenState extends State<DashboardScreen>
   DueReminderThresholdValue _dashboardThreshold =
       DueReminderThresholdValue.month;
   int _dashboardItemCount = 3;
+  MainNavigationController? _mainNavigation;
 
   @override
   void initState() {
@@ -50,6 +52,7 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   @override
   void dispose() {
+    _mainNavigation?.removeListener(_handleMainTabChanged);
     WidgetsBinding.instance.removeObserver(this);
     routeObserver.unsubscribe(this);
     super.dispose();
@@ -66,6 +69,11 @@ class _DashboardScreenState extends State<DashboardScreen>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    final mainNavigation = context.read<MainNavigationController>();
+    if (!identical(mainNavigation, _mainNavigation)) {
+      _mainNavigation?.removeListener(_handleMainTabChanged);
+      _mainNavigation = mainNavigation..addListener(_handleMainTabChanged);
+    }
     final ModalRoute? route = ModalRoute.of(context);
     if (route != null && route is PageRoute) {
       routeObserver.subscribe(this, route);
@@ -80,6 +88,12 @@ class _DashboardScreenState extends State<DashboardScreen>
   @override
   void didPush() {
     _loadDashboardFilterSettings();
+  }
+
+  void _handleMainTabChanged() {
+    if (_mainNavigation?.selectedIndex == 0) {
+      _loadDashboardFilterSettings();
+    }
   }
 
   Future<void> _loadDashboardFilterSettings() async {
@@ -212,10 +226,8 @@ class _DashboardScreenState extends State<DashboardScreen>
               Align(
                 alignment: AlignmentDirectional.centerEnd,
                 child: TextButton(
-                  onPressed: () => Navigator.pushNamed(
-                    context,
-                    AppRoutes.upcomingMaintenanceRoute,
-                  ),
+                  onPressed: () =>
+                      context.read<MainNavigationController>().selectTab(2),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [

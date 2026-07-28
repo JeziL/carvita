@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
@@ -18,6 +19,13 @@ class DatabaseHelper {
   static Completer<void>? _exclusiveOperation;
   static const String dbName = 'carvita_v1.db';
   static const int schemaVersion = 1;
+  int _diagnosticReadQueryCount = 0;
+
+  int get diagnosticReadQueryCount => _diagnosticReadQueryCount;
+
+  void resetDiagnosticReadQueryCount() {
+    _diagnosticReadQueryCount = 0;
+  }
 
   Future<Database> get database async {
     while (true) {
@@ -178,8 +186,20 @@ class DatabaseHelper {
 
   Future<List<Vehicle>> getAllVehicles() async {
     final db = await database;
+    _diagnosticReadQueryCount++;
     final List<Map<String, dynamic>> maps = await db.query(
       'vehicles',
+      columns: const [
+        'id',
+        'name',
+        'mileage',
+        'mileage_last_updated',
+        'bought_date',
+        'model',
+        'plate_number',
+        'vin',
+        'engine_number',
+      ],
       orderBy: 'id DESC',
     );
     if (maps.isEmpty) {
@@ -190,6 +210,7 @@ class DatabaseHelper {
 
   Future<Vehicle?> getVehicleById(int id) async {
     final db = await database;
+    _diagnosticReadQueryCount++;
     final List<Map<String, dynamic>> maps = await db.query(
       'vehicles',
       where: 'id = ?',
@@ -201,11 +222,29 @@ class DatabaseHelper {
     return null;
   }
 
+  Future<Uint8List?> getVehicleImage(int id) async {
+    final db = await database;
+    _diagnosticReadQueryCount++;
+    final maps = await db.query(
+      'vehicles',
+      columns: const ['image'],
+      where: 'id = ?',
+      whereArgs: [id],
+      limit: 1,
+    );
+    if (maps.isEmpty) return null;
+    return maps.first['image'] as Uint8List?;
+  }
+
   Future<int> updateVehicle(Vehicle vehicle) async {
     final db = await database;
+    final values = vehicle.toMap();
+    if (!vehicle.imageLoaded) {
+      values.remove('image');
+    }
     return await db.update(
       'vehicles',
-      vehicle.toMap(),
+      values,
       where: 'id = ?',
       whereArgs: [vehicle.id],
     );
@@ -233,6 +272,7 @@ class DatabaseHelper {
     int vehicleId,
   ) async {
     final db = await database;
+    _diagnosticReadQueryCount++;
     final List<Map<String, dynamic>> maps = await db.query(
       'maintenance_plan_items',
       where: 'vehicleId = ? AND isActive = ?',
@@ -313,73 +353,63 @@ class DatabaseHelper {
     int vehicleId,
   ) async {
     final db = await database;
-    final List<Map<String, dynamic>> logMaps = await db.query(
-      'service_log_entries',
-      where: 'vehicleId = ?',
-      whereArgs: [vehicleId],
-      orderBy: 'serviceDate DESC, id DESC',
-    );
-
-    List<ServiceLogWithItems> logsWithItems = [];
-    for (var logMap in logMaps) {
-      final entry = ServiceLogEntry.fromMap(logMap);
-      final List<Map<String, dynamic>> performedItemMaps = await db.rawQuery(
-        '''
-        SELECT 
-          slpi.id, 
-          slpi.serviceLogId, 
-          slpi.maintenancePlanItemId, 
-          slpi.customItemName,
-          mpi.itemName as predefinedItemName 
-        FROM service_log_performed_items slpi
-        LEFT JOIN maintenance_plan_items mpi ON slpi.maintenancePlanItemId = mpi.id
-        WHERE slpi.serviceLogId = ?
+    _diagnosticReadQueryCount++;
+    final rows = await db.rawQuery(
+      '''
+      SELECT
+        sle.id,
+        sle.vehicleId,
+        sle.serviceDate,
+        sle.mileageAtService,
+        sle.cost,
+        sle.notes,
+        slpi.id AS performedItemId,
+        slpi.serviceLogId,
+        slpi.maintenancePlanItemId,
+        slpi.customItemName,
+        mpi.itemName AS predefinedItemName
+      FROM service_log_entries sle
+      LEFT JOIN service_log_performed_items slpi
+        ON slpi.serviceLogId = sle.id
+      LEFT JOIN maintenance_plan_items mpi
+        ON slpi.maintenancePlanItemId = mpi.id
+      WHERE sle.vehicleId = ?
+      ORDER BY sle.serviceDate DESC, sle.id DESC, slpi.id ASC
       ''',
-        [entry.id],
-      );
-
-      final performedItems = performedItemMaps
-          .map(ServiceLogPerformedItem.fromJoinedMap)
-          .toList(growable: false);
-
-      logsWithItems.add(
-        ServiceLogWithItems(entry: entry, performedItems: performedItems),
-      );
-    }
-    return logsWithItems;
+      [vehicleId],
+    );
+    return _mapJoinedServiceLogs(rows);
   }
 
   Future<ServiceLogWithItems?> getServiceLogByIdWithItems(int logId) async {
     final db = await database;
-    final List<Map<String, dynamic>> logMaps = await db.query(
-      'service_log_entries',
-      where: 'id = ?',
-      whereArgs: [logId],
-    );
-
-    if (logMaps.isEmpty) return null;
-
-    final entry = ServiceLogEntry.fromMap(logMaps.first);
-    final List<Map<String, dynamic>> performedItemMaps = await db.rawQuery(
+    _diagnosticReadQueryCount++;
+    final rows = await db.rawQuery(
       '''
-      SELECT 
-        slpi.id, 
-        slpi.serviceLogId, 
+      SELECT
+        sle.id,
+        sle.vehicleId,
+        sle.serviceDate,
+        sle.mileageAtService,
+        sle.cost,
+        sle.notes,
+        slpi.id AS performedItemId,
+        slpi.serviceLogId,
         slpi.maintenancePlanItemId, 
         slpi.customItemName,
-        mpi.itemName as predefinedItemName 
-      FROM service_log_performed_items slpi
-      LEFT JOIN maintenance_plan_items mpi ON slpi.maintenancePlanItemId = mpi.id
-      WHERE slpi.serviceLogId = ?
-    ''',
-      [entry.id],
+        mpi.itemName AS predefinedItemName
+      FROM service_log_entries sle
+      LEFT JOIN service_log_performed_items slpi
+        ON slpi.serviceLogId = sle.id
+      LEFT JOIN maintenance_plan_items mpi
+        ON slpi.maintenancePlanItemId = mpi.id
+      WHERE sle.id = ?
+      ORDER BY slpi.id ASC
+      ''',
+      [logId],
     );
-
-    final performedItems = performedItemMaps
-        .map(ServiceLogPerformedItem.fromJoinedMap)
-        .toList(growable: false);
-
-    return ServiceLogWithItems(entry: entry, performedItems: performedItems);
+    final logs = _mapJoinedServiceLogs(rows);
+    return logs.isEmpty ? null : logs.single;
   }
 
   Future<int> updateServiceLog(
@@ -429,6 +459,7 @@ class DatabaseHelper {
     int vehicleId,
   ) async {
     final db = await database;
+    _diagnosticReadQueryCount++;
     final List<Map<String, dynamic>> maps = await db.rawQuery(
       '''
     SELECT slpi.serviceLogId, slpi.maintenancePlanItemId
@@ -446,6 +477,110 @@ class DatabaseHelper {
           ),
         )
         .toList();
+  }
+
+  Future<
+    ({
+      List<MaintenancePlanItem> planItems,
+      List<ServiceLogEntry> serviceLogs,
+      List<ServiceLogPerformedItemLink> performedItemLinks,
+      List<Vehicle> vehicles,
+    })
+  >
+  getPredictionSnapshotRows() async {
+    final db = await database;
+    return db.transaction((transaction) async {
+      _diagnosticReadQueryCount++;
+      final vehicleMaps = await transaction.query(
+        'vehicles',
+        columns: const [
+          'id',
+          'name',
+          'mileage',
+          'mileage_last_updated',
+          'bought_date',
+          'model',
+          'plate_number',
+          'vin',
+          'engine_number',
+        ],
+        orderBy: 'id DESC',
+      );
+      _diagnosticReadQueryCount++;
+      final planMaps = await transaction.query(
+        'maintenance_plan_items',
+        where: 'isActive = ?',
+        whereArgs: const [1],
+        orderBy: 'vehicleId ASC, id ASC',
+      );
+      _diagnosticReadQueryCount++;
+      final logMaps = await transaction.query(
+        'service_log_entries',
+        orderBy: 'vehicleId ASC, serviceDate DESC, id DESC',
+      );
+      _diagnosticReadQueryCount++;
+      final linkMaps = await transaction.query(
+        'service_log_performed_items',
+        columns: const ['serviceLogId', 'maintenancePlanItemId'],
+        where: 'maintenancePlanItemId IS NOT NULL',
+        orderBy: 'serviceLogId ASC, id ASC',
+      );
+
+      return (
+        vehicles: vehicleMaps.map(Vehicle.fromMap).toList(growable: false),
+        planItems: planMaps
+            .map(MaintenancePlanItem.fromMap)
+            .toList(growable: false),
+        serviceLogs: logMaps
+            .map(ServiceLogEntry.fromMap)
+            .toList(growable: false),
+        performedItemLinks: linkMaps
+            .map(
+              (map) => ServiceLogPerformedItemLink(
+                serviceLogId: map['serviceLogId'] as int,
+                maintenancePlanItemId: map['maintenancePlanItemId'] as int,
+              ),
+            )
+            .toList(growable: false),
+      );
+    });
+  }
+
+  List<ServiceLogWithItems> _mapJoinedServiceLogs(
+    List<Map<String, dynamic>> rows,
+  ) {
+    final entries = <int, ServiceLogEntry>{};
+    final itemsByLogId = <int, List<ServiceLogPerformedItem>>{};
+
+    for (final row in rows) {
+      final entry = ServiceLogEntry.fromMap(row);
+      final logId = entry.id;
+      if (logId == null) continue;
+      entries.putIfAbsent(logId, () => entry);
+      final performedItemId = row['performedItemId'] as int?;
+      if (performedItemId == null) continue;
+      itemsByLogId
+          .putIfAbsent(logId, () => <ServiceLogPerformedItem>[])
+          .add(
+            ServiceLogPerformedItem.fromJoinedMap({
+              'id': performedItemId,
+              'serviceLogId': row['serviceLogId'],
+              'maintenancePlanItemId': row['maintenancePlanItemId'],
+              'customItemName': row['customItemName'],
+              'predefinedItemName': row['predefinedItemName'],
+            }),
+          );
+    }
+
+    return [
+      for (final entry in entries.entries)
+        ServiceLogWithItems(
+          entry: entry.value,
+          performedItems: List.unmodifiable(
+            itemsByLogId[entry.key] ?? const <ServiceLogPerformedItem>[],
+          ),
+        ),
+    ];
   }
 
   Future<void> close() async {

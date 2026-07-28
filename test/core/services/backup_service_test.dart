@@ -1,11 +1,16 @@
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:archive/archive.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
+import 'package:carvita/application/ports/backup_preferences_port.dart';
 import 'package:carvita/core/services/backup_service.dart';
+import 'package:carvita/core/services/preferences_service.dart';
 import 'package:carvita/data/sources/local/database_helper.dart';
 
 void main() {
@@ -48,6 +53,7 @@ void main() {
       sqliteFactory: databaseFactoryFfi,
       databaseDirectoryProvider: () async => databaseDirectory.path,
       temporaryDirectoryProvider: () async => exportDirectory,
+      preferences: PreferencesService(),
       clock: () => DateTime(2026, 7, 26, 12, 34, 56, 789),
     );
 
@@ -63,20 +69,30 @@ void main() {
   });
 
   test(
-    'export creates an independent valid snapshot and reopens live DB',
+    'versioned export restores an independent database and preferences',
     () async {
-      final snapshotPath = await backupService.createExportSnapshot();
+      final snapshotPath = await backupService.createExportSnapshot(
+        applicationVersion: '1.1.0+8',
+      );
 
       expect(File(snapshotPath).existsSync(), isTrue);
+      expect(path.extension(snapshotPath), '.cvbackup');
       expect(controller.isOpen, isTrue);
-
-      final snapshotDatabase = await databaseFactoryFfi.openDatabase(
-        snapshotPath,
-        options: OpenDatabaseOptions(readOnly: true, singleInstance: false),
+      debugPrint(
+        'Versioned backup size: ${await File(snapshotPath).length()} bytes; '
+        'database size: ${await File(liveDatabasePath).length()} bytes',
       );
-      addTearDown(snapshotDatabase.close);
 
-      expect(await _vehicleNames(snapshotDatabase), ['Current vehicle']);
+      final archive = ZipDecoder().decodeBytes(
+        await File(snapshotPath).readAsBytes(),
+      );
+      final manifest =
+          jsonDecode(utf8.decode(archive.find('manifest.json')!.readBytes()!))
+              as Map<String, dynamic>;
+      expect(manifest['formatVersion'], BackupService.backupFormatVersion);
+      expect(manifest['databaseSchemaVersion'], DatabaseHelper.schemaVersion);
+      expect(manifest['applicationVersion'], '1.1.0+8');
+      expect(manifest['contents'], hasLength(2));
 
       final liveDatabase = await controller.open();
       await liveDatabase.update(
@@ -85,9 +101,16 @@ void main() {
         where: 'name = ?',
         whereArgs: ['Current vehicle'],
       );
+      final preferences = await SharedPreferences.getInstance();
+      await preferences.setString('locale_language_code', 'ja');
+      await preferences.setBool('notifications_enabled', false);
 
-      expect(await _vehicleNames(snapshotDatabase), ['Current vehicle']);
-      expect(controller.closeCount, 1);
+      await backupService.restoreDatabase(snapshotPath);
+
+      expect(await _vehicleNames(await controller.open()), ['Current vehicle']);
+      expect(preferences.getString('locale_language_code'), 'de');
+      expect(preferences.getBool('notifications_enabled'), isTrue);
+      expect(controller.closeCount, greaterThanOrEqualTo(2));
     },
   );
 
@@ -137,6 +160,79 @@ void main() {
       expect(await _vehicleNames(await controller.open()), ['Current vehicle']);
     },
   );
+
+  test('unknown package format is rejected before replacement', () async {
+    final packagePath = await backupService.createExportSnapshot();
+    final futurePackagePath = await _rewritePackageEntry(
+      packagePath,
+      path.join(testDirectory.path, 'future.cvbackup'),
+      'manifest.json',
+      (bytes) {
+        final manifest = jsonDecode(utf8.decode(bytes)) as Map<String, dynamic>;
+        manifest['formatVersion'] = 99;
+        return utf8.encode(jsonEncode(manifest));
+      },
+    );
+    final closeCountBeforeRestore = controller.closeCount;
+
+    await expectLater(
+      backupService.restoreDatabase(futurePackagePath),
+      throwsA(isA<UnsupportedBackupFormatException>()),
+    );
+
+    expect(controller.closeCount, closeCountBeforeRestore);
+    expect(await _vehicleNames(await controller.open()), ['Current vehicle']);
+  });
+
+  test('content checksum mismatch is rejected before replacement', () async {
+    final packagePath = await backupService.createExportSnapshot();
+    final tamperedPackagePath = await _rewritePackageEntry(
+      packagePath,
+      path.join(testDirectory.path, 'tampered.cvbackup'),
+      'database/${DatabaseHelper.dbName}',
+      (bytes) {
+        final tampered = [...bytes];
+        tampered[tampered.length - 1] ^= 0xff;
+        return tampered;
+      },
+    );
+    final closeCountBeforeRestore = controller.closeCount;
+
+    await expectLater(
+      backupService.restoreDatabase(tamperedPackagePath),
+      throwsA(isA<InvalidBackupException>()),
+    );
+
+    expect(controller.closeCount, closeCountBeforeRestore);
+    expect(await _vehicleNames(await controller.open()), ['Current vehicle']);
+  });
+
+  test('preference commit failure rolls the database back', () async {
+    final packagePath = await backupService.createExportSnapshot();
+    final liveDatabase = await controller.open();
+    await liveDatabase.update(
+      'vehicles',
+      {'name': 'Keep after failed restore'},
+      where: 'name = ?',
+      whereArgs: ['Current vehicle'],
+    );
+    final failingService = BackupService(
+      databaseController: controller,
+      sqliteFactory: databaseFactoryFfi,
+      databaseDirectoryProvider: () async => databaseDirectory.path,
+      temporaryDirectoryProvider: () async => exportDirectory,
+      preferences: const _FailingBackupPreferences(),
+    );
+
+    await expectLater(
+      failingService.restoreDatabase(packagePath),
+      throwsA(isA<BackupRestoreException>()),
+    );
+
+    expect(await _vehicleNames(await controller.open()), [
+      'Keep after failed restore',
+    ]);
+  });
 
   test(
     'an unsupported schema version is rejected before replacement',
@@ -309,6 +405,29 @@ void main() {
   });
 }
 
+Future<String> _rewritePackageEntry(
+  String sourcePath,
+  String targetPath,
+  String entryName,
+  List<int> Function(List<int> bytes) transform,
+) async {
+  final decoded = ZipDecoder().decodeBytes(
+    await File(sourcePath).readAsBytes(),
+  );
+  final rewritten = Archive();
+  for (final entry in decoded) {
+    final bytes = entry.readBytes()!;
+    rewritten.addFile(
+      ArchiveFile.bytes(
+        entry.name,
+        entry.name == entryName ? transform(bytes) : bytes,
+      ),
+    );
+  }
+  await File(targetPath).writeAsBytes(ZipEncoder().encode(rewritten));
+  return targetPath;
+}
+
 Future<void> _expectPreferencesUnchanged() async {
   final preferences = await SharedPreferences.getInstance();
   expect(preferences.getString('locale_language_code'), 'de');
@@ -450,4 +569,16 @@ Future<void> _insertVehicle(Database database, {required String name}) async {
 Future<List<String>> _vehicleNames(Database database) async {
   final rows = await database.query('vehicles', orderBy: 'id');
   return rows.map((row) => row['name']! as String).toList(growable: false);
+}
+
+final class _FailingBackupPreferences implements BackupPreferencesPort {
+  const _FailingBackupPreferences();
+
+  @override
+  Future<Map<String, Object>> readBackupPreferences() async => const {};
+
+  @override
+  Future<void> replaceBackupPreferences(Map<String, Object> values) {
+    throw StateError('Injected preference write failure');
+  }
 }

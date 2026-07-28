@@ -195,7 +195,6 @@ Widget _testApp({
       BlocProvider(
         create: (_) => UpcomingMaintenanceCubit(
           LoadUpcomingMaintenance(
-            vehicleRepository,
             maintenanceRepository,
             PredictionService(clock),
             clock,

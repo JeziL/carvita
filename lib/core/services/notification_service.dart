@@ -4,6 +4,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 import 'package:carvita/application/ports/clock.dart';
+import 'package:carvita/application/ports/notification_permission_port.dart';
 import 'package:carvita/application/ports/notification_tap_port.dart';
 
 typedef NotificationPayloadCallback = void Function(String? payload);
@@ -16,14 +17,6 @@ abstract interface class NotificationGateway {
     required DateTime scheduledDateTime,
     String? payload,
   });
-
-  Future<void> cancelAllNotifications();
-}
-
-abstract interface class NotificationPermissionGateway {
-  Future<bool> requestPermissions();
-
-  Future<bool> checkPermissions();
 
   Future<void> cancelAllNotifications();
 }

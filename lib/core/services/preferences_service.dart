@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:carvita/application/ports/backup_preferences_port.dart';
 import 'package:carvita/application/ports/preferences_ports.dart';
 
 enum AppThemePreference { system, light, dark, custom }
@@ -28,7 +29,10 @@ extension DueReminderThresholdDetails on DueReminderThresholdValue {
 }
 
 class PreferencesService
-    implements DefaultVehiclePreferences, ReminderPreferences {
+    implements
+        DefaultVehiclePreferences,
+        ReminderPreferences,
+        BackupPreferencesPort {
   static const String _defaultVehicleIdKey = 'default_vehicle_id';
   static const String _dueReminderThresholdKey = 'due_reminder_threshold';
   static const String _dueReminderItemCountKey = 'due_reminder_item_count';
@@ -40,6 +44,55 @@ class PreferencesService
   static const String _mileageUnitKey = 'mileage_unit';
   static const String _themePreferenceKey = 'theme_preference';
   static const String _customThemeSeedColorKey = 'custom_theme_seed_color';
+
+  @override
+  Future<Map<String, Object>> readBackupPreferences() async {
+    final preferences = await SharedPreferences.getInstance();
+    final values = <String, Object?>{
+      for (final key in backupPreferenceSchema.keys) key: preferences.get(key),
+    }..removeWhere((_, value) => value == null);
+    return validateBackupPreferenceValues(values);
+  }
+
+  @override
+  Future<void> replaceBackupPreferences(Map<String, Object> values) async {
+    final validated = validateBackupPreferenceValues(values);
+    final previousValues = await readBackupPreferences();
+    final preferences = await SharedPreferences.getInstance();
+
+    try {
+      await _writeBackupPreferences(preferences, validated);
+    } catch (error, stackTrace) {
+      try {
+        await _writeBackupPreferences(preferences, previousValues);
+      } catch (_) {
+        // Preserve the original write failure for the restore coordinator.
+      }
+      Error.throwWithStackTrace(error, stackTrace);
+    }
+  }
+
+  Future<void> _writeBackupPreferences(
+    SharedPreferences preferences,
+    Map<String, Object> values,
+  ) async {
+    for (final key in backupPreferenceSchema.keys) {
+      if (!await preferences.remove(key)) {
+        throw StateError('Could not clear backup preference $key');
+      }
+    }
+    for (final entry in values.entries) {
+      final saved = switch (entry.value) {
+        final bool value => await preferences.setBool(entry.key, value),
+        final int value => await preferences.setInt(entry.key, value),
+        final String value => await preferences.setString(entry.key, value),
+        _ => false,
+      };
+      if (!saved) {
+        throw StateError('Could not restore backup preference ${entry.key}');
+      }
+    }
+  }
 
   @override
   Future<void> setDefaultVehicleId(int? vehicleId) async {
@@ -86,6 +139,7 @@ class PreferencesService
     return prefs.getInt(_dueReminderItemCountKey) ?? 3;
   }
 
+  @override
   Future<void> setNotificationsEnabled(bool enabled) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_notificationsEnabledKey, enabled);

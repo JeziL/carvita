@@ -8,6 +8,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:carvita/application/ports/clock.dart';
 import 'package:carvita/application/ports/reminder_schedule_port.dart';
 import 'package:carvita/application/reminders/maintenance_reminder_payload.dart';
+import 'package:carvita/application/queries/maintenance_data_snapshot.dart';
 import 'package:carvita/application/use_cases/load_upcoming_maintenance.dart';
 import 'package:carvita/application/use_cases/synchronize_maintenance_reminders.dart';
 import 'package:carvita/core/services/notification_coordinator.dart';
@@ -19,7 +20,6 @@ import 'package:carvita/data/models/service_log_entry.dart';
 import 'package:carvita/data/models/service_log_performed_item_link.dart';
 import 'package:carvita/data/models/vehicle.dart';
 import 'package:carvita/data/repositories/maintenance_repository.dart';
-import 'package:carvita/data/repositories/vehicle_repository.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_state.dart';
@@ -154,7 +154,6 @@ void main() {
       final maintenanceRepository = _BlockingMaintenanceRepository();
       final preferences = _FakePreferencesService(notificationsEnabled: false);
       final cubit = _buildCubit(
-        _FakeVehicleRepository(),
         maintenanceRepository,
         gateway,
         preferences,
@@ -190,7 +189,6 @@ void main() {
       final gateway = _RecordingNotificationGateway();
       final maintenanceRepository = _TwoBlockedMaintenanceRepository();
       final cubit = _buildCubit(
-        _FakeVehicleRepository(),
         maintenanceRepository,
         gateway,
         _FakePreferencesService(notificationsEnabled: false),
@@ -240,17 +238,10 @@ UpcomingMaintenanceCubit _cubit({
   required _FakePreferencesService preferences,
   required DateTime now,
 }) {
-  return _buildCubit(
-    _FakeVehicleRepository(),
-    _FakeMaintenanceRepository(),
-    gateway,
-    preferences,
-    now,
-  );
+  return _buildCubit(_FakeMaintenanceRepository(), gateway, preferences, now);
 }
 
 UpcomingMaintenanceCubit _buildCubit(
-  VehicleRepository vehicleRepository,
   MaintenanceRepository maintenanceRepository,
   NotificationGateway gateway,
   PreferencesService preferences,
@@ -259,7 +250,6 @@ UpcomingMaintenanceCubit _buildCubit(
   final clock = _FixedClock(now);
   return UpcomingMaintenanceCubit(
     LoadUpcomingMaintenance(
-      vehicleRepository,
       maintenanceRepository,
       PredictionService(clock),
       clock,
@@ -283,22 +273,19 @@ Vehicle _vehicle() {
   );
 }
 
-class _FakeVehicleRepository extends VehicleRepository {
-  @override
-  Future<List<Vehicle>> getVehicles() async => [_vehicle()];
-}
-
 class _FakeMaintenanceRepository extends MaintenanceRepository {
+  static const _plans = [
+    MaintenancePlanItem(
+      id: 1,
+      vehicleId: 1,
+      itemName: 'Oil',
+      intervalTimeMonths: 12,
+    ),
+  ];
+
   @override
   Future<List<MaintenancePlanItem>> getPlanItems(int vehicleId) async {
-    return const [
-      MaintenancePlanItem(
-        id: 1,
-        vehicleId: 1,
-        itemName: 'Oil',
-        intervalTimeMonths: 12,
-      ),
-    ];
+    return _plans;
   }
 
   @override
@@ -311,6 +298,16 @@ class _FakeMaintenanceRepository extends MaintenanceRepository {
     int vehicleId,
   ) async {
     return const [];
+  }
+
+  @override
+  Future<MaintenanceDataSnapshot> getPredictionSnapshot() async {
+    return MaintenanceDataSnapshot(
+      vehicles: [_vehicle()],
+      planItems: _plans,
+      serviceLogs: const [],
+      performedItemLinks: const [],
+    );
   }
 }
 
@@ -374,6 +371,16 @@ class _BlockingMaintenanceRepository extends MaintenanceRepository {
   ) async {
     return const [];
   }
+
+  @override
+  Future<MaintenanceDataSnapshot> getPredictionSnapshot() async {
+    return MaintenanceDataSnapshot(
+      vehicles: [_vehicle()],
+      planItems: await getPlanItems(1),
+      serviceLogs: const [],
+      performedItemLinks: const [],
+    );
+  }
 }
 
 class _TwoBlockedMaintenanceRepository extends MaintenanceRepository {
@@ -404,6 +411,16 @@ class _TwoBlockedMaintenanceRepository extends MaintenanceRepository {
     int vehicleId,
   ) async {
     return const [];
+  }
+
+  @override
+  Future<MaintenanceDataSnapshot> getPredictionSnapshot() async {
+    return MaintenanceDataSnapshot(
+      vehicles: [_vehicle()],
+      planItems: await getPlanItems(1),
+      serviceLogs: const [],
+      performedItemLinks: const [],
+    );
   }
 }
 

@@ -7,5 +7,7 @@ abstract interface class DefaultVehiclePreferences {
 abstract interface class ReminderPreferences {
   Future<bool> getNotificationsEnabled();
 
+  Future<void> setNotificationsEnabled(bool enabled);
+
   Future<int> getReminderLeadTimeDays();
 }

@@ -7,11 +7,13 @@ import 'package:provider/provider.dart';
 
 import 'package:carvita/application/ports/app_startup_port.dart';
 import 'package:carvita/application/ports/clock.dart';
+import 'package:carvita/application/ports/notification_permission_port.dart';
 import 'package:carvita/application/ports/notification_tap_port.dart';
 import 'package:carvita/application/ports/platform_ports.dart';
 import 'package:carvita/application/ports/reminder_schedule_port.dart';
 import 'package:carvita/application/use_cases/load_upcoming_maintenance.dart';
 import 'package:carvita/application/use_cases/maintenance_plan_use_cases.dart';
+import 'package:carvita/application/use_cases/reconcile_notification_permission.dart';
 import 'package:carvita/application/use_cases/service_log_use_cases.dart';
 import 'package:carvita/application/use_cases/synchronize_maintenance_reminders.dart';
 import 'package:carvita/application/use_cases/vehicle_use_cases.dart';
@@ -38,9 +40,11 @@ import 'package:carvita/presentation/manager/locale_provider.dart';
 import 'package:carvita/presentation/manager/theme_provider.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
 import 'package:carvita/presentation/manager/vehicle_list/vehicle_cubit.dart';
+import 'package:carvita/presentation/images/vehicle_image_cache.dart';
 import 'package:carvita/presentation/navigation/app_router.dart';
 import 'package:carvita/presentation/navigation/default_maintenance_reminder_navigation.dart';
 import 'package:carvita/presentation/navigation/default_quick_action_navigation.dart';
+import 'package:carvita/presentation/navigation/main_navigation_controller.dart';
 
 final RouteObserver<ModalRoute<void>> routeObserver =
     RouteObserver<ModalRoute<void>>();
@@ -77,14 +81,16 @@ Future<void> main() async {
     vehicleRepository,
     preferencesService,
   );
+  final vehicleImageCache = VehicleImageCache(vehicleUseCases);
   final maintenancePlanUseCases = MaintenancePlanUseCases(
     maintenanceRepository,
   );
+  final mainNavigationController = MainNavigationController();
   final serviceLogUseCases = ServiceLogUseCases(maintenanceRepository);
   final maintenanceReminderTaps = MaintenanceReminderTapService(
     vehicleRepository,
     maintenanceRepository,
-    const DefaultMaintenanceReminderNavigation(),
+    DefaultMaintenanceReminderNavigation(mainNavigationController),
   );
   final reminderSchedule = ReminderScheduleService(
     const MethodChannelDeviceTimeZone(),
@@ -94,11 +100,17 @@ Future<void> main() async {
     clock,
     maintenanceReminderTaps,
   );
+  final reconcileNotificationPermission = ReconcileNotificationPermission(
+    preferencesService,
+    notificationService,
+  );
   final notificationCoordinator = NotificationCoordinator(notificationService);
-  final backupService = BackupService(clock: clock.now);
+  final backupService = BackupService(
+    preferences: preferencesService,
+    clock: clock.now,
+  );
   const pluginPlatformService = PluginPlatformService();
   final loadUpcomingMaintenance = LoadUpcomingMaintenance(
-    vehicleRepository,
     maintenanceRepository,
     predictionService,
     clock,
@@ -112,6 +124,7 @@ Future<void> main() async {
   final quickActionNavigation = DefaultQuickActionNavigation(
     maintenancePlanUseCases,
     serviceLogUseCases,
+    mainNavigationController,
   );
 
   final quickActionService = QuickActionService(
@@ -133,14 +146,21 @@ Future<void> main() async {
       providers: [
         Provider<AppStartupPort>.value(value: appStartup),
         Provider<QuickActionService>.value(value: quickActionService),
+        ChangeNotifierProvider<MainNavigationController>.value(
+          value: mainNavigationController,
+        ),
         Provider<NotificationTapPort>.value(value: maintenanceReminderTaps),
         Provider<ReminderSchedulePort>.value(value: reminderSchedule),
         Provider<PreferencesService>.value(value: preferencesService),
         Provider<VehicleUseCases>.value(value: vehicleUseCases),
+        Provider<VehicleImageCache>.value(value: vehicleImageCache),
         Provider<MaintenancePlanUseCases>.value(value: maintenancePlanUseCases),
         Provider<ServiceLogUseCases>.value(value: serviceLogUseCases),
         Provider<NotificationPermissionGateway>.value(
           value: notificationService,
+        ),
+        Provider<ReconcileNotificationPermission>.value(
+          value: reconcileNotificationPermission,
         ),
         Provider<BackupGateway>.value(value: backupService),
         Provider<VehicleImagePickerPort>.value(value: pluginPlatformService),
@@ -344,6 +364,16 @@ class _ShortcutLocalizationWrapperState
         );
       }
       if (!mounted) return;
+
+      try {
+        await context.read<ReconcileNotificationPermission>()();
+      } catch (error, stackTrace) {
+        debugPrint(
+          'Failed to reconcile notification permission during startup: '
+          '$error\n$stackTrace',
+        );
+      }
+      if (!mounted) return;
     }
     try {
       await quickActionService.updateShortcutItems(
@@ -375,6 +405,16 @@ class _ShortcutLocalizationWrapperState
 
   Future<void> _refreshReminderContextAfterResume() async {
     if (!mounted) return;
+    try {
+      await context.read<ReconcileNotificationPermission>()();
+    } catch (error, stackTrace) {
+      debugPrint(
+        'Failed to reconcile notification permission after resume: '
+        '$error\n$stackTrace',
+      );
+    }
+    if (!mounted) return;
+
     try {
       final refresh = await context
           .read<ReminderSchedulePort>()
