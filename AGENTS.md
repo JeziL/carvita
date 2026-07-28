@@ -64,9 +64,11 @@ lib/
     app_*.arb                      12 个受版本控制的翻译源文件
     generated/                     flutter gen-l10n 生成，禁止提交
 android/                           唯一受支持的平台工程
+test/                              单元、数据库、Cubit、Widget 与策略回归测试
+tool/                              发布元数据校验脚本
 fastlane/metadata/android/         商店文案、截图和版本更新说明
 .design/                           README 翻译及商店/宣传设计资源
-.github/workflows/flutter.yml      tag 驱动的 APK 发布流程
+.github/workflows/flutter.yml      PR/main 质量门禁与 tag 驱动的签名发布流程
 assets/icon/                       主图标及其 Cairo 生成脚本
 ```
 
@@ -215,9 +217,11 @@ Android Manifest 注册了：
 - flutter_local_notifications 的调度和重启 receiver；
 - 主 Activity 的 `singleTop` 启动模式。
 
+应用显式设置 `android:allowBackup="false"`，并通过 Android 11- 的 `backup_rules.xml` 与 Android 12+ 的 `data_extraction_rules.xml` 排除所有云备份和设备迁移 domain。修改数据库、偏好或隐私文案时，必须继续保持这三处配置、应用内隐私页和商店 Data safety 声明一致。
+
 精确闹钟权限当前被注释，通知使用非精确调度。新增后台、相机、存储或网络能力时，需同时检查 Manifest、运行时权限、隐私说明和 Android 版本差异。
 
-`android/app/build.gradle.kts` 的 debug 和 release 都使用名为 `release` 的签名配置。因此本地 APK 构建需要被忽略的 `android/key.properties` 及其引用的 keystore。绝对不要提交：
+`android/app/build.gradle.kts` 已分离 debug 和 release 签名。debug 使用标准 Android debug 身份，不读取 release secrets；release 仅在 `android/key.properties` 和 keystore 完整有效时配置签名，缺少配置的 release task 会在构建前给出明确错误。绝对不要提交：
 
 - `android/key.properties`；
 - `*.jks` / `*.keystore`；
@@ -225,7 +229,7 @@ Android Manifest 注册了：
 
 CI 会从 GitHub secrets 生成 keystore 和 `key.properties`，并使用
 `APP_CERT_SHA256` 校验产物证书指纹。该指纹 secret 必须与发布证书一致。
-如果本地只需分析 Dart 代码，不应为了绕过签名而修改已跟踪的 Gradle 配置。
+本地 debug 构建和 PR 质量门禁不得依赖 release secrets。如果本地只需分析 Dart 代码，不应为了绕过签名而修改已跟踪的 Gradle 配置。
 
 ## 常用命令与验证
 
@@ -234,15 +238,16 @@ CI 会从 GitHub secrets 生成 keystore 和 `key.properties`，并使用
 ```bash
 flutter pub get
 flutter gen-l10n
-dart format --output=none --set-exit-if-changed lib
+dart format --output=none --set-exit-if-changed lib test tool
 flutter analyze
+flutter test
 flutter build apk --debug
 ```
 
 需要实际格式化时运行：
 
 ```bash
-dart format lib
+dart format lib test tool
 ```
 
 图标变更后可运行：
@@ -251,7 +256,7 @@ dart format lib
 dart run flutter_launcher_icons
 ```
 
-当前仓库没有 `test/` 目录，所以 `flutter test` 会以 `Test directory "test" not found` 退出。不要声称现有测试已通过。新增测试后，必须运行：
+仓库已有覆盖第一阶段重构的单元、数据库、Cubit、Widget、Android 策略和发布校验测试。修改业务逻辑、状态时序、备份或发布门禁后必须运行：
 
 ```bash
 flutter test
@@ -269,7 +274,7 @@ flutter test
 
 ## 建议的测试落点
 
-目前测试是项目最明显的缺口。新增逻辑时优先建立：
+第一阶段已建立基础回归测试；后续新增逻辑时继续优先补齐：
 
 - `test/core/services/prediction_service_test.dart`：纯计算和日期边界；
 - `test/core/utils/mileage_estimator_test.dart`：回退值和异常历史；
@@ -282,19 +287,23 @@ flutter test
 
 ## 发布流程
 
-版本号位于 `pubspec.yaml`，格式为 `major.minor.patch+versionCode`。GitHub Actions 只在以下情况运行：
+版本号位于 `pubspec.yaml`，格式为 `major.minor.patch+versionCode`。GitHub Actions 在以下情况运行：
 
 - 手动 `workflow_dispatch`；
+- pull request；
+- push 到 `main`；
 - push 形如 `vX.Y.Z+N` 的 tag。
 
-tag 发布会：
+pull request 和 `main` push 会运行不依赖发布密钥的 `Quality` job，包括依赖解析、本地化生成、格式检查、静态分析、测试和 debug APK 构建。`main` 的仓库规则要求 `Quality` 通过。
+
+tag 发布会先通过 `Quality`，再运行 `Release`：
 
 1. 使用 Flutter 3.44.8；
-2. 从 secrets 创建 Android 签名文件；
-3. 执行 `flutter pub get` 和 `flutter build apk`；
-4. 根据 tag 中的 build number 读取
-   `fastlane/metadata/android/en-US/changelogs/N.txt`；
-5. 创建 GitHub Release 并上传 universal APK。
+2. 验证 tag 与 `pubspec.yaml` version 精确一致、versionCode 单调递增，且英文和简体中文 changelog 都存在且非空；
+3. 验证签名 secrets，并生成临时 keystore 和 `key.properties`；
+4. 构建 release APK，使用 `APP_CERT_SHA256` 校验证书身份；
+5. 生成 APK SHA-256 checksum；
+6. 根据 versionCode 读取英文 changelog，创建 GitHub Release 并上传 universal APK 与 checksum。
 
 发布版本时至少同步：
 
@@ -303,7 +312,7 @@ tag 发布会：
 - `fastlane/metadata/android/zh-CN/changelogs/<versionCode>.txt`；
 - 必要的商店文案和截图。
 
-不要创建没有对应英文 changelog 的发布 tag，否则 CI 会主动失败。
+不要创建与 `pubspec.yaml` version 不一致、versionCode 未递增或缺少任一双语 changelog 的发布 tag，否则 CI 会在创建 GitHub Release 前主动失败。
 
 ## Agent 完成任务前检查
 

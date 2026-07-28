@@ -4,7 +4,7 @@
 >
 > 适用范围：CarVita Android / Flutter 主仓库
 >
-> 当前阶段：第一阶段「稳定性与数据安全止血」进行中
+> 当前阶段：第一阶段「稳定性与数据安全止血」已完成；第二阶段待启动
 >
 > 本文性质：架构目标、问题台账、实施顺序、验收门槛与决策记录的唯一跟踪入口
 
@@ -68,16 +68,15 @@
 - 新格式必须保留裸 v1 `.db` 的导入能力，并为数据库与偏好的联合恢复设计 staging、校验和双向回滚；
 - 里程单位和货币语义未确定前，不得把偏好简单打包后宣称可跨设备无歧义恢复。
 
-### 2.5 Android 系统备份与隐私决策待定
+### 2.5 Android 系统备份与隐私决策
 
-当前 Android Manifest 没有显式声明 `android:allowBackup`、`android:fullBackupContent` 或 `android:dataExtractionRules`。因此不能仅凭应用没有自建后端，就断言业务数据库和偏好不会进入 Android Auto Backup、设备迁移或厂商云备份。
+ADR-009 已接受“禁止 Android 系统云备份和设备到设备迁移”的产品决策：
 
-该事项必须通过单独的产品/隐私决策解决：
-
-- 若坚持“数据只保存在本机且仅由用户手工导出”，应显式关闭系统备份或用规则排除数据库和敏感偏好；
-- 若允许 Android 云备份或设备迁移，应明确数据范围、用户预期、隐私政策、商店 Data safety 声明和恢复行为；
-- Manifest、Android 12+ data extraction rules、旧版 full-backup rules、隐私页面和商店文案必须保持一致；
-- 在决策完成前，不得把 Android 默认行为当作已经验证的隐私保证。
+- Manifest 显式设置 `android:allowBackup="false"`；
+- Android 11- 的 full-backup rules 与 Android 12+ 的 cloud/device-transfer extraction rules 排除全部可备份 domain；
+- 用户需要副本时继续使用应用内手工业务数据库导出，不把 `SharedPreferences` 隐式加入裸 `.db`；
+- Manifest、两代备份规则、应用内隐私页面和 Google Play Data safety 声明保持一致；
+- 第一阶段已完成静态策略测试、真实设备验证和商店声明对照，不再依赖 Android 默认行为作为隐私保证。
 
 ## 3. 目标架构
 
@@ -153,26 +152,26 @@ flowchart TD
 
 ## 4. 问题台账
 
-> 本轮已完成 `LOG-001` 与 `BKP-001` 的既定范围；`REFRESH-001` 与 `NOTIF-001` 已完成核心改造但仍需 Widget/Android 集成验收，因此保持进行中；其余项目均为待办。
+> 第一阶段全部问题项已完成并通过退出验收；第二至第四阶段项目保持待办。
 
 | ID | 优先级 | 阶段 | 状态 | 问题与范围 | 验收标准 |
 | --- | --- | --- | --- | --- | --- |
 | LOG-001 | P1 | 第一阶段 | **已完成** | 历史保养项目只保留显示名称，编辑时按名称反查计划 ID，可能把计划项改成 custom 或关联到错误的同名项 | 不改 schema/version；`ServiceLogWithItems` 携带 typed performed items（link ID、plan ID/custom name、display name）；查询完整映射关联；编辑页按持久化身份回填；软删除、同名计划、custom 重名和 plan 尚未加载均不改变身份；映射和编辑输入测试通过 |
 | BKP-001 | P1 | 第一阶段 | **已完成** | 设置页直接操作数据库文件，职责耦合且恢复流程缺少独立可测边界 | 备份导入/导出职责进入独立 `BackupService`，Settings 只负责 picker/share/dialog；导出关闭连接后复制并校验快照，最终必定重开数据库；恢复文件通过 SQLite header、`PRAGMA integrity_check`、`user_version == 1` 及四张必需表/列校验；使用同卷 staging、rollback 副本和原子 rename，安装或重开失败自动恢复 rollback；失败通过 typed exception 表达，picker/share 取消留在 UI 边界；保持裸 `.db` 格式与 schema v1；真实 SQLite 和故障注入回滚测试通过 |
 | BKP-002 | P2 | 第一阶段 | **已完成** | 当前手工备份只包含 SQLite 业务数据，不包含 `SharedPreferences`，但用户可能把它理解为完整应用备份 | 设置页保持简洁，不在导出/恢复入口堆叠内容范围清单；恢复确认和隐私页沿用原有面向用户的文案，详细内容边界只保留在技术文档；导入裸 `.db` 时不得覆盖当前偏好，成功恢复与失败回滚测试均证明偏好不变；不改变 schema 或裸 `.db` 格式 |
-| PRIV-001 | P1 | 第一阶段 | **进行中** | 当前 Manifest 未显式声明 `allowBackup`、`fullBackupContent` 或 `dataExtractionRules`，Android Auto Backup、设备迁移和厂商云备份的实际数据范围与“数据保存在本机”的隐私表述尚未形成产品决策 | 形成已评审 ADR；若禁止系统备份，显式关闭或排除数据库与敏感偏好；若允许，则明确数据范围和恢复语义；Android 12+ extraction rules、旧版 full-backup rules、Manifest、应用内隐私页和商店 Data safety 一致；在代表性 Android 版本验证备份/设备迁移行为；不改数据库 schema |
+| PRIV-001 | P1 | 第一阶段 | **已完成** | 重构前 Manifest 未显式声明 `allowBackup`、`fullBackupContent` 或 `dataExtractionRules`，Android Auto Backup、设备迁移和厂商云备份的实际数据范围与“数据保存在本机”的隐私表述尚未形成产品决策 | 形成已评审 ADR；若禁止系统备份，显式关闭或排除数据库与敏感偏好；若允许，则明确数据范围和恢复语义；Android 12+ extraction rules、旧版 full-backup rules、Manifest、应用内隐私页和商店 Data safety 一致；在代表性 Android 版本验证备份/设备迁移行为；不改数据库 schema |
 | STATE-001 | P1 | 第一阶段 | **已完成** | Vehicle/Plan/Log Cubit 写后未等待 refresh 就 emit success；车辆失败 error 还会被 Loading 覆盖 | command 返回显式结果；成功后等待刷新；失败不退出页面、不丢输入；列表保留最后成功数据；Cubit 状态时序测试覆盖成功、写失败、刷新失败 |
 | FORM-001 | P1 | 第一阶段 | **已完成** | 新增/编辑表单没有提交锁，快速点击可产生重复记录 | 所有写表单具有 `isSubmitting`；提交期间按钮禁用并显示一致进度；双击 Widget 测试证明只调用一次 repository；返回仅发生于成功结果 |
 | REFRESH-001 | P1 | 第一阶段 | **已完成** | 全局预测刷新和通知重排可并发，旧结果可覆盖新结果，交错的 `cancelAll`/schedule 可留下幽灵通知 | 同一时刻至多运行一次通知同步；并发请求合并为一次后续 latest-wins 重跑；每位 caller 等待包含其请求的同步完成；`cancelAll` 与整批 schedule 不交错；删除/编辑/设置变更并发测试无旧 state、无旧通知、无重复调度 |
 | NOTIF-001 | P1 | 第一阶段 | **已完成** | 启动时从 `MaterialApp` 上方获取 l10n，通知调度被跳过；通知错误还会覆盖有效预测 state；一次性提醒被配置成按年重复 | 首次预测/通知加载发生在本地化就绪后且只触发一次；权限仅在用户启用开关时请求；提醒不带 recurrence match 参数；启用通知且数据库已有计划时，冷启动会同步计划；通知失败不把有效预测改成 error；通知服务测试验证 locale、lead time、关闭开关和冷启动单次调度 |
-| BUILD-001 | P1 | 第一阶段 | **进行中** | Android Gradle 当前在配置期强制读取 release 签名属性，debug 与 release 又共用 release signing config；没有发布密钥时，本地 debug 构建可能被无关签名要求阻塞 | debug 使用标准 debug 身份且无需 release secrets；release task 缺少或格式错误的签名配置时给出清晰、早失败的诊断；避免对 nullable key property 强制 cast；CI 不打印密钥；分别用 `apksigner verify --print-certs` 验证 debug/release 证书身份；密钥文件始终不入库 |
-| CI-001 | P1 | 第一阶段 | **进行中** | 当前 workflow 只由手工触发或版本 tag 触发，普通 PR/主分支变更没有持续质量门禁 | 新增不依赖签名 secrets 的 PR 与受保护分支检查：`flutter pub get`、`flutter gen-l10n`、格式检查、`flutter analyze`、`flutter test`，并在 BUILD-001 后加入可行的 debug APK 构建；使用最小权限和并发取消；required checks/分支保护配置有仓库侧验证记录 |
-| RELEASE-001 | P1 | 第一阶段 | **进行中** | 当前 tag 发布未校验 tag 与 `pubspec.yaml` version 一致，只检查英文 changelog，且在发布前缺少完整测试、版本递增和产物身份门禁 | 发布前验证 tag 精确等于 `v${pubspec version}`，例如 version `1.0.2+7` 只能由 `v1.0.2+7` 发布；versionCode 相对已发布版本单调递增；`en-US` 与 `zh-CN` 对应 changelog 均存在且非空；测试先于构建/发布；APK 路径、checksum 和签名身份可验证；任何门禁失败都发生在创建 Release 之前 |
+| BUILD-001 | P1 | 第一阶段 | **已完成** | 重构前 Android Gradle 在配置期强制读取 release 签名属性，debug 与 release 又共用 release signing config；没有发布密钥时，本地 debug 构建可能被无关签名要求阻塞 | debug 使用标准 debug 身份且无需 release secrets；release task 缺少或格式错误的签名配置时给出清晰、早失败的诊断；避免对 nullable key property 强制 cast；CI 不打印密钥；分别用 `apksigner verify --print-certs` 验证 debug/release 证书身份；密钥文件始终不入库 |
+| CI-001 | P1 | 第一阶段 | **已完成** | 重构前 workflow 只由手工触发或版本 tag 触发，普通 PR/主分支变更没有持续质量门禁 | 新增不依赖签名 secrets 的 PR 与受保护分支检查：`flutter pub get`、`flutter gen-l10n`、格式检查、`flutter analyze`、`flutter test`，并在 BUILD-001 后加入可行的 debug APK 构建；使用最小权限和并发取消；required checks/分支保护配置有仓库侧验证记录 |
+| RELEASE-001 | P1 | 第一阶段 | **已完成** | 重构前 tag 发布未校验 tag 与 `pubspec.yaml` version 一致，只检查英文 changelog，且在发布前缺少完整测试、版本递增和产物身份门禁 | 发布前验证 tag 精确等于 `v${pubspec version}`，例如 version `1.0.2+7` 只能由 `v1.0.2+7` 发布；versionCode 相对已发布版本单调递增；`en-US` 与 `zh-CN` 对应 changelog 均存在且非空；测试先于构建/发布；APK 路径、checksum 和签名身份可验证；任何门禁失败都发生在创建 Release 之前 |
 | TOOL-001 | P2 | 第一阶段 | **已完成** | `pubspec.yaml` 声明 Dart `^3.7.2`，CI 固定 Flutter 3.44.8 / Dart 3.12.2；当前没有证据证明代码能在所声明最低 SDK 上构建，也没有显式的版本漂移检查 | 明确实际支持的最低 Flutter/Dart 组合：要么在最低声明版本运行分析/测试，要么收紧约束；CI 打印并校验 Flutter/Dart 版本；约束与 CI、开发文档一致；本项不夹带 Flutter/Dart/Gradle 升级 |
 | NAV-001 | P1 | 第一阶段 | **已完成** | Quick Action 在 `runApp` 前注册并强制读取 nullable navigator context，冷启动存在崩溃竞态 | 初始 shortcut intent 先缓存，首帧和 Navigator 就绪后只消费一次；冷启动、热启动、重复 intent、无车辆、默认车辆失效测试通过；不使用强制 `currentContext!` |
 | DETAIL-001 | P1 | 第一阶段 | **已完成** | 车辆详情在 loading/error/null 状态仍显示依赖 `_vehicle!` 的 FAB，且错误态没有可见返回/重试入口 | 只有车辆与页面 Cubit 就绪时才显示操作 FAB；loading/error/null 均无空值崩溃；错误态包含本地化返回与重试；Widget 测试覆盖慢查询和 null 结果 |
 | PREF-001 | P2 | 第一阶段 | **已完成** | 默认车辆和语言对话框把 dismiss 返回的 null 当成“清除”或“跟随系统” | cancel/dismiss、clear/follow-system 使用可区分结果；遮罩和系统返回不改变偏好；Widget 测试覆盖已有非空选择 |
-| LIFE-001 | P2 | 第一阶段 | **进行中** | 图片、日期、PackageInfo、通知开关等异步流程存在 dispose 后 `setState`/context 使用 | 所有跨 await UI 路径有 mounted 保护或移入 controller；移除 lint ignore；路由被 shortcut 清空、picker 返回较晚等测试不抛异常 |
+| LIFE-001 | P2 | 第一阶段 | **已完成** | 图片、日期、PackageInfo、通知开关等异步流程存在 dispose 后 `setState`/context 使用 | 所有跨 await UI 路径有 mounted 保护或移入 controller；移除 lint ignore；路由被 shortcut 清空、picker 返回较晚等测试不抛异常 |
 | LOAD-001 | P2 | 第一阶段 | **已完成** | Plan/Log Cubit 构造器自动 fetch，多个路由又 cascade fetch；车辆列表也重复初始加载 | 每个资源只有一个初始加载入口；进入详情、快捷记录、车辆列表时 repository 调用次数测试为 1；无 close 后 emit |
 | PRED-001 | P1 | 第二阶段 | 待办 | 车辆只有购入日期与当前里程，没有二手车购入里程、已知上次保养或“周期从何处起算”的显式语义；现有规则可能把整车累计里程误当作购入后里程 | 先通过 ADR 定义新车、二手车、历史未知、手工基线和最近保养的起算规则，并形成可复核示例；第二阶段只实现无需落盘的新策略与输入校验；若需要新增购入里程/基线字段，必须另入第四阶段 migration，禁止在第一阶段加列 |
 | PRED-002 | P1 | 第二阶段 | 待办 | `MileageEstimator` 只比较排序后首尾里程，首尾仍增长时会掩盖中间某一段里程倒退、仪表更换或错误记录 | 明确逐段单调性、同日记录、仪表更换和数据修正规则；对每个相邻有效样本检查，遇异常按已决策策略使用最近有效段、拆段或回退，不得让负段被首尾净增长掩盖；覆盖中段倒退、多个倒退、零日差、同里程和恢复增长的纯 Dart 测试 |
@@ -199,7 +198,7 @@ flowchart TD
 
 ## 5. 分阶段实施顺序
 
-### 第一阶段：稳定性与数据安全止血（进行中）
+### 第一阶段：稳定性与数据安全止血（已完成）
 
 约束：schema version 固定为 1，不做迁移，不启用外键。
 
@@ -217,32 +216,32 @@ flowchart TD
    - 通过同卷 staging、原子 rename 和 rollback 建立失败自动恢复；
    - 建立 typed 结果、真实 SQLite 测试和故障注入测试；
    - 保持 `.db` 备份格式与 schema v1。
-3. **STATE-001 + FORM-001**
+3. **STATE-001 + FORM-001 — 已完成**
    - 先定义 command result 和加载协议；
    - 再逐个迁移 Vehicle、Plan、Log；
    - 每迁移一个调用链就同步修改页面与测试，禁止“一次换掉全部 state”。
-4. **LOAD-001 + LIFE-001**
+4. **LOAD-001 + LIFE-001 — 已完成**
    - 移除重复 fetch；
    - 为 route-owned Cubit 和异步 UI 增加取消/关闭保护。
-5. **REFRESH-001 + NOTIF-001 — 进行中**
+5. **REFRESH-001 + NOTIF-001 — 已完成**
    - 通过单飞执行器保证通知同步串行；
    - 运行期间的新请求合并为一次 latest-wins 后续重跑；
    - 每个调用方等待覆盖自身请求的同步完成；
    - 把冷启动加载移动到本地化就绪的 Widget 生命周期，并确保只触发一次；
    - 预测加载成功与通知平台失败分开表达。
-6. **NAV-001 + DETAIL-001 + PREF-001**
+6. **NAV-001 + DETAIL-001 + PREF-001 — 已完成**
    - 消除可复现崩溃和误清偏好；
    - 完成第一阶段回归矩阵。
-7. **PRIV-001 + BKP-002 — 进行中**
+7. **PRIV-001 + BKP-002 — 已完成**
    - 明确 Android Auto Backup/设备迁移是禁止、排除部分数据还是产品允许；
    - 让 Manifest、Android 12+ 与旧版备份规则、隐私页和商店声明采用同一结论；
    - 明示当前手工备份是业务数据库备份，导入不得改变 `SharedPreferences`；
    - 不借此改变裸 `.db` 格式或 schema v1。
-8. **BUILD-001 + TOOL-001 — 进行中**
+8. **BUILD-001 + TOOL-001 — 已完成**
    - 分离 debug/release 签名路径，让开发和 PR 验证不依赖发布密钥；
    - 对齐声明的最低 Dart/Flutter 组合与 CI 实际工具链；
    - 这一步不升级 Flutter、Dart、Gradle、AGP 或 Kotlin。
-9. **CI-001 + RELEASE-001 — 进行中**
+9. **CI-001 + RELEASE-001 — 已完成**
    - 建立 PR/受保护分支质量门禁；
    - 在 tag 发布前校验 `pubspec.yaml` version、versionCode、双语 changelog、测试、checksum 与签名；
    - 所有验证失败必须先于对外创建 Release。
@@ -256,6 +255,8 @@ flowchart TD
 - 数据库 version 仍为 1，建表 SQL 无变化；
 - 旧数据库和旧备份可读；
 - `git diff` 不包含 generated、build、缓存、签名或无关格式化。
+
+第一阶段已于 2026-07-28 满足以上全部退出条件并正式完成。
 
 ### 第二阶段：边界清晰化与体验一致性（待办）
 
@@ -404,6 +405,9 @@ ADR 的“已接受”只表示范围/设计约束已锁定，不代表对应问
 | 2026-07-27 | BUILD-001/TOOL-001/CI-001/RELEASE-001 | 收紧最低工具链到 Flutter 3.44.8 / Dart 3.12.2；debug 与 release 签名解耦；新增 PR/main quality job、发布元数据 validator、双语 changelog、checksum 与证书指纹门禁 | 当前重构任务 | 无发布密钥的隔离副本成功构建 debug APK，`apksigner` 为 `CN=Android Debug`；无密钥 release 在配置期给出明确错误；发布 validator 与单测通过 | TOOL-001 标记已完成；BUILD/CI/RELEASE 保持进行中，等待首次带发布 secrets 的 CI 证书验证及 required check 启用 |
 | 2026-07-27 | 第一阶段批次验证 | 对最终源码执行依赖解析、本地化、格式、静态分析、全量测试、发布校验、diff 校验和无密钥 Android 构建 | 当前重构任务 | `flutter pub get`、`flutter gen-l10n`、80 文件格式检查（0 变更）、`flutter analyze`、57 项 `flutter test`、`dart run tool/validate_release.dart`、workflow YAML 解析、`git diff --check`、隔离 `flutter build apk --debug` 全部通过 | 数据库 helper/schema/version 无 diff；未生成受跟踪的 generated/build/签名文件 |
 | 2026-07-27 | 第一阶段外部退出条件审计 | 只读核查 GitHub 分支保护、Actions secrets 和本机 Android 设备 | 当前重构任务 | GitHub API 返回 `main` 未受保护；签名 secrets 中缺少新门禁要求的 `APP_CERT_SHA256`；`adb devices` 无连接设备 | 推送后将 `Quality` 设为 required check；由仓库管理员设置证书指纹 secret 并跑一次 release workflow；连接代表性 Android 设备验证备份/迁移并核对 Play Data safety |
+| 2026-07-28 | PRIV-001/LIFE-001 | 完成第一阶段实机回归，复核 Android 系统备份、设备迁移、备份恢复、通知、快捷入口及异步页面生命周期；Google Play Data safety 与应用内本地存储承诺一致 | 维护者实机验收 | 维护者确认实机测试完成；Manifest、Android 11- 和 Android 12+ 规则排除全部备份 domain；Play 商店声明不收集、不共享数据；源码 mounted 审计与 `flutter analyze` 通过 | 对应条目标记已完成 |
+| 2026-07-28 | BUILD-001/CI-001/RELEASE-001 | 启用 `main` 保护规则并要求 `Quality`；补齐签名指纹 secret；在当前 `main` 上完成无密钥 debug 与有密钥 release 全流程验证 | 发布门禁验收 | active ruleset `Protect main` 要求 `Quality`；Actions run `30320858844` 的 `Quality` 通过；run `30321597401` 的 `Quality`、签名 release APK、证书指纹、checksum、双语 changelog 和 artifact 上传全部通过 | 对应条目标记已完成 |
+| 2026-07-28 | 第一阶段退出验收 | 按退出条件复核全部第一阶段 P1/P2、schema 冻结、首保兼容字段、旧库/旧备份、12 locale、工作区与发布门禁 | 阶段收尾 | 当前 HEAD 全量 CI 与实机回归通过；数据库 version 仍为 1，建表 SQL 未变化；未跟踪 generated、build、缓存或签名文件 | 第一阶段正式完成；第二阶段待启动 |
 
 ## 9. PR / 交付检查清单
 

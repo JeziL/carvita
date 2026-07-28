@@ -1,0 +1,5 @@
+- Safer database export and restore with integrity checks and automatic rollback.
+- More reliable maintenance reminders during cold starts and concurrent updates.
+- Prevent duplicate submissions and preserve form input when saves fail.
+- Improve quick actions, vehicle details, and settings dialogs.
+- Keep app data local by excluding it from Android system backups and device transfers.
