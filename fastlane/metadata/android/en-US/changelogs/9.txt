@@ -1,0 +1,5 @@
+- Make maintenance forecasts more accurate and keep them stable when vehicle details change.
+- Improve the reliability of reminders, quick actions, navigation, and app startup.
+- Speed up vehicle and maintenance screens, especially with large histories and vehicle photos.
+- Add a verified backup format that includes app settings while continuing to support older database backups.
+- Improve forms, localization, accessibility, and overall stability.
