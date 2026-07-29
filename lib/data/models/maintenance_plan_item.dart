@@ -10,6 +10,8 @@ class MaintenancePlanItem extends Equatable {
   final int? firstIntervalMileage;
   final String? notes;
   final bool isActive;
+  final DateTime? baselineDate;
+  final double? baselineMileage;
 
   const MaintenancePlanItem({
     this.id,
@@ -21,13 +23,15 @@ class MaintenancePlanItem extends Equatable {
     this.firstIntervalMileage,
     this.notes,
     this.isActive = true,
+    this.baselineDate,
+    this.baselineMileage,
   });
 
   bool get hasFirstInterval =>
       firstIntervalTimeMonths != null || firstIntervalMileage != null;
 
   Map<String, dynamic> toMap() {
-    return {
+    final map = <String, dynamic>{
       'id': id,
       'vehicleId': vehicleId,
       'itemName': itemName,
@@ -38,6 +42,15 @@ class MaintenancePlanItem extends Equatable {
       'notes': notes,
       'isActive': isActive ? 1 : 0,
     };
+    final baselineDate = this.baselineDate;
+    final baselineMileage = this.baselineMileage;
+    if (baselineDate != null) {
+      map['baselineDate'] = baselineDate.toIso8601String();
+    }
+    if (baselineMileage != null) {
+      map['baselineMileage'] = baselineMileage;
+    }
+    return map;
   }
 
   factory MaintenancePlanItem.fromMap(Map<String, dynamic> map) {
@@ -51,6 +64,11 @@ class MaintenancePlanItem extends Equatable {
       firstIntervalMileage: map['firstIntervalMileage'] as int?,
       notes: map['notes'] as String?,
       isActive: (map['isActive'] as int? ?? 1) == 1,
+      baselineDate: switch (map['baselineDate']) {
+        final String value => DateTime.tryParse(value),
+        _ => null,
+      },
+      baselineMileage: (map['baselineMileage'] as num?)?.toDouble(),
     );
   }
 
@@ -64,6 +82,8 @@ class MaintenancePlanItem extends Equatable {
     int? firstIntervalMileage,
     String? notes,
     bool? isActive,
+    DateTime? baselineDate,
+    double? baselineMileage,
     bool setNotesToNull = false, // For explicitly setting notes to null
     bool setIntervalTimeMonthsToNull = false,
     bool setIntervalMileageToNull = false,
@@ -88,6 +108,8 @@ class MaintenancePlanItem extends Equatable {
           : (firstIntervalMileage ?? this.firstIntervalMileage),
       notes: setNotesToNull ? null : (notes ?? this.notes),
       isActive: isActive ?? this.isActive,
+      baselineDate: baselineDate ?? this.baselineDate,
+      baselineMileage: baselineMileage ?? this.baselineMileage,
     );
   }
 
@@ -102,6 +124,8 @@ class MaintenancePlanItem extends Equatable {
     firstIntervalMileage,
     notes,
     isActive,
+    baselineDate,
+    baselineMileage,
   ];
 
   @override

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:carvita/application/ports/clock.dart';
 import 'package:carvita/application/use_cases/maintenance_plan_use_cases.dart';
 import 'package:carvita/application/use_cases/service_log_use_cases.dart';
 import 'package:carvita/application/use_cases/vehicle_use_cases.dart';
@@ -99,6 +100,7 @@ void main() {
         'addPlanItem',
         'getPlanItems',
       ]);
+      expect(repository.lastBaselineDate, DateTime(2026, 7, 29));
       expect(
         cubit.state,
         MaintenancePlanLoaded([_planItem(id: 1), _planItem(id: 2)]),
@@ -343,7 +345,13 @@ VehicleCubit _vehicleCubit(VehicleRepository repository) {
 }
 
 MaintenancePlanCubit _maintenancePlanCubit(MaintenanceRepository repository) {
-  return MaintenancePlanCubit(MaintenancePlanUseCases(repository), 1);
+  return MaintenancePlanCubit(
+    MaintenancePlanUseCases(
+      repository,
+      _FixedClock(DateTime(2026, 7, 29, 18, 30)),
+    ),
+    1,
+  );
 }
 
 ServiceLogCubit _serviceLogCubit(MaintenanceRepository repository) {
@@ -439,6 +447,7 @@ class _FakeMaintenanceRepository extends MaintenanceRepository {
   Object? logReadError;
   Object? logWriteError;
   Completer<List<MaintenancePlanItem>>? blockedPlanRead;
+  DateTime? lastBaselineDate;
   int planReadCount = 0;
   int logReadCount = 0;
 
@@ -452,9 +461,13 @@ class _FakeMaintenanceRepository extends MaintenanceRepository {
   }
 
   @override
-  Future<void> addPlanItem(MaintenancePlanItem item) async {
+  Future<void> addPlanItem(
+    MaintenancePlanItem item, {
+    required DateTime baselineDate,
+  }) async {
     events.add('addPlanItem');
     if (planWriteError case final error?) throw error;
+    lastBaselineDate = baselineDate;
     planItems.add(item);
   }
 
@@ -516,4 +529,13 @@ class _FakeMaintenanceRepository extends MaintenanceRepository {
     serviceLogs.removeWhere((log) => log.entry.id == logId);
     return serviceLogs.length != before;
   }
+}
+
+final class _FixedClock implements Clock {
+  const _FixedClock(this.value);
+
+  final DateTime value;
+
+  @override
+  DateTime now() => value;
 }

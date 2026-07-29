@@ -4,7 +4,7 @@
 >
 > 适用范围：CarVita Android / Flutter 主仓库
 >
-> 当前阶段：第三阶段「导航与性能优化」已完成；第四阶段待启动
+> 当前阶段：第四阶段「数据库迁移与外键治理」已完成
 >
 > 本文性质：架构目标、问题台账、实施顺序、验收门槛与决策记录的唯一跟踪入口
 
@@ -52,22 +52,26 @@
 - 可以调整查询结果映射、DTO、repository、service、Cubit 和 UI，但不得改变落盘结构；
 - 备份重构可以增加只读校验、临时文件、回滚和原子替换流程，但不得把旧库转换成新格式。
 
-### 2.3 外键启用延后
+### 2.3 外键治理
 
-`PRAGMA foreign_keys = ON`、孤儿记录清理和级联语义统一延后到后续迁移阶段。原因是现有库可能包含历史不一致数据，直接启用外键会改变删除行为，并可能让旧库或旧备份无法打开或写入。
+第四阶段通过 schema v2 完成外键治理：
 
-在迁移阶段开始前，任何代码都不得假定 SQLite 外键级联已经生效。当前需要删除关联数据时，继续使用显式、可测试的事务逻辑。
+- v1 升级前生成只读一致性报告；无法安全推断的日期、数值或非官方 FK 定义中止迁移并由 SQLite 事务回滚；
+- 丢失日志、计划或车辆的关系按 ADR-018 的保留/清理规则处理，跨车辆计划关联转为保留显示名的 custom 历史项；
+- 所有应用数据库和备份校验连接均在 `onConfigure` 中启用并验证 `PRAGMA foreign_keys = ON`；
+- 迁移结束必须通过 `PRAGMA foreign_key_check`；v2 备份在替换当前数据库前也必须没有关系异常；
+- 车辆和日志删除使用已测试的级联；计划继续默认软删除，内部硬删除先把历史名称转为 custom。
 
 ### 2.4 当前手工备份边界
 
-第三阶段起，新导出采用独立扩展名 `.cvbackup` 的版本化 ZIP 容器。容器 v1 固定包含 manifest、schema v1 SQLite 快照和版本化偏好文档：
+第三阶段起，新导出采用独立扩展名 `.cvbackup` 的版本化 ZIP 容器。容器 v1 固定包含 manifest、SQLite 快照和版本化偏好文档；第四阶段后的新导出包含 schema v2：
 
 - manifest 记录 `formatVersion`、数据库 schema version、应用版本、UTC 创建时间、精确内容清单、大小和 SHA-256；
 - 偏好只导出 allowlist 内的 typed 值，包括语言、主题、自定义主题色、里程单位、默认车辆、通知设置和 Dashboard 筛选；不读取或恢复未知键；
 - `notifications_enabled` 表达用户在应用内的提醒意愿，不代表 Android 系统权限；新安装恢复为开启但系统权限未授予时，应用在启动或 resume 检查后把开关归一为关闭并取消提醒，不自动发起权限请求；
 - 导入在关闭当前数据库前完成容器版本、精确文件清单、checksum、SQLite schema/integrity 和偏好类型校验；未知未来版本安全拒绝；
 - 数据库使用同卷 staging、rollback 和原子替换；偏好提交失败会触发数据库回滚，偏好实现同时恢复原白名单值；
-- 继续支持历史裸 v1 `.db` 导入。裸库只恢复四张业务表且不修改当前 `SharedPreferences`，不得描述为完整备份；
+- 继续支持官方 schema v1/v2 裸 `.db` 与容器导入；v1 在原子替换后通过同一事务迁移升级到 v2。裸库只恢复四张业务表且不修改当前 `SharedPreferences`，不得描述为完整备份；
 - 新格式不得伪装成 `.db`，里程单位和费用数值语义不因备份恢复发生转换。
 
 ### 2.5 Android 系统备份与隐私决策
@@ -154,7 +158,7 @@ flowchart TD
 
 ## 4. 问题台账
 
-> 第一至第三阶段全部问题项已完成并通过退出验收；第四阶段项目按本台账继续推进。
+> 第一至第四阶段已完成并通过退出验收；COMPAT-001 按产品决定延后到未来独立立项。
 
 | ID | 优先级 | 阶段 | 状态 | 问题与范围 | 验收标准 |
 | --- | --- | --- | --- | --- | --- |
@@ -175,7 +179,7 @@ flowchart TD
 | PREF-001 | P2 | 第一阶段 | **已完成** | 默认车辆和语言对话框把 dismiss 返回的 null 当成“清除”或“跟随系统” | cancel/dismiss、clear/follow-system 使用可区分结果；遮罩和系统返回不改变偏好；Widget 测试覆盖已有非空选择 |
 | LIFE-001 | P2 | 第一阶段 | **已完成** | 图片、日期、PackageInfo、通知开关等异步流程存在 dispose 后 `setState`/context 使用 | 所有跨 await UI 路径有 mounted 保护或移入 controller；移除 lint ignore；路由被 shortcut 清空、picker 返回较晚等测试不抛异常 |
 | LOAD-001 | P2 | 第一阶段 | **已完成** | Plan/Log Cubit 构造器自动 fetch，多个路由又 cascade fetch；车辆列表也重复初始加载 | 每个资源只有一个初始加载入口；进入详情、快捷记录、车辆列表时 repository 调用次数测试为 1；无 close 后 emit |
-| PRED-001 | P1 | 第四阶段 | 待办 | 车辆只有购入日期与当前里程，现有无历史规则可能把整车累计里程误当作购入后里程；已确认改为从“创建保养计划”起算，但当前 schema 没有可持久化的计划起点 | 新计划在创建时静默保存日期与车辆当前里程，首次到期从该起点叠加周期；最近一次与该计划项目关联的真实保养记录优先于创建起点；不区分新车/二手车，不新增用户输入或解释文案；编辑周期、车辆里程变化、无关保养记录不得移动起点；删除最近记录后回退到上一条关联记录或原起点；旧计划迁移后保持原预测，避免升级时提醒整体漂移；随 DB-001 设计字段、迁移和备份兼容，不复用或重解释首保兼容字段 |
+| PRED-001 | P1 | 第四阶段 | **已完成** | 车辆只有购入日期与当前里程，现有无历史规则可能把整车累计里程误当作购入后里程；已确认改为从“创建保养计划”起算，但当前 schema 没有可持久化的计划起点 | 新计划在创建时静默保存日期与车辆当前里程，首次到期从该起点叠加周期；最近一次与该计划项目关联的真实保养记录优先于创建起点；不区分新车/二手车，不新增用户输入或解释文案；编辑周期、车辆里程变化、无关保养记录不得移动起点；删除最近记录后回退到上一条关联记录或原起点；旧计划迁移后保持原预测，避免升级时提醒整体漂移；随 DB-001 设计字段、迁移和备份兼容，不复用或重解释首保兼容字段 |
 | DATE-001 | P2 | 第二阶段 | **已完成** | 到期天数按 `Duration.inDays` 截断，明天可能显示今天；购买/保养日期选择器允许明天 | 提供统一 calendar-day 工具；今天、明天、昨天、DST、跨月和时区边界测试通过；不允许未来业务日期 |
 | ROUTE-001 | P2 | 第二阶段 | **已完成** | Router 在校验前强制 cast 动态 Map/Cubit 参数，错误参数直接 TypeError | 每条有参数路由使用 typed args；缺失/错误参数进入本地化错误页而非抛异常；所有 MaterialPageRoute 保留 RouteSettings；route 测试覆盖 |
 | ERROR-001 | P2 | 第二阶段 | **已完成** | repository/Cubit 的 `e.toString()` 和硬编码英文直接暴露给用户 | 定义 typed failure 与本地化映射；诊断详情只进入开发日志；12 个 locale 均有用户可理解错误文案；失败 Widget 测试不出现 SQL、路径或英文内部异常 |
@@ -191,10 +195,10 @@ flowchart TD
 | PERF-001 | P2 | 第三阶段 | **已完成** | 保养记录关联项按每条日志再次查询，形成 N+1；全局预测还会逐车、逐资源重复访问数据库，数据量增长后查询次数线性放大 | 用 JOIN/批量 `IN`/分组查询或等价 repository query 一次取得关联数据；相同页面加载的查询次数不随日志条数增长；全局预测复用明确快照并保持结果一致；通过 query-count 测试与脱敏大数据基准记录时延、内存和查询数 |
 | IMAGE-001 | P3 | 第三阶段 | **已完成** | 车辆图片以 BLOB 存于主表，普通列表查询也可能携带完整图片，并在卡片中反复解码；这会放大查询内存、备份体积和滚动成本 | 列表摘要查询默认不投影 image BLOB，详情按需加载；使用尺寸感知解码、缩略图和有界缓存；大量车辆/大图场景记录查询字节、峰值内存、滚动帧和备份体积；不擅自放大入库图片；若把图片移出数据库，必须进入第四阶段迁移并同时设计备份兼容 |
 | BKP-003 | P2 | 第三阶段 | **已完成** | 裸 SQLite 无法表达完整备份内容、偏好、格式版本或校验信息，未来扩展时容易出现“文件能打开但语义不兼容” | 设计版本化备份容器：manifest 含 `formatVersion`、数据库 `user_version`、应用版本、内容清单和 checksum，可选偏好有 allowlist 与类型版本；继续支持旧裸 v1 `.db` 导入；数据库与偏好使用 staging、联合校验和可回滚提交；未知新版本安全拒绝；不得把新包伪装成旧 `.db` |
-| DB-001 | P1 | 第四阶段 | 待办 | 当前没有 schema 迁移框架，未来变更无法可靠升级旧库 | 在明确 schema 变更需求后升级版本；实现幂等 `onUpgrade`；覆盖全新安装、v1 升级、重复打开和旧备份恢复；失败回滚策略明确 |
-| DB-002 | P1 | 第四阶段 | 待办 | 外键未显式启用，现存数据可能有孤儿；直接开启会改变删除行为 | 先生成只读一致性报告；定义孤儿清理/保留规则；在事务迁移中清理并启用 foreign keys；每次连接验证 pragma；级联/软删除/备份恢复测试通过 |
-| DB-003 | P2 | 第四阶段 | 待办 | 四张表没有显式二级索引，vehicle/date、active plan 和 performed-item 关联查询在数据增长后可能退化为全表扫描 | 先用代表性数据和 `EXPLAIN QUERY PLAN` 证明热点，再在 schema version bump / `onUpgrade` 中加入最小必要索引；候选包括 plan `(vehicleId,isActive,id)`、log `(vehicleId,serviceDate,id)`、performed item 的 `serviceLogId` 与 `maintenancePlanItemId`；验证写入成本、查询计划和迁移幂等性；第一阶段禁止用临时 `CREATE INDEX` 绕过冻结 |
-| COMPAT-001 | P1 | 第四阶段 | 待办 | 首保兼容字段未来去留尚无最终数据策略 | 在产品决定恢复 UI 或删除字段后单独立项；迁移前后预测语义、旧数据、旧备份和回滚均有测试；在此之前字段保持原样 |
+| DB-001 | P1 | 第四阶段 | **已完成** | 当前没有 schema 迁移框架，未来变更无法可靠升级旧库 | 在明确 schema 变更需求后升级版本；实现幂等 `onUpgrade`；覆盖全新安装、v1 升级、重复打开和旧备份恢复；失败回滚策略明确 |
+| DB-002 | P1 | 第四阶段 | **已完成** | 外键未显式启用，现存数据可能有孤儿；直接开启会改变删除行为 | 先生成只读一致性报告；定义孤儿清理/保留规则；在事务迁移中清理并启用 foreign keys；每次连接验证 pragma；级联/软删除/备份恢复测试通过 |
+| DB-003 | P2 | 第四阶段 | **已完成** | 四张表没有显式二级索引，vehicle/date、active plan 和 performed-item 关联查询在数据增长后可能退化为全表扫描 | 先用代表性数据和 `EXPLAIN QUERY PLAN` 证明热点，再在 schema version bump / `onUpgrade` 中加入最小必要索引；候选包括 plan `(vehicleId,isActive,id)`、log `(vehicleId,serviceDate,id)`、performed item 的 `serviceLogId` 与 `maintenancePlanItemId`；验证写入成本、查询计划和迁移幂等性；第一阶段禁止用临时 `CREATE INDEX` 绕过冻结 |
+| COMPAT-001 | P1 | 第四阶段 | 延后 | 首保兼容字段未来去留尚无最终数据策略 | 本阶段确认继续保留原字段与原预测语义，不复用为计划起点；恢复 UI 或删除字段仍需独立产品决策和迁移立项 |
 
 ## 5. 分阶段实施顺序
 
@@ -282,7 +286,7 @@ flowchart TD
 
 第三阶段已于 2026-07-28 完成：SQLite schema/version、建表 SQL、通知 ID、预测规则、单位和费用语义均未改变；200 车辆预测固定 4 次查询，250 日志关联固定 1 次查询，图片源字节缓存硬上限为 16 MiB，旧裸数据库恢复继续保持偏好不变。
 
-### 第四阶段：数据库迁移与外键治理（待办）
+### 第四阶段：数据库迁移与外键治理（已完成）
 
 进入条件：
 
@@ -302,6 +306,8 @@ flowchart TD
 7. 在所有连接的 `onConfigure` 中启用并验证 foreign keys；
 8. 验证全新安装、v1 升级、旧备份恢复、版本化备份恢复和迁移失败回滚；
 9. 最后再决定首保兼容字段的长期去留。
+
+第四阶段已于 2026-07-29 完成：schema 升至 v2，新增独立计划起点并保持真实 v1 样本的迁移前后预测完全一致；只读报告、关系治理、官方 FK 定义校验、连接级 pragma 验证、四个最小索引和 v1/v2 备份恢复兼容均已落地。首保兼容字段按现有产品决定保持不变，COMPAT-001 延后到未来独立立项。
 
 ## 6. 测试矩阵
 
@@ -362,6 +368,7 @@ flutter build apk --debug
 | ADR-015 | 已接受 | 四个根页面使用 lazy `IndexedStack` 的持久 `MainShell`，由 `MainNavigationController` 统一 tab、快捷入口和通知导航 | 根 tab 切换不再清空 Navigator，已创建页面的滚动、筛选和局部状态可保留；非 Dashboard 根 tab 的 Android 返回先回 Dashboard；详情/编辑等既有命名路由继续使用全局 Navigator，避免为统一导航框架重写稳定页面 |
 | ADR-016 | 已接受 | 新导出使用独立 `.cvbackup` v1 容器，旧裸 schema v1 `.db` 仅作为兼容导入格式 | manifest、精确内容清单、SHA-256、schema/app/偏好版本和 typed allowlist 提供显式兼容边界；导入在关闭当前库前完整校验，数据库与偏好采用可回滚提交；未知未来版本拒绝，旧 `.db` 恢复不修改偏好 |
 | ADR-017 | 已接受 | 第三阶段保留 Cubit 与 Provider 的混合状态管理，不以框架统一为目标迁移 | 业务集合、写后刷新和 latest-wins 预测继续适合 Cubit；locale、主题、根导航和图片缓存分别使用轻量 Provider/ChangeNotifier 或普通 Provider；现有边界清晰且测试充分，框架迁移没有与当前性能/可靠性目标相称的收益 |
+| ADR-018 | 已接受 | schema v2 增加独立 `baselineDate`/`baselineMileage`，v1 旧计划迁移为购入日期/0 里程；先治理历史关系再启用并验证 FK，只添加查询计划证明的四个索引 | 新计划在事务中读取车辆当前里程并以注入 Clock 的当地日历日保存起点；真实关联记录优先，编辑和无关数据不改起点。孤儿/跨车辆关联尽量保留名称转 custom，无法恢复的无效关联删除，非法核心值或缺少官方 FK 定义则回滚；官方 v1 裸库/容器恢复后自动迁移，v2 导出与恢复保持严格校验。首保兼容字段继续保留原语义，COMPAT-001 延后到独立产品决策 |
 
 新决策必须追加记录，不得静默改写已接受决策。若替代旧决策，应把旧条目标记为“已取代”并链接新 ID。
 
@@ -430,6 +437,9 @@ ADR 的“已接受”只表示范围/设计约束已锁定；对应问题项是
 | 2026-07-28 | NAV-002/PERF-001/IMAGE-001 | 完成持久 `MainShell`、外部导航协调、日志 JOIN、单事务预测快照、车辆 summary/image 分离、尺寸感知缩略图和 24 项/16 MiB LRU；Settings 备份流程拆为独立 section | `codex/refactor-phase-3-navigation-performance` | 250 条日志关联为 1 次查询，测试环境 12,589 µs；200 辆车完整预测为固定 4 次查询，快照 13,085 µs；100 辆车 synthetic scroll 只加载可见缩略图且测试 cache ≤ 8 项，导航状态/滚动/Android 返回与 Golden 回归通过 | 对版本化备份和整阶段质量门禁做退出验收 |
 | 2026-07-28 | BKP-003/第三阶段退出验收 | 完成 `.cvbackup` v1 精确三文件容器、manifest/SHA-256/schema/app/preference version、typed allowlist、未知版本前置拒绝、数据库与偏好回滚、裸 v1 `.db` 兼容；恢复提示保持原有简洁文案，并同步 AGENTS 与 ADR-015～017 | `codex/refactor-phase-3-navigation-performance` | 版本化导出样本 1,588 bytes（SQLite 快照 24,576 bytes）；校验和篡改、未知版本、偏好提交失败、数据库回滚和 legacy 偏好不变测试通过；`flutter pub get`、`flutter gen-l10n`、136 文件格式检查、`flutter analyze`、全量 138 项 `flutter test`、`flutter build apk --debug` 和 `git diff --check` 通过 | 第三阶段正式完成；第四阶段按进入条件准备真实 v1 数据样本、迁移决策和 schema 方案 |
 | 2026-07-28 | NOTIF-004 | 修复完整备份恢复提醒意愿与新安装系统权限不一致：application 单飞协调器在启动、resume 和设置页检查实际权限，缺失时关闭偏好并取消提醒；不自动请求权限，也不修改恢复提示文案 | `codex/refactor-phase-3-navigation-performance` | 新增 5 项 use case 测试及冷启动/同日 resume 回归；`flutter gen-l10n`、139 文件格式检查（0 变更）、`flutter analyze`、全量 146 项 `flutter test` 和 `git diff --check` 通过 | 等待维护者真机验证：无权限的新安装恢复开启偏好后显示关闭，用户手动重新开启时才弹系统授权 |
+| 2026-07-29 | PRED-001/DB-001/DB-002/DB-003 | 在 `codex/refactor-phase-4-database-migration` 启动第四阶段并完成只读预迁移审计；当前 v1 没有 `onUpgrade`/`onConfigure`，删除车辆和日志依赖尚未启用的 FK 级联，仓库中没有受版本控制的真实 `.db`/`.cvbackup` 样本；拟议 v2 增加独立计划起点、清理孤儿、启用 FK、加入经查询计划证明的最小索引，并让 v1 裸库与 v1 容器恢复后自动迁移 | 当前重构任务 | `main` 工作区干净并已创建专用分支；源码、查询、备份校验与现有数据库测试已只读审计，尚未修改 schema/version 或运行迁移 | 等待维护者事前确认 v2 字段、旧计划基线、孤儿处理、FK/索引及旧备份升级方案；确认后实现并补 fresh/v1/重复打开/旧备份/失败回滚/预测矩阵 |
+| 2026-07-29 | PRED-001/DB-001/DB-002/DB-003/ADR-018/第四阶段退出验收 | 经维护者事前确认后完成 schema v2：计划创建时原子保存当地日历日与车辆里程起点，旧计划迁移为购入日期/0；实现只读报告、可恢复关系治理、不可推断值/FK 定义阻断、幂等升级与事务回滚；所有连接启用 FK；按查询计划加入四个索引；官方 v1/v2 裸库和容器恢复兼容。首保兼容字段保持原样，COMPAT-001 延后 | `codex/refactor-phase-4-database-migration` | 脱敏真实 v1 样本 69,632 bytes、SHA-256 `6C2020…FEF4`，1/9/12/38 行且迁移前后预测签名完全一致；四条热点查询均命中目标索引，隔离测试中 500 组 vehicle/plan/log/link 写入 514,338 µs；`flutter gen-l10n`、142 文件格式检查（0 变更）、`flutter analyze`、全量 168 项 `flutter test`、`flutter build apk --debug` 和 `git diff --check` 通过 | 第四阶段正式完成；代表性 Android 真机验收见下一条记录 |
+| 2026-07-29 | 第四阶段真机验收/UI 跟进 | 维护者在代表性 Android 真机完成 v1 原位升级、预测基线、删除关系、v1 裸库与 v2 容器恢复及无效备份保护；真机发现软删除计划仍保留计划 ID、但因不在 active 列表而进入 `unavailableSelectedItems` 时，编辑记录页 Chip 在亮色主题下对比度不足；维护者将该分支的背景、文字与删除图标配色调整为和 `_selectedCustomItemNames` 一致 | `codex/refactor-phase-4-database-migration` | 真机功能步骤均符合预期，应用日志未发现 `FATAL EXCEPTION`、`DatabaseMigrationException`、`SQLiteException`、外键约束或未处理异常；数据库测试明确验证软删除后计划 ID 保留且不转为 custom，Widget 测试在亮色、暗色和自定义 seed 亮色下逐项验证 unavailable/custom Chip 配色一致；142 文件格式检查（0 变更）、`flutter analyze` 与全量 171 项 `flutter test` 通过 | 已完成 |
 
 ## 9. PR / 交付检查清单
 

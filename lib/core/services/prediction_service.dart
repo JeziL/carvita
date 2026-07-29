@@ -1,5 +1,3 @@
-import 'package:collection/collection.dart';
-
 import 'package:carvita/application/ports/clock.dart';
 import 'package:carvita/core/utils/mileage_estimator.dart';
 import 'package:carvita/data/models/maintenance_plan_item.dart';
@@ -25,33 +23,20 @@ class PredictionService {
   }) {
     // 1. Look for the last service log entry for this planItem on this vehicle
     ServiceLogEntry? lastServiceLogForItem;
-    // Find all performedItem records for this planItem
-    final performedInstancesOfThisItem = allPerformedItemsForVehicle
-        .where((link) => link.maintenancePlanItemId == planItem.id)
-        .toList();
-
-    if (performedInstancesOfThisItem.isNotEmpty) {
-      // Find the latest serviceLogId from these performedItem records
-      performedInstancesOfThisItem.sort((a, b) {
-        final logA = allLogsForVehicle.firstWhereOrNull(
-          (log) => log.id == a.serviceLogId,
-        );
-        final logB = allLogsForVehicle.firstWhereOrNull(
-          (log) => log.id == b.serviceLogId,
-        );
-        if (logA == null && logB == null) return 0;
-        if (logA == null) return 1; // Put nulls last
-        if (logB == null) return -1;
-        return logB.serviceDate.compareTo(
-          logA.serviceDate,
-        ); // Sort descending by date
-      });
-
-      if (performedInstancesOfThisItem.isNotEmpty) {
-        final latestPerformedLink = performedInstancesOfThisItem.first;
-        lastServiceLogForItem = allLogsForVehicle.firstWhereOrNull(
-          (log) => log.id == latestPerformedLink.serviceLogId,
-        );
+    final logsById = {
+      for (final log in allLogsForVehicle)
+        if (log.id != null) log.id!: log,
+    };
+    for (final link in allPerformedItemsForVehicle) {
+      if (link.maintenancePlanItemId != planItem.id) continue;
+      final candidate = logsById[link.serviceLogId];
+      if (candidate == null) continue;
+      final current = lastServiceLogForItem;
+      if (current == null ||
+          candidate.serviceDate.isAfter(current.serviceDate) ||
+          (candidate.serviceDate == current.serviceDate &&
+              (candidate.id ?? -1) > (current.id ?? -1))) {
+        lastServiceLogForItem = candidate;
       }
     }
 
@@ -69,42 +54,45 @@ class PredictionService {
 
     if (lastServiceLogForItem == null) {
       isFirst = true;
+      final baselineDate = planItem.baselineDate ?? vehicle.boughtDate;
+      final baselineMileage = planItem.baselineMileage ?? 0;
       if (planItem.hasFirstInterval) {
         if (planItem.firstIntervalTimeMonths != null) {
           nextDateByTime = _addMonths(
-            vehicle.boughtDate,
+            baselineDate,
             planItem.firstIntervalTimeMonths!,
           );
-          timeNotes = "first time period";
+          timeNotes = "first time period (from plan baseline)";
         }
         if (planItem.firstIntervalMileage != null) {
-          targetMileageForPrediction = planItem.firstIntervalMileage!
-              .toDouble();
+          targetMileageForPrediction =
+              baselineMileage + planItem.firstIntervalMileage!;
           nextDateByMileage = MileageEstimator.predictDateForTargetMileage(
             currentMileage: vehicle.mileage,
             targetMileage: targetMileageForPrediction,
             dailyRate: vehicleDailyRate,
             fromDate: currentDateOverride ?? vehicle.mileageLastUpdated,
           );
-          mileageNotes = "first mileage period";
+          mileageNotes = "first mileage period (from plan baseline)";
         }
       } else {
         if (planItem.intervalTimeMonths != null) {
           nextDateByTime = _addMonths(
-            vehicle.boughtDate,
+            baselineDate,
             planItem.intervalTimeMonths!,
           );
-          timeNotes = "general time period (from purchase date)";
+          timeNotes = "general time period (from plan baseline)";
         }
         if (planItem.intervalMileage != null) {
-          targetMileageForPrediction = planItem.intervalMileage!.toDouble();
+          targetMileageForPrediction =
+              baselineMileage + planItem.intervalMileage!;
           nextDateByMileage = MileageEstimator.predictDateForTargetMileage(
             currentMileage: vehicle.mileage,
             targetMileage: targetMileageForPrediction,
             dailyRate: vehicleDailyRate,
             fromDate: currentDateOverride ?? vehicle.mileageLastUpdated,
           );
-          mileageNotes = "general mileage period (from purchase date)";
+          mileageNotes = "general mileage period (from plan baseline)";
         }
       }
     } else {

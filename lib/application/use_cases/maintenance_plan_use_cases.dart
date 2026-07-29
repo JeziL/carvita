@@ -1,10 +1,15 @@
 import 'package:carvita/application/ports/maintenance_repository_port.dart';
+import 'package:carvita/application/ports/clock.dart';
 import 'package:carvita/data/models/maintenance_plan_item.dart';
 
 final class MaintenancePlanUseCases {
-  const MaintenancePlanUseCases(this._repository);
+  const MaintenancePlanUseCases(
+    this._repository, [
+    this._clock = const SystemClock(),
+  ]);
 
   final MaintenanceRepositoryPort _repository;
+  final Clock _clock;
 
   Future<List<MaintenancePlanItem>> getPlanItems(int vehicleId) {
     return _repository.getPlanItems(vehicleId);
@@ -15,7 +20,11 @@ final class MaintenancePlanUseCases {
     required MaintenancePlanItem item,
   }) {
     _validateVehicle(vehicleId, item);
-    return _repository.addPlanItem(item);
+    final now = _clock.now();
+    return _repository.addPlanItem(
+      item,
+      baselineDate: DateTime(now.year, now.month, now.day),
+    );
   }
 
   Future<void> updatePlanItem({

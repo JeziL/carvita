@@ -8,17 +8,24 @@ import 'package:carvita/data/models/maintenance_plan_item.dart';
 import 'package:carvita/data/models/service_log_entry.dart';
 import 'package:carvita/data/models/service_log_performed_item_link.dart';
 import 'package:carvita/data/models/vehicle.dart';
+import 'package:carvita/data/sources/local/database_schema.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
   factory DatabaseHelper() => _instance;
-  DatabaseHelper._internal();
+  DatabaseHelper._internal({String? databasePath})
+    : _databasePathOverride = databasePath;
 
-  static Database? _database;
-  static Future<Database>? _openingDatabase;
-  static Completer<void>? _exclusiveOperation;
+  /// Creates an isolated helper for database integration tests.
+  DatabaseHelper.forTesting({required String databasePath})
+    : _databasePathOverride = databasePath;
+
+  final String? _databasePathOverride;
+  Database? _database;
+  Future<Database>? _openingDatabase;
+  Completer<void>? _exclusiveOperation;
   static const String dbName = 'carvita_v1.db';
-  static const int schemaVersion = 1;
+  static const int schemaVersion = DatabaseSchema.currentVersion;
   int _diagnosticReadQueryCount = 0;
 
   int get diagnosticReadQueryCount => _diagnosticReadQueryCount;
@@ -53,12 +60,14 @@ class DatabaseHelper {
   }
 
   Future<Database> _initDB() async {
-    String path = join(await getDatabasesPath(), dbName);
+    final path =
+        _databasePathOverride ?? join(await getDatabasesPath(), dbName);
     return await openDatabase(
       path,
       version: schemaVersion,
+      onConfigure: DatabaseSchema.configure,
       onCreate: _onCreate,
-      // onUpgrade: _onUpgrade,
+      onUpgrade: DatabaseSchema.upgrade,
     );
   }
 
@@ -117,58 +126,7 @@ class DatabaseHelper {
   }
 
   Future<void> _onCreate(Database db, int version) async {
-    await db.execute('''
-      CREATE TABLE vehicles (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        mileage REAL NOT NULL,
-        mileage_last_updated TEXT NOT NULL,
-        bought_date TEXT NOT NULL,
-        image BLOB,
-        model TEXT,
-        plate_number TEXT,
-        vin TEXT,
-        engine_number TEXT
-      )
-    ''');
-
-    await db.execute('''
-      CREATE TABLE maintenance_plan_items (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        vehicleId INTEGER NOT NULL,
-        itemName TEXT NOT NULL,
-        intervalTimeMonths INTEGER,
-        intervalMileage INTEGER,
-        firstIntervalTimeMonths INTEGER,
-        firstIntervalMileage INTEGER,
-        notes TEXT,
-        isActive INTEGER DEFAULT 1 NOT NULL,
-        FOREIGN KEY (vehicleId) REFERENCES vehicles (id) ON DELETE CASCADE 
-      )
-    ''');
-
-    await db.execute('''
-      CREATE TABLE service_log_entries (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        vehicleId INTEGER NOT NULL,
-        serviceDate TEXT NOT NULL,
-        mileageAtService REAL NOT NULL,
-        cost REAL,
-        notes TEXT,
-        FOREIGN KEY (vehicleId) REFERENCES vehicles (id) ON DELETE CASCADE
-      )
-    ''');
-
-    await db.execute('''
-      CREATE TABLE service_log_performed_items (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        serviceLogId INTEGER NOT NULL,
-        maintenancePlanItemId INTEGER, 
-        customItemName TEXT,
-        FOREIGN KEY (serviceLogId) REFERENCES service_log_entries (id) ON DELETE CASCADE,
-        FOREIGN KEY (maintenancePlanItemId) REFERENCES maintenance_plan_items (id) ON DELETE SET NULL 
-      )
-    ''');
+    await DatabaseSchema.create(db, version);
   }
 
   // --- vehicle CRUD ---
@@ -257,15 +215,43 @@ class DatabaseHelper {
 
   // --- Maintenance plan CRUD ---
 
-  Future<int> insertMaintenancePlanItem(MaintenancePlanItem item) async {
+  Future<int> insertMaintenancePlanItem(
+    MaintenancePlanItem item, {
+    required DateTime baselineDate,
+  }) async {
     final db = await database;
-    Map<String, dynamic> itemMap = item.toMap();
-    itemMap.remove('id'); // make SQLite auto-increment
-    return await db.insert(
-      'maintenance_plan_items',
-      itemMap,
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    return db.transaction((transaction) async {
+      final vehicleRows = await transaction.query(
+        'vehicles',
+        columns: const ['mileage'],
+        where: 'id = ?',
+        whereArgs: [item.vehicleId],
+        limit: 1,
+      );
+      if (vehicleRows.isEmpty) {
+        throw StateError(
+          'Cannot create a maintenance plan for a missing vehicle.',
+        );
+      }
+      final capturedMileage = vehicleRows.single['mileage'];
+      if (capturedMileage is! num) {
+        throw StateError('The vehicle mileage is not numeric.');
+      }
+
+      final itemMap =
+          item
+              .copyWith(
+                baselineDate: baselineDate,
+                baselineMileage: capturedMileage.toDouble(),
+              )
+              .toMap()
+            ..remove('id');
+      return transaction.insert(
+        'maintenance_plan_items',
+        itemMap,
+        conflictAlgorithm: ConflictAlgorithm.abort,
+      );
+    });
   }
 
   Future<List<MaintenancePlanItem>> getMaintenancePlanItemsForVehicle(
@@ -290,9 +276,14 @@ class DatabaseHelper {
 
   Future<int> updateMaintenancePlanItem(MaintenancePlanItem item) async {
     final db = await database;
+    final values = item.toMap()
+      ..remove('id')
+      ..remove('vehicleId')
+      ..remove('baselineDate')
+      ..remove('baselineMileage');
     return await db.update(
       'maintenance_plan_items',
-      item.toMap(),
+      values,
       where: 'id = ?',
       whereArgs: [item.id],
     );
@@ -310,11 +301,34 @@ class DatabaseHelper {
 
   Future<int> deleteMaintenancePlanItem(int itemId) async {
     final db = await database;
-    return await db.delete(
-      'maintenance_plan_items',
-      where: 'id = ?',
-      whereArgs: [itemId],
-    );
+    return db.transaction((transaction) async {
+      await transaction.rawUpdate(
+        '''
+        UPDATE service_log_performed_items
+        SET customItemName = COALESCE(
+              NULLIF(TRIM(customItemName), ''),
+              (
+                SELECT itemName
+                FROM maintenance_plan_items
+                WHERE id = ?
+              )
+            ),
+            maintenancePlanItemId = NULL
+        WHERE maintenancePlanItemId = ?
+      ''',
+        [itemId, itemId],
+      );
+      return transaction.delete(
+        'maintenance_plan_items',
+        where: 'id = ?',
+        whereArgs: [itemId],
+      );
+    });
+  }
+
+  Future<DatabaseConsistencyReport> getConsistencyReport() async {
+    final db = await database;
+    return DatabaseSchema.audit(db);
   }
 
   // --- Maintenance log CRUD ---

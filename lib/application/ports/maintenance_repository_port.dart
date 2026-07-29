@@ -5,7 +5,10 @@ import 'package:carvita/data/models/service_log_performed_item_link.dart';
 abstract interface class MaintenanceRepositoryPort {
   Future<List<MaintenancePlanItem>> getPlanItems(int vehicleId);
 
-  Future<void> addPlanItem(MaintenancePlanItem item);
+  Future<void> addPlanItem(
+    MaintenancePlanItem item, {
+    required DateTime baselineDate,
+  });
 
   Future<void> updatePlanItem(MaintenancePlanItem item);
 

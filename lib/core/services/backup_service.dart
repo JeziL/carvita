@@ -11,6 +11,7 @@ import 'package:sqflite/sqflite.dart';
 
 import 'package:carvita/application/ports/backup_preferences_port.dart';
 import 'package:carvita/data/sources/local/database_helper.dart';
+import 'package:carvita/data/sources/local/database_schema.dart';
 
 abstract interface class BackupDatabaseConnection {
   Future<void> close();
@@ -80,47 +81,92 @@ class BackupService implements BackupGateway {
   static const int backupFormatVersion = 1;
   static const int backupPreferencesVersion = 1;
   static const int supportedSchemaVersion = DatabaseHelper.schemaVersion;
+  static const Set<int> supportedRestoreSchemaVersions =
+      DatabaseSchema.restorableVersions;
   static const String _manifestPath = 'manifest.json';
   static const String _databaseEntryPath = 'database/${DatabaseHelper.dbName}';
   static const String _preferencesEntryPath = 'preferences.json';
 
-  static const Map<String, Set<String>> _requiredSchema = {
-    'vehicles': {
-      'id',
-      'name',
-      'mileage',
-      'mileage_last_updated',
-      'bought_date',
-      'image',
-      'model',
-      'plate_number',
-      'vin',
-      'engine_number',
+  static const Map<int, Map<String, Set<String>>> _requiredSchemas = {
+    DatabaseSchema.legacyVersion: {
+      'vehicles': {
+        'id',
+        'name',
+        'mileage',
+        'mileage_last_updated',
+        'bought_date',
+        'image',
+        'model',
+        'plate_number',
+        'vin',
+        'engine_number',
+      },
+      'maintenance_plan_items': {
+        'id',
+        'vehicleId',
+        'itemName',
+        'intervalTimeMonths',
+        'intervalMileage',
+        'firstIntervalTimeMonths',
+        'firstIntervalMileage',
+        'notes',
+        'isActive',
+      },
+      'service_log_entries': {
+        'id',
+        'vehicleId',
+        'serviceDate',
+        'mileageAtService',
+        'cost',
+        'notes',
+      },
+      'service_log_performed_items': {
+        'id',
+        'serviceLogId',
+        'maintenancePlanItemId',
+        'customItemName',
+      },
     },
-    'maintenance_plan_items': {
-      'id',
-      'vehicleId',
-      'itemName',
-      'intervalTimeMonths',
-      'intervalMileage',
-      'firstIntervalTimeMonths',
-      'firstIntervalMileage',
-      'notes',
-      'isActive',
-    },
-    'service_log_entries': {
-      'id',
-      'vehicleId',
-      'serviceDate',
-      'mileageAtService',
-      'cost',
-      'notes',
-    },
-    'service_log_performed_items': {
-      'id',
-      'serviceLogId',
-      'maintenancePlanItemId',
-      'customItemName',
+    DatabaseSchema.currentVersion: {
+      'vehicles': {
+        'id',
+        'name',
+        'mileage',
+        'mileage_last_updated',
+        'bought_date',
+        'image',
+        'model',
+        'plate_number',
+        'vin',
+        'engine_number',
+      },
+      'maintenance_plan_items': {
+        'id',
+        'vehicleId',
+        'itemName',
+        'intervalTimeMonths',
+        'intervalMileage',
+        'firstIntervalTimeMonths',
+        'firstIntervalMileage',
+        'notes',
+        'isActive',
+        'baselineDate',
+        'baselineMileage',
+      },
+      'service_log_entries': {
+        'id',
+        'vehicleId',
+        'serviceDate',
+        'mileageAtService',
+        'cost',
+        'notes',
+      },
+      'service_log_performed_items': {
+        'id',
+        'serviceLogId',
+        'maintenancePlanItemId',
+        'customItemName',
+      },
     },
   };
 
@@ -340,7 +386,12 @@ class BackupService implements BackupGateway {
             ).writeAsBytes(package.databaseBytes, flush: true);
 
       try {
-        await _validateDatabaseFile(stagingPath);
+        await _validateDatabaseFile(
+          stagingPath,
+          acceptedSchemaVersions: package == null
+              ? supportedRestoreSchemaVersions
+              : {package.databaseSchemaVersion},
+        );
         await _databaseController.runExclusive((connection) async {
           Object? restoreFailure;
           StackTrace? restoreStackTrace;
@@ -536,7 +587,7 @@ class BackupService implements BackupGateway {
       }
       final databaseSchemaVersion = manifest['databaseSchemaVersion'];
       if (databaseSchemaVersion is! int ||
-          databaseSchemaVersion != supportedSchemaVersion) {
+          !supportedRestoreSchemaVersions.contains(databaseSchemaVersion)) {
         throw UnsupportedBackupFormatException(
           'Unsupported database schema version in backup package: '
           '${databaseSchemaVersion ?? 'unknown'}.',
@@ -594,6 +645,7 @@ class BackupService implements BackupGateway {
       final preferences = validateBackupPreferenceValues(rawValues);
       return _BackupPackage(
         databaseBytes: databaseBytes,
+        databaseSchemaVersion: databaseSchemaVersion,
         preferences: preferences,
       );
     } on BackupException {
@@ -660,7 +712,10 @@ class BackupService implements BackupGateway {
     await _validateOpenDatabase(recoveredDatabase);
   }
 
-  Future<void> _validateDatabaseFile(String databasePath) async {
+  Future<int> _validateDatabaseFile(
+    String databasePath, {
+    Set<int> acceptedSchemaVersions = const {supportedSchemaVersion},
+  }) async {
     final databaseFile = File(databasePath);
     if (!await databaseFile.exists()) {
       throw BackupSourceNotFoundException(databasePath);
@@ -688,9 +743,16 @@ class BackupService implements BackupGateway {
     try {
       validationDatabase = await _sqliteFactory.openDatabase(
         databasePath,
-        options: OpenDatabaseOptions(readOnly: true, singleInstance: false),
+        options: OpenDatabaseOptions(
+          readOnly: true,
+          singleInstance: false,
+          onConfigure: DatabaseSchema.configure,
+        ),
       );
-      await _validateOpenDatabase(validationDatabase);
+      return await _validateOpenDatabase(
+        validationDatabase,
+        acceptedSchemaVersions: acceptedSchemaVersions,
+      );
     } on InvalidBackupException {
       rethrow;
     } catch (error) {
@@ -705,7 +767,17 @@ class BackupService implements BackupGateway {
     }
   }
 
-  Future<void> _validateOpenDatabase(Database database) async {
+  Future<int> _validateOpenDatabase(
+    Database database, {
+    Set<int> acceptedSchemaVersions = const {supportedSchemaVersion},
+  }) async {
+    final foreignKeyRows = await database.rawQuery('PRAGMA foreign_keys');
+    if (foreignKeyRows.isEmpty || foreignKeyRows.single.values.single != 1) {
+      throw const InvalidBackupException(
+        'SQLite foreign key enforcement is not enabled.',
+      );
+    }
+
     final integrityRows = await database.rawQuery('PRAGMA integrity_check');
     final integrityValues = integrityRows
         .expand((row) => row.values)
@@ -721,10 +793,18 @@ class BackupService implements BackupGateway {
     final schemaVersion = versionRows.isEmpty
         ? null
         : versionRows.first.values.first as int?;
-    if (schemaVersion != supportedSchemaVersion) {
+    if (schemaVersion == null ||
+        !acceptedSchemaVersions.contains(schemaVersion)) {
       throw InvalidBackupException(
         'Unsupported database schema version: '
         '${schemaVersion ?? 'unknown'}.',
+      );
+    }
+
+    final requiredSchema = _requiredSchemas[schemaVersion];
+    if (requiredSchema == null) {
+      throw InvalidBackupException(
+        'Unsupported database schema version: $schemaVersion.',
       );
     }
 
@@ -737,7 +817,7 @@ class BackupService implements BackupGateway {
         .whereType<String>()
         .toSet();
     final applicationTableNames = tableNames.difference(_allowedPlatformTables);
-    if (!_setsEqual(applicationTableNames, _requiredSchema.keys.toSet())) {
+    if (!_setsEqual(applicationTableNames, requiredSchema.keys.toSet())) {
       throw const InvalidBackupException(
         'The selected database contains an incompatible table set.',
       );
@@ -750,7 +830,7 @@ class BackupService implements BackupGateway {
       );
     }
 
-    for (final schemaEntry in _requiredSchema.entries) {
+    for (final schemaEntry in requiredSchema.entries) {
       final columnRows = await database.rawQuery(
         'PRAGMA table_info("${schemaEntry.key}")',
       );
@@ -765,6 +845,22 @@ class BackupService implements BackupGateway {
         );
       }
     }
+
+    final consistency = await DatabaseSchema.audit(database);
+    if (consistency.hasBlockingSchemaOrValueErrors) {
+      throw const InvalidBackupException(
+        'The selected database has incompatible constraints or values.',
+      );
+    }
+    if (schemaVersion == DatabaseSchema.currentVersion) {
+      if (consistency.hasRelationshipIssues ||
+          (await database.rawQuery('PRAGMA foreign_key_check')).isNotEmpty) {
+        throw const InvalidBackupException(
+          'The selected database has inconsistent relationships.',
+        );
+      }
+    }
+    return schemaVersion;
   }
 
   Future<void> _deleteDatabaseSidecars(String databasePath) async {
@@ -879,10 +975,12 @@ class _DatabaseHelperBackupConnection implements BackupDatabaseConnection {
 final class _BackupPackage {
   const _BackupPackage({
     required this.databaseBytes,
+    required this.databaseSchemaVersion,
     required this.preferences,
   });
 
   final Uint8List databaseBytes;
+  final int databaseSchemaVersion;
   final Map<String, Object> preferences;
 }
 

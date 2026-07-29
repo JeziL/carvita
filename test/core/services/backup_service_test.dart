@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:archive/archive.dart';
+import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
@@ -12,6 +13,7 @@ import 'package:carvita/application/ports/backup_preferences_port.dart';
 import 'package:carvita/core/services/backup_service.dart';
 import 'package:carvita/core/services/preferences_service.dart';
 import 'package:carvita/data/sources/local/database_helper.dart';
+import 'package:carvita/data/sources/local/database_schema.dart';
 
 void main() {
   sqfliteFfiInit();
@@ -246,7 +248,9 @@ void main() {
         candidatePath,
         options: OpenDatabaseOptions(singleInstance: false),
       );
-      await candidateDatabase.execute('PRAGMA user_version = 2');
+      await candidateDatabase.execute(
+        'PRAGMA user_version = ${DatabaseSchema.currentVersion + 1}',
+      );
       await candidateDatabase.close();
       final closeCountBeforeRestore = controller.closeCount;
 
@@ -314,6 +318,62 @@ void main() {
       backupService.restoreDatabase(incompletePath),
       throwsA(isA<InvalidBackupException>()),
     );
+    expect(await _vehicleNames(await controller.open()), ['Current vehicle']);
+  });
+
+  test('a v1 database without official foreign keys is rejected', () async {
+    final candidatePath = path.join(
+      testDirectory.path,
+      'missing-foreign-keys.db',
+    );
+    final candidate = await databaseFactoryFfi.openDatabase(
+      candidatePath,
+      options: OpenDatabaseOptions(
+        version: DatabaseSchema.legacyVersion,
+        singleInstance: false,
+        onCreate: _createLegacySchemaWithoutForeignKeys,
+      ),
+    );
+    await _insertVehicle(candidate, name: 'Unconstrained vehicle');
+    await candidate.close();
+    final closeCountBeforeRestore = controller.closeCount;
+
+    await expectLater(
+      backupService.restoreDatabase(candidatePath),
+      throwsA(isA<InvalidBackupException>()),
+    );
+
+    expect(controller.closeCount, closeCountBeforeRestore);
+    expect(await _vehicleNames(await controller.open()), ['Current vehicle']);
+  });
+
+  test('a v2 database with orphan relationships is rejected', () async {
+    final candidatePath = path.join(testDirectory.path, 'orphan-v2.db');
+    final candidate = await databaseFactoryFfi.openDatabase(
+      candidatePath,
+      options: OpenDatabaseOptions(
+        version: DatabaseSchema.currentVersion,
+        singleInstance: false,
+        onCreate: DatabaseSchema.create,
+      ),
+    );
+    await candidate.insert('maintenance_plan_items', {
+      'vehicleId': 999,
+      'itemName': 'Orphan',
+      'intervalTimeMonths': 12,
+      'isActive': 1,
+      'baselineDate': '2026-07-29T00:00:00.000',
+      'baselineMileage': 0.0,
+    });
+    await candidate.close();
+    final closeCountBeforeRestore = controller.closeCount;
+
+    await expectLater(
+      backupService.restoreDatabase(candidatePath),
+      throwsA(isA<InvalidBackupException>()),
+    );
+
+    expect(controller.closeCount, closeCountBeforeRestore);
     expect(await _vehicleNames(await controller.open()), ['Current vehicle']);
   });
 
@@ -403,6 +463,98 @@ void main() {
       completes,
     );
   });
+
+  test(
+    'provided bare v1 backup restores and migrates without preferences',
+    () async {
+      final fixturePath = path.join(
+        Directory.current.path,
+        'test',
+        'fixtures',
+        'database',
+        'carvita_v1.db',
+      );
+
+      await backupService.restoreDatabase(fixturePath);
+
+      final restored = await controller.open();
+      expect(
+        (await restored.rawQuery('PRAGMA user_version')).single.values.single,
+        DatabaseSchema.currentVersion,
+      );
+      expect(await restored.query('vehicles'), hasLength(1));
+      expect(await restored.query('maintenance_plan_items'), hasLength(9));
+      expect(await restored.rawQuery('PRAGMA foreign_key_check'), isEmpty);
+      await _expectPreferencesUnchanged();
+    },
+  );
+
+  test('versioned v1 package restores preferences then migrates', () async {
+    final fixturePath = path.join(
+      Directory.current.path,
+      'test',
+      'fixtures',
+      'database',
+      'carvita_v1.db',
+    );
+    final packagePath = path.join(testDirectory.path, 'legacy-v1.cvbackup');
+    await _createLegacyPackage(
+      databasePath: fixturePath,
+      packagePath: packagePath,
+      preferences: const {
+        'locale_language_code': 'ja',
+        'notifications_enabled': false,
+      },
+    );
+
+    await backupService.restoreDatabase(packagePath);
+
+    final restored = await controller.open();
+    expect(
+      (await restored.rawQuery('PRAGMA user_version')).single.values.single,
+      DatabaseSchema.currentVersion,
+    );
+    expect(await restored.query('service_log_entries'), hasLength(12));
+    final preferences = await SharedPreferences.getInstance();
+    expect(preferences.getString('locale_language_code'), 'ja');
+    expect(preferences.getBool('notifications_enabled'), isFalse);
+  });
+}
+
+Future<void> _createLegacyPackage({
+  required String databasePath,
+  required String packagePath,
+  required Map<String, Object> preferences,
+}) async {
+  final databaseBytes = await File(databasePath).readAsBytes();
+  final preferencesBytes = utf8.encode(
+    jsonEncode({
+      'version': BackupService.backupPreferencesVersion,
+      'values': preferences,
+    }),
+  );
+  Map<String, Object> describe(List<int> bytes) => {
+    'size': bytes.length,
+    'sha256': sha256.convert(bytes).toString(),
+  };
+  final databaseEntry = 'database/${DatabaseHelper.dbName}';
+  final manifestBytes = utf8.encode(
+    jsonEncode({
+      'formatVersion': BackupService.backupFormatVersion,
+      'databaseSchemaVersion': DatabaseSchema.legacyVersion,
+      'applicationVersion': '1.1.0+8',
+      'createdAt': '2026-07-28T00:00:00.000Z',
+      'contents': {
+        databaseEntry: describe(databaseBytes),
+        'preferences.json': describe(preferencesBytes),
+      },
+    }),
+  );
+  final archive = Archive()
+    ..addFile(ArchiveFile.bytes('manifest.json', manifestBytes))
+    ..addFile(ArchiveFile.bytes(databaseEntry, databaseBytes))
+    ..addFile(ArchiveFile.bytes('preferences.json', preferencesBytes));
+  await File(packagePath).writeAsBytes(ZipEncoder().encode(archive));
 }
 
 Future<String> _rewritePackageEntry(
@@ -479,7 +631,9 @@ class _TestDatabaseController
       databasePath,
       options: OpenDatabaseOptions(
         version: BackupService.supportedSchemaVersion,
+        onConfigure: DatabaseSchema.configure,
         onCreate: _createSchema,
+        onUpgrade: DatabaseSchema.upgrade,
       ),
     );
     _database = openedDatabase;
@@ -502,7 +656,9 @@ Future<void> _createCandidateDatabase(
     databasePath,
     options: OpenDatabaseOptions(
       version: BackupService.supportedSchemaVersion,
+      onConfigure: DatabaseSchema.configure,
       onCreate: _createSchema,
+      onUpgrade: DatabaseSchema.upgrade,
     ),
   );
   await _insertVehicle(database, name: vehicleName);
@@ -510,6 +666,13 @@ Future<void> _createCandidateDatabase(
 }
 
 Future<void> _createSchema(Database database, int version) async {
+  await DatabaseSchema.create(database, version);
+}
+
+Future<void> _createLegacySchemaWithoutForeignKeys(
+  Database database,
+  int version,
+) async {
   await database.execute('''
     CREATE TABLE vehicles (
       id INTEGER PRIMARY KEY AUTOINCREMENT,

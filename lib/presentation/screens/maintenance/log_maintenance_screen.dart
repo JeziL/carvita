@@ -448,12 +448,13 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
                           label: Text(
                             item.displayName,
                             style: TextStyle(
-                              color: themeExtensions.textColorOnBackground
-                                  .withValues(alpha: 0.9),
+                              color: themeExtensions.primaryGradient.colors[0],
                             ),
                           ),
-                          deleteIconColor:
-                              themeExtensions.textColorOnBackground,
+                          deleteIconColor: themeExtensions
+                              .primaryGradient
+                              .colors[0]
+                              .withValues(alpha: 0.7),
                           onDeleted: () {
                             setState(() {
                               _selectedPredefinedItemIds.remove(
@@ -461,7 +462,7 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
                               );
                             });
                           },
-                          backgroundColor: Colors.transparent,
+                          backgroundColor: bgColor.withValues(alpha: 0.9),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20),
                             side: BorderSide(
