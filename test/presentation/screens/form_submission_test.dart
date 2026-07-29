@@ -144,6 +144,76 @@ void main() {
     await tester.pump();
   });
 
+  const chipThemeCases =
+      <({String name, Brightness brightness, Color seedColor})>[
+        (name: 'light', brightness: Brightness.light, seedColor: Colors.blue),
+        (name: 'dark', brightness: Brightness.dark, seedColor: Colors.blue),
+        (
+          name: 'custom seed light',
+          brightness: Brightness.light,
+          seedColor: Colors.teal,
+        ),
+      ];
+  for (final themeCase in chipThemeCases) {
+    testWidgets(
+      'unavailable plan chip matches custom item colors in ${themeCase.name} mode',
+      (tester) async {
+        final repository = _BlockingMaintenanceRepository();
+        final planCubit = MaintenancePlanCubit(
+          MaintenancePlanUseCases(repository),
+          1,
+        );
+        final logCubit = ServiceLogCubit(ServiceLogUseCases(repository), 1);
+        final logToEdit = _serviceLogWithUnavailablePlanItem();
+
+        expect(logToEdit.performedItems.first.maintenancePlanItemId, 2);
+        expect(logToEdit.performedItems.last.customItemName, 'Inspection');
+        expect(_planItem().id, isNot(2));
+
+        await tester.pumpWidget(
+          _testApp(
+            brightness: themeCase.brightness,
+            seedColor: themeCase.seedColor,
+            providers: [
+              BlocProvider<MaintenancePlanCubit>.value(value: planCubit),
+              BlocProvider<ServiceLogCubit>.value(value: logCubit),
+            ],
+            child: LogMaintenanceScreen(
+              vehicleId: 1,
+              vehicleName: 'Vehicle',
+              logToEdit: logToEdit,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final unavailableLabelFinder = find.text('Deleted plan');
+        final customLabelFinder = find.text('Inspection');
+        expect(unavailableLabelFinder, findsOne);
+        expect(customLabelFinder, findsOne);
+        final unavailableChip = tester.widget<Chip>(
+          find.ancestor(
+            of: unavailableLabelFinder,
+            matching: find.byType(Chip),
+          ),
+        );
+        final customChip = tester.widget<Chip>(
+          find.ancestor(of: customLabelFinder, matching: find.byType(Chip)),
+        );
+        final unavailableLabel = unavailableChip.label as Text;
+        final customLabel = customChip.label as Text;
+
+        expect(unavailableChip.backgroundColor, customChip.backgroundColor);
+        expect(unavailableLabel.style?.color, customLabel.style?.color);
+        expect(unavailableChip.deleteIconColor, customChip.deleteIconColor);
+
+        await tester.pumpWidget(const SizedBox());
+        await planCubit.close();
+        await logCubit.close();
+      },
+    );
+  }
+
   testWidgets('vehicle write failure keeps input and re-enables submit', (
     tester,
   ) async {
@@ -401,8 +471,14 @@ Widget _testApp({
   required Widget child,
   Locale locale = const Locale('en'),
   TextScaler textScaler = TextScaler.noScaling,
+  Brightness brightness = Brightness.light,
+  Color seedColor = Colors.blue,
 }) {
   final preferences = PreferencesService();
+  final colorScheme = ColorScheme.fromSeed(
+    seedColor: seedColor,
+    brightness: brightness,
+  );
   return MultiProvider(
     providers: [
       Provider<VehicleUseCases>.value(
@@ -422,10 +498,7 @@ Widget _testApp({
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: AppLocalizations.supportedLocales,
-      theme: AppTheme.getThemeData(
-        ColorScheme.fromSeed(seedColor: Colors.blue),
-        Brightness.light,
-      ),
+      theme: AppTheme.getThemeData(colorScheme, brightness),
       builder: (context, appChild) {
         final mediaQuery = MediaQuery.of(context);
         return MediaQuery(
@@ -468,6 +541,27 @@ ServiceLogWithItems _serviceLog() {
     performedItems: const [
       ServiceLogPerformedItem(
         id: 1,
+        serviceLogId: 1,
+        customItemName: 'Inspection',
+        displayName: 'Inspection',
+      ),
+    ],
+  );
+}
+
+ServiceLogWithItems _serviceLogWithUnavailablePlanItem() {
+  final serviceLog = _serviceLog();
+  return ServiceLogWithItems(
+    entry: serviceLog.entry,
+    performedItems: const [
+      ServiceLogPerformedItem(
+        id: 1,
+        serviceLogId: 1,
+        maintenancePlanItemId: 2,
+        displayName: 'Deleted plan',
+      ),
+      ServiceLogPerformedItem(
+        id: 2,
         serviceLogId: 1,
         customItemName: 'Inspection',
         displayName: 'Inspection',

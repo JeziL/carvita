@@ -124,10 +124,10 @@ assets/icon/                       主图标及其 Cairo 生成脚本
 
 ## 数据模型与 SQLite 约束
 
-数据库是单例 `DatabaseHelper`，固定文件名为 `carvita_v1.db`，当前 schema 版本为 1，共四张表：
+生产数据库使用单例 `DatabaseHelper`，为兼容既有安装继续使用固定文件名 `carvita_v1.db`，当前 schema 版本为 2，共四张表；数据库测试可用指定路径的隔离 helper，避免并行测试争用同一文件：
 
 - `vehicles`：车辆主表；图片以 BLOB 保存，日期以 ISO-8601 字符串保存；
-- `maintenance_plan_items`：车辆保养计划；
+- `maintenance_plan_items`：车辆保养计划；`baselineDate` 与 `baselineMileage` 静默保存首次预测起点；
 - `service_log_entries`：保养记录主体；
 - `service_log_performed_items`：记录与计划项目的关联，也可保存一次性的自定义项目名称。
 
@@ -149,9 +149,15 @@ assets/icon/                       主图标及其 Cairo 生成脚本
 4. 检查所有 `toMap`、`fromMap`、查询、事务和导出/恢复路径；
 5. 覆盖全新安装、旧库升级和恢复备份三种场景。
 
-当前只有 `onCreate`，没有迁移逻辑。表定义声明了外键和级联规则，但 `openDatabase` 没有在 `onConfigure` 中显式执行 `PRAGMA foreign_keys = ON`。不要假定级联删除一定生效；如果代码要依赖外键行为，应先显式启用并为已有数据制定清理/迁移策略。
+schema 与迁移集中在 `DatabaseSchema`。v1→v2 先生成只读一致性报告；无法安全推断的日期、数值或非官方 FK 定义会中止并回滚。可修复的关系异常按以下规则治理：丢失日志的 performed item 删除；跨车辆、孤儿计划或同时带 custom/plan 身份的关联尽量保留显示名并转为 custom；无任何可恢复身份的关联删除；丢失车辆的日志和计划删除。迁移后必须通过 `PRAGMA foreign_key_check`。
 
-设置页的新导出格式是版本化 `.cvbackup` ZIP 容器，固定包含 `manifest.json`、`database/carvita_v1.db` 和 `preferences.json`。manifest 记录容器版本、数据库 schema version、应用版本、UTC 创建时间、内容大小和 SHA-256；偏好只允许 `BackupPreferencesPort` 白名单中的 typed 值。导出前仍需生成并校验一致的 SQLite 快照。备份中的 `notifications_enabled` 只表示用户意愿，不表示系统权限；恢复后必须按上一节的权限协调规则处理。
+所有应用数据库连接以及备份校验连接都在 `onConfigure` 中启用并验证 `PRAGMA foreign_keys = ON`。车辆和日志删除依赖已测试的级联；计划仍默认软删除，若内部硬删除则先把历史关联转成 custom 以保留名称。v2 包含以下最小二级索引：
+
+- active plan：`(isActive, vehicleId, id)`；
+- service log：`(vehicleId, serviceDate DESC, id DESC)`；
+- performed item：`(serviceLogId, id)` 与 `(maintenancePlanItemId, serviceLogId)`。
+
+设置页的新导出格式是版本化 `.cvbackup` ZIP 容器，固定包含 `manifest.json`、`database/carvita_v1.db` 和 `preferences.json`。manifest 记录容器版本、数据库 schema version、应用版本、UTC 创建时间、内容大小和 SHA-256；偏好只允许 `BackupPreferencesPort` 白名单中的 typed 值。新导出包含 schema v2；恢复兼容官方 schema v1/v2 裸库和容器，v1 在原子替换后通过同一迁移路径升级到 v2。导出前仍需生成并校验一致的 SQLite 快照。备份中的 `notifications_enabled` 只表示用户意愿，不表示系统权限；恢复后必须按上一节的权限协调规则处理。
 
 恢复必须先区分新容器与旧裸 SQLite `.db`：旧 `.db` 仍只恢复业务数据库且不得修改偏好；新容器必须在关闭当前库前完成文件清单、版本、checksum、数据库和偏好校验。未知未来版本安全拒绝。新容器的数据库替换和偏好提交属于一个可回滚流程；任一提交或重开失败都要恢复原数据库，偏好实现也要恢复原白名单值。成功恢复后仍要求退出应用。不要把 `.cvbackup` 伪装成 `.db`，不要把未知偏好或非白名单键写入 `SharedPreferences`。
 
@@ -161,8 +167,8 @@ assets/icon/                       主图标及其 Cairo 生成脚本
 
 - 先通过 `service_log_performed_items` 找到某计划项目最近一次对应的保养记录。
 - 没有历史记录时：
-  - 若设置首保周期，则从购入日期/首保目标里程计算；
-  - 否则从购入日期/常规目标里程计算。
+  - 若设置首保周期，则从计划的持久化日期/里程起点叠加首保周期；
+  - 否则从计划的持久化日期/里程起点叠加常规周期。
 - 有历史记录时，从最近保养日期和该次保养里程叠加常规周期。
 - 同时存在时间和里程周期时，以预测更早到期的一项为准，但 basis 记录为组合类型。
 - 日均里程使用可用记录中最早与最晚的有效里程差估算；数据不足或不递增时回退为每年 20,000 单位。
@@ -171,7 +177,7 @@ assets/icon/                       主图标及其 Cairo 生成脚本
 
 修改算法时优先写纯 Dart 单元测试。利用现有的 `currentDateOverride` 固定当前时间，至少覆盖：月末加月、闰年、没有历史、首保、有历史、时间优先、里程优先、已逾期、里程倒退和零日差。
 
-未来首次预测已确定采用“从创建保养计划时的日期与车辆当前里程起算”，有对应保养记录后再从最近一次关联记录起算；新车和二手车不做 UI 区分，也不增加基线输入或解释文案。当前 schema 尚不能可靠保存计划起点，因此该规则必须随专门的数据库迁移完整实现和测试；在此之前不得用会随车辆更新漂移的动态值替代，也不得复用或重解释首保兼容字段。
+首次预测采用“从创建保养计划时的当地日历日期与事务内读取的车辆当前里程起算”，有对应保养记录后再从最近一次关联记录起算；新车和二手车不做 UI 区分，也不增加基线输入或解释文案。编辑周期、车辆里程变化和无关保养记录不得改写起点；删除最近关联记录后回退到上一条关联记录或原起点。v1 旧计划迁移为“车辆购入日期 + 0 里程”，从而保持升级前的日期和绝对目标里程预测。首保兼容字段继续保持原语义，不复用为起点。
 
 里程值本身是“单位无关”的数值。设置中的 `km`/`mi` 只改变显示标签，不做数值换算；费用继续保存和显示为无币种数值。这是当前明确保留的产品行为，不作为重构优化项。不要加入部分换算、按 locale 推断货币，或重新解释已有数据。
 
@@ -313,7 +319,9 @@ flutter test
 
 - `test/core/services/prediction_service_test.dart`：纯计算和日期边界；
 - `test/core/utils/mileage_estimator_test.dart`：回退值和异常历史；
-- 数据库测试：四张表 CRUD、事务、软删除、迁移和备份兼容；
+- `test/data/sources/local/database_migration_test.dart`：fresh v2、合成异常 v1、迁移幂等/回滚、FK、索引与写入基准；
+- `test/fixtures/database/carvita_v1.db`：维护者提供的脱敏官方 v1 样本；测试只能复制后升级，不得原地打开或改写；
+- 其他数据库测试：四张表 CRUD、事务、软删除和备份兼容；
 - Cubit 测试：loading/loaded/error 及写后刷新时序；
 - Widget 测试：表单校验、路由参数、主题和关键 locale；
 - Android 集成验证：通知权限、重启后通知、快捷入口、导入/导出和图片选择。

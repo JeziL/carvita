@@ -230,7 +230,10 @@ class _FakeMaintenanceRepository implements MaintenanceRepositoryPort {
   Future<List<MaintenancePlanItem>> getPlanItems(int vehicleId) async => plans;
 
   @override
-  Future<void> addPlanItem(MaintenancePlanItem item) async {}
+  Future<void> addPlanItem(
+    MaintenancePlanItem item, {
+    required DateTime baselineDate,
+  }) async {}
 
   @override
   Future<void> deletePlanItem(int itemId) async {}

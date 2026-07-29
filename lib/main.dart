@@ -84,6 +84,7 @@ Future<void> main() async {
   final vehicleImageCache = VehicleImageCache(vehicleUseCases);
   final maintenancePlanUseCases = MaintenancePlanUseCases(
     maintenanceRepository,
+    clock,
   );
   final mainNavigationController = MainNavigationController();
   final serviceLogUseCases = ServiceLogUseCases(maintenanceRepository);

@@ -20,8 +20,14 @@ class MaintenanceRepository
   }
 
   @override
-  Future<void> addPlanItem(MaintenancePlanItem item) async {
-    await _dbHelper.insertMaintenancePlanItem(item.copyWith(isActive: true));
+  Future<void> addPlanItem(
+    MaintenancePlanItem item, {
+    required DateTime baselineDate,
+  }) async {
+    await _dbHelper.insertMaintenancePlanItem(
+      item.copyWith(isActive: true),
+      baselineDate: baselineDate,
+    );
   }
 
   @override

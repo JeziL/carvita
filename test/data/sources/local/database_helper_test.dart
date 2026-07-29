@@ -112,6 +112,7 @@ void main() {
         itemName: 'Oil',
         intervalTimeMonths: 12,
       ),
+      baselineDate: DateTime(2026, 7, 28),
     );
     for (var index = 0; index < 250; index++) {
       await databaseHelper.insertServiceLog(
@@ -155,6 +156,7 @@ void main() {
           itemName: 'Oil $vehicleIndex',
           intervalMileage: 10000,
         ),
+        baselineDate: DateTime(2026, 7, 28),
       );
       await databaseHelper.insertServiceLog(
         ServiceLogEntry(
