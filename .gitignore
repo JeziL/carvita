@@ -61,3 +61,6 @@ windows/
 .design/assets/feature_graphic/PSD/
 .design/assets/feature_graphic/output/*/gp*
 .design/assets/screenshots/
+
+# Archived files
+**/archived/
