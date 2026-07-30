@@ -1,0 +1,3 @@
+- Keep forms and vehicle details clear of the Android system navigation bar.
+- Improve mixed right-to-left and left-to-right vehicle text, including license plates and identifiers.
+- Keep status bar icons visible across settings, forms, and other gradient screens.
