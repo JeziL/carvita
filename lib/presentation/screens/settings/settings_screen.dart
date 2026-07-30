@@ -630,6 +630,7 @@ class _SettingsScreenState extends State<SettingsScreen>
             context,
           ).colorScheme.inverseSurface.withValues(alpha: 0.1),
           elevation: 0,
+          systemOverlayStyle: AppTheme.gradientSystemOverlayStyle,
         ),
         body: ListView(
           padding: const EdgeInsets.only(bottom: 20),

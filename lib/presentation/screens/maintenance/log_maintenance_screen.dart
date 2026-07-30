@@ -579,6 +579,7 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
             context,
           ).colorScheme.inverseSurface.withValues(alpha: 0.1),
           elevation: 0,
+          systemOverlayStyle: AppTheme.gradientSystemOverlayStyle,
           leading: IconButton(
             icon: Icon(Icons.arrow_back_ios_new),
             tooltip: AppLocalizations.of(context)!.back,
