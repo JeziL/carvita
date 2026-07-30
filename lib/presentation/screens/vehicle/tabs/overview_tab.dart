@@ -7,6 +7,7 @@ import 'package:carvita/core/constants/app_routes.dart';
 import 'package:carvita/data/models/predicted_maintenance.dart';
 import 'package:carvita/data/models/vehicle.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
+import 'package:carvita/presentation/formatters/bidi_text_direction.dart';
 import 'package:carvita/presentation/manager/locale_provider.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_cubit.dart';
 import 'package:carvita/presentation/manager/upcoming_maintenance/upcoming_maintenance_state.dart';
@@ -93,23 +94,26 @@ class OverviewTab extends StatelessWidget {
                       ),
                       SizedBox(
                         width: itemWidth,
-                        child: InfoGridItem(
+                        child: _directionalInfoItem(
+                          context,
                           label: AppLocalizations.of(context)!.plateNumber,
-                          value: vehicle.plateNumber ?? "--",
+                          value: vehicle.plateNumber,
                         ),
                       ),
                       SizedBox(
                         width: itemWidth,
-                        child: InfoGridItem(
+                        child: _directionalInfoItem(
+                          context,
                           label: AppLocalizations.of(context)!.engineNumber,
-                          value: vehicle.engineNumber ?? "--",
+                          value: vehicle.engineNumber,
                         ),
                       ),
                       SizedBox(
                         width: itemWidth,
-                        child: InfoGridItem(
+                        child: _directionalInfoItem(
+                          context,
                           label: AppLocalizations.of(context)!.vin,
-                          value: vehicle.vin ?? "--",
+                          value: vehicle.vin,
                         ),
                       ),
                     ],
@@ -144,6 +148,22 @@ class OverviewTab extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  Widget _directionalInfoItem(
+    BuildContext context, {
+    required String label,
+    required String? value,
+  }) {
+    final displayValue = value ?? "--";
+    return InfoGridItem(
+      label: label,
+      value: displayValue,
+      valueTextDirection: BidiTextDirection.resolve(
+        displayValue,
+        fallback: Directionality.of(context),
+      ),
     );
   }
 }

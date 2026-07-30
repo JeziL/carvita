@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 
 import 'package:carvita/application/ports/platform_ports.dart';
 import 'package:carvita/core/constants/app_colors.dart';
@@ -13,6 +13,7 @@ import 'package:carvita/core/widgets/gradient_background.dart';
 import 'package:carvita/data/models/vehicle.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/presentation/failures/app_failure_localizer.dart';
+import 'package:carvita/presentation/formatters/bidi_text_direction.dart';
 import 'package:carvita/presentation/images/vehicle_image_cache.dart';
 import 'package:carvita/presentation/formatters/localized_number_input.dart';
 import 'package:carvita/presentation/manager/locale_provider.dart';
@@ -326,23 +327,41 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
       String? Function(String?)? validator,
       List<TextInputFormatter>? inputFormatters,
       Key? fieldKey,
+      bool useNaturalTextDirection = false,
     }) {
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 18.0),
-        child: TextFormField(
+      Widget buildTextFormField(TextDirection? textDirection) {
+        return TextFormField(
           key: fieldKey,
           controller: controller,
           style: TextStyle(color: themeExtensions.textColorOnBackground),
           decoration: InputDecoration(labelText: label, hintText: hint),
           keyboardType: keyboardType,
           inputFormatters: inputFormatters,
+          textDirection: textDirection,
           validator: (value) {
             if (isRequired && (value == null || value.trim().isEmpty)) {
               return AppLocalizations.of(context)!.invalidEmptyEntry(label);
             }
             return validator != null ? validator(value) : null;
           },
-        ),
+        );
+      }
+
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 18.0),
+        child: useNaturalTextDirection
+            ? ValueListenableBuilder<TextEditingValue>(
+                valueListenable: controller,
+                builder: (context, value, _) {
+                  return buildTextFormField(
+                    BidiTextDirection.resolve(
+                      value.text,
+                      fallback: Directionality.of(context),
+                    ),
+                  );
+                },
+              )
+            : buildTextFormField(null),
       );
     }
 
@@ -444,6 +463,7 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
                     ),
                     AppLocalizations.of(context)!.vehicleNicknameHint,
                     isRequired: true,
+                    useNaturalTextDirection: true,
                   ),
                   formField(
                     _mileageController,
@@ -520,21 +540,26 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
                     _modelController,
                     AppLocalizations.of(context)!.vehicleModel,
                     AppLocalizations.of(context)!.vehicleModelHint,
+                    useNaturalTextDirection: true,
                   ),
                   formField(
                     _plateNumberController,
                     AppLocalizations.of(context)!.plateNumber,
                     null,
+                    fieldKey: const ValueKey('vehicle-plate-number-field'),
+                    useNaturalTextDirection: true,
                   ),
                   formField(
                     _vinController,
                     AppLocalizations.of(context)!.vin,
                     AppLocalizations.of(context)!.vinHint,
+                    useNaturalTextDirection: true,
                   ),
                   formField(
                     _engineNumberController,
                     AppLocalizations.of(context)!.engineNumber,
                     null,
+                    useNaturalTextDirection: true,
                   ),
 
                   const SizedBox(height: 20),
