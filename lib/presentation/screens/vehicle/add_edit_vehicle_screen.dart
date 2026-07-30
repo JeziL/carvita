@@ -366,204 +366,215 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
             onPressed: () => Navigator.of(context).pop(),
           ),
         ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(20.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                Semantics(
-                  button: true,
-                  label: AppLocalizations.of(context)!.uploadVehicleImage,
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: _showImagePickerOptions,
-                    child: Container(
-                      constraints: const BoxConstraints(minHeight: 150),
-                      margin: const EdgeInsets.only(bottom: 20),
-                      decoration: BoxDecoration(
-                        color: bgColor.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: bgColor.withValues(alpha: 0.3),
+        body: SafeArea(
+          top: false,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  Semantics(
+                    button: true,
+                    label: AppLocalizations.of(context)!.uploadVehicleImage,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: _showImagePickerOptions,
+                      child: Container(
+                        constraints: const BoxConstraints(minHeight: 150),
+                        margin: const EdgeInsets.only(bottom: 20),
+                        decoration: BoxDecoration(
+                          color: bgColor.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: bgColor.withValues(alpha: 0.3),
+                          ),
                         ),
-                      ),
-                      child: _selectedImageBytes != null
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(9),
-                              child: Image.memory(
-                                _selectedImageBytes!,
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-                                height: 150,
-                              ),
-                            )
-                          : Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.add_a_photo_outlined,
-                                    size: 36,
-                                    color:
-                                        themeExtensions.textColorOnBackground,
-                                  ),
-                                  SizedBox(height: 8),
-                                  Text(
-                                    AppLocalizations.of(
-                                      context,
-                                    )!.optionalFieldLabel(
-                                      AppLocalizations.of(
-                                        context,
-                                      )!.uploadVehicleImage,
-                                      AppLocalizations.of(
-                                        context,
-                                      )!.optionalEntry,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
+                        child: _selectedImageBytes != null
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(9),
+                                child: Image.memory(
+                                  _selectedImageBytes!,
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                  height: 150,
+                                ),
+                              )
+                            : Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.add_a_photo_outlined,
+                                      size: 36,
                                       color:
                                           themeExtensions.textColorOnBackground,
                                     ),
-                                  ),
-                                ],
+                                    SizedBox(height: 8),
+                                    Text(
+                                      AppLocalizations.of(
+                                        context,
+                                      )!.optionalFieldLabel(
+                                        AppLocalizations.of(
+                                          context,
+                                        )!.uploadVehicleImage,
+                                        AppLocalizations.of(
+                                          context,
+                                        )!.optionalEntry,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        color: themeExtensions
+                                            .textColorOnBackground,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                    ),
-                  ),
-                ),
-
-                formField(
-                  _nameController,
-                  AppLocalizations.of(context)!.requiredFieldLabel(
-                    AppLocalizations.of(context)!.vehicleNickname,
-                  ),
-                  AppLocalizations.of(context)!.vehicleNicknameHint,
-                  isRequired: true,
-                ),
-                formField(
-                  _mileageController,
-                  AppLocalizations.of(context)!.requiredFieldWithUnit(
-                    AppLocalizations.of(context)!.mileageLabelWithUnit(""),
-                    localeProvider.mileageUnit,
-                  ),
-                  null,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  isRequired: true,
-                  inputFormatters: [
-                    LocalizedNumberTextInputFormatter.decimal(inputLocale),
-                  ],
-                  fieldKey: const ValueKey('vehicle-mileage-field'),
-                  validator: (val) {
-                    if (val == null || val.isEmpty) {
-                      return AppLocalizations.of(context)!.invalidEmptyEntry(
-                        AppLocalizations.of(context)!.mileageLabelWithUnit(""),
-                      );
-                    }
-                    final mileage = LocalizedNumberInput.parseDouble(
-                      val,
-                      inputLocale,
-                    );
-                    if (mileage == null || mileage < 0) {
-                      return AppLocalizations.of(context)!.invalidOptionalEntry(
-                        AppLocalizations.of(context)!.mileageLabelWithUnit(""),
-                      );
-                    }
-                    return null;
-                  },
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 18.0),
-                  child: TextFormField(
-                    key: const ValueKey('vehicle-bought-date-field'),
-                    controller: _boughtDateController,
-                    style: TextStyle(
-                      color: themeExtensions.textColorOnBackground,
-                    ),
-                    decoration: InputDecoration(
-                      labelText: AppLocalizations.of(context)!
-                          .requiredFieldLabel(
-                            AppLocalizations.of(context)!.boughtDate,
-                          ),
-                      suffixIcon: Icon(
-                        Icons.calendar_today,
-                        color: themeExtensions.textColorOnBackground,
                       ),
                     ),
-                    readOnly: true,
-                    onTap: () => _selectBoughtDate(context),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
+                  ),
+
+                  formField(
+                    _nameController,
+                    AppLocalizations.of(context)!.requiredFieldLabel(
+                      AppLocalizations.of(context)!.vehicleNickname,
+                    ),
+                    AppLocalizations.of(context)!.vehicleNicknameHint,
+                    isRequired: true,
+                  ),
+                  formField(
+                    _mileageController,
+                    AppLocalizations.of(context)!.requiredFieldWithUnit(
+                      AppLocalizations.of(context)!.mileageLabelWithUnit(""),
+                      localeProvider.mileageUnit,
+                    ),
+                    null,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    isRequired: true,
+                    inputFormatters: [
+                      LocalizedNumberTextInputFormatter.decimal(inputLocale),
+                    ],
+                    fieldKey: const ValueKey('vehicle-mileage-field'),
+                    validator: (val) {
+                      if (val == null || val.isEmpty) {
                         return AppLocalizations.of(context)!.invalidEmptyEntry(
-                          AppLocalizations.of(context)!.boughtDate,
+                          AppLocalizations.of(
+                            context,
+                          )!.mileageLabelWithUnit(""),
+                        );
+                      }
+                      final mileage = LocalizedNumberInput.parseDouble(
+                        val,
+                        inputLocale,
+                      );
+                      if (mileage == null || mileage < 0) {
+                        return AppLocalizations.of(
+                          context,
+                        )!.invalidOptionalEntry(
+                          AppLocalizations.of(
+                            context,
+                          )!.mileageLabelWithUnit(""),
                         );
                       }
                       return null;
                     },
                   ),
-                ),
-                formField(
-                  _modelController,
-                  AppLocalizations.of(context)!.vehicleModel,
-                  AppLocalizations.of(context)!.vehicleModelHint,
-                ),
-                formField(
-                  _plateNumberController,
-                  AppLocalizations.of(context)!.plateNumber,
-                  null,
-                ),
-                formField(
-                  _vinController,
-                  AppLocalizations.of(context)!.vin,
-                  AppLocalizations.of(context)!.vinHint,
-                ),
-                formField(
-                  _engineNumberController,
-                  AppLocalizations.of(context)!.engineNumber,
-                  null,
-                ),
-
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: _isSubmitting ? null : _submitForm,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: bgColor,
-                    padding: const EdgeInsets.symmetric(vertical: 15),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(25),
-                    ),
-                    textStyle: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 18.0),
+                    child: TextFormField(
+                      key: const ValueKey('vehicle-bought-date-field'),
+                      controller: _boughtDateController,
+                      style: TextStyle(
+                        color: themeExtensions.textColorOnBackground,
+                      ),
+                      decoration: InputDecoration(
+                        labelText: AppLocalizations.of(context)!
+                            .requiredFieldLabel(
+                              AppLocalizations.of(context)!.boughtDate,
+                            ),
+                        suffixIcon: Icon(
+                          Icons.calendar_today,
+                          color: themeExtensions.textColorOnBackground,
+                        ),
+                      ),
+                      readOnly: true,
+                      onTap: () => _selectBoughtDate(context),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return AppLocalizations.of(
+                            context,
+                          )!.invalidEmptyEntry(
+                            AppLocalizations.of(context)!.boughtDate,
+                          );
+                        }
+                        return null;
+                      },
                     ),
                   ),
-                  child: _isSubmitting
-                      ? SizedBox.square(
-                          key: const ValueKey('vehicle-submit-progress'),
-                          dimension: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: isDark
-                                ? Theme.of(context).colorScheme.onPrimary
-                                : Theme.of(context).colorScheme.primary,
+                  formField(
+                    _modelController,
+                    AppLocalizations.of(context)!.vehicleModel,
+                    AppLocalizations.of(context)!.vehicleModelHint,
+                  ),
+                  formField(
+                    _plateNumberController,
+                    AppLocalizations.of(context)!.plateNumber,
+                    null,
+                  ),
+                  formField(
+                    _vinController,
+                    AppLocalizations.of(context)!.vin,
+                    AppLocalizations.of(context)!.vinHint,
+                  ),
+                  formField(
+                    _engineNumberController,
+                    AppLocalizations.of(context)!.engineNumber,
+                    null,
+                  ),
+
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: _isSubmitting ? null : _submitForm,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: bgColor,
+                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                      textStyle: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    child: _isSubmitting
+                        ? SizedBox.square(
+                            key: const ValueKey('vehicle-submit-progress'),
+                            dimension: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: isDark
+                                  ? Theme.of(context).colorScheme.onPrimary
+                                  : Theme.of(context).colorScheme.primary,
+                            ),
+                          )
+                        : Text(
+                            AppLocalizations.of(
+                              context,
+                            )!.addEditButtonText(_isEditing ? 'edit' : 'add'),
+                            style: TextStyle(
+                              color: isDark
+                                  ? Theme.of(context).colorScheme.onPrimary
+                                  : Theme.of(context).colorScheme.primary,
+                            ),
                           ),
-                        )
-                      : Text(
-                          AppLocalizations.of(
-                            context,
-                          )!.addEditButtonText(_isEditing ? 'edit' : 'add'),
-                          style: TextStyle(
-                            color: isDark
-                                ? Theme.of(context).colorScheme.onPrimary
-                                : Theme.of(context).colorScheme.primary,
-                          ),
-                        ),
-                ),
-              ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),

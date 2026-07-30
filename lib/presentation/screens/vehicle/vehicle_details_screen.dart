@@ -337,19 +337,22 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
                         topRight: Radius.circular(24),
                       ),
                     ),
-                    child: TabBarView(
-                      controller: _tabController,
-                      children: [
-                        OverviewTab(vehicle: vehicle),
-                        MaintenancePlanTab(
-                          vehicleId: vehicle.id!,
-                          vehicleName: vehicle.name,
-                        ),
-                        ServiceHistoryTab(
-                          vehicleId: vehicle.id!,
-                          vehicleName: vehicle.name,
-                        ),
-                      ],
+                    child: SafeArea(
+                      top: false,
+                      child: TabBarView(
+                        controller: _tabController,
+                        children: [
+                          OverviewTab(vehicle: vehicle),
+                          MaintenancePlanTab(
+                            vehicleId: vehicle.id!,
+                            vehicleName: vehicle.name,
+                          ),
+                          ServiceHistoryTab(
+                            vehicleId: vehicle.id!,
+                            vehicleName: vehicle.name,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
