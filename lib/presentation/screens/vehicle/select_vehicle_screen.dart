@@ -66,58 +66,61 @@ class SelectVehicleScreen extends StatelessWidget {
           ).colorScheme.inverseSurface.withValues(alpha: 0.1),
           elevation: 0,
         ),
-        body: ListView.builder(
-          itemCount: vehicles.length,
-          itemBuilder: (context, index) {
-            final vehicle = vehicles[index];
-            return Card(
-              color: Theme.of(context).colorScheme.surfaceContainerLowest,
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: ListTile(
-                leading: VehicleThumbnail(
-                  vehicle: vehicle,
-                  width: 50,
-                  height: 50,
+        body: SafeArea(
+          top: false,
+          child: ListView.builder(
+            itemCount: vehicles.length,
+            itemBuilder: (context, index) {
+              final vehicle = vehicles[index];
+              return Card(
+                color: Theme.of(context).colorScheme.surfaceContainerLowest,
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                title: Text(
-                  vehicle.name,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
-                    fontWeight: FontWeight.w500,
+                child: ListTile(
+                  leading: VehicleThumbnail(
+                    vehicle: vehicle,
+                    width: 50,
+                    height: 50,
                   ),
-                ),
-                subtitle: Text(
-                  vehicle.model ?? AppLocalizations.of(context)!.unknownModel,
-                  style: TextStyle(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onSurface.withValues(alpha: 0.7),
+                  title: Text(
+                    vehicle.name,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
-                onTap: () {
-                  if (vehicle.id != null) {
-                    _navigateToLogMaintenance(
-                      context,
-                      vehicle.id!,
-                      vehicle.name,
-                    );
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          AppLocalizations.of(context)!.loadErrorMessage,
+                  subtitle: Text(
+                    vehicle.model ?? AppLocalizations.of(context)!.unknownModel,
+                    style: TextStyle(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.7),
+                    ),
+                  ),
+                  onTap: () {
+                    if (vehicle.id != null) {
+                      _navigateToLogMaintenance(
+                        context,
+                        vehicle.id!,
+                        vehicle.name,
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            AppLocalizations.of(context)!.loadErrorMessage,
+                          ),
+                          backgroundColor: AppColors.urgentReminderText,
                         ),
-                        backgroundColor: AppColors.urgentReminderText,
-                      ),
-                    );
-                  }
-                },
-              ),
-            );
-          },
+                      );
+                    }
+                  },
+                ),
+              );
+            },
+          ),
         ),
       ),
     );

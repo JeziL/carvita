@@ -351,114 +351,119 @@ class _AddEditMaintenancePlanItemScreenState
             onPressed: () => Navigator.of(context).pop(),
           ),
         ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(20.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                Text(
-                  AppLocalizations.of(context)!.addEditMaintenanceItemForVeh(
-                    _isEditing ? 'edit' : 'add',
-                    _vehicleName,
-                  ),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: themeExtensions.textColorOnBackground.withValues(
-                      alpha: 0.8,
+        body: SafeArea(
+          top: false,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  Text(
+                    AppLocalizations.of(context)!.addEditMaintenanceItemForVeh(
+                      _isEditing ? 'edit' : 'add',
+                      _vehicleName,
                     ),
-                    height: 1.5,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: themeExtensions.textColorOnBackground.withValues(
+                        alpha: 0.8,
+                      ),
+                      height: 1.5,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
-                TextFormField(
-                  controller: _itemNameController,
-                  style: TextStyle(
-                    color: themeExtensions.textColorOnBackground,
-                  ),
-                  decoration: InputDecoration(
-                    labelText: AppLocalizations.of(context)!.requiredFieldLabel(
-                      AppLocalizations.of(context)!.itemName,
+                  TextFormField(
+                    controller: _itemNameController,
+                    style: TextStyle(
+                      color: themeExtensions.textColorOnBackground,
                     ),
-                    hintText: AppLocalizations.of(context)!.itemNameHint,
-                  ),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return AppLocalizations.of(context)!.invalidEmptyEntry(
-                        AppLocalizations.of(context)!.itemName,
-                      );
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 20),
-                _buildIntervalGroup(
-                  title: AppLocalizations.of(context)!.regularInterval,
-                  timeController: _intervalTimeMonthsController,
-                  mileageController: _intervalMileageController,
-                  timeHint: AppLocalizations.of(context)!.timeHint,
-                  mileageHint: AppLocalizations.of(
-                    context,
-                  )!.mileageHint(localeProvider.mileageUnit),
-                ),
-                const SizedBox(height: 20),
-                TextFormField(
-                  controller: _notesController,
-                  style: TextStyle(
-                    color: themeExtensions.textColorOnBackground,
-                  ),
-                  decoration: InputDecoration(
-                    labelText: AppLocalizations.of(context)!.optionalFieldLabel(
-                      AppLocalizations.of(context)!.notes,
-                      AppLocalizations.of(context)!.optionalEntry,
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!
+                          .requiredFieldLabel(
+                            AppLocalizations.of(context)!.itemName,
+                          ),
+                      hintText: AppLocalizations.of(context)!.itemNameHint,
                     ),
-                    hintText: AppLocalizations.of(
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return AppLocalizations.of(context)!.invalidEmptyEntry(
+                          AppLocalizations.of(context)!.itemName,
+                        );
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                  _buildIntervalGroup(
+                    title: AppLocalizations.of(context)!.regularInterval,
+                    timeController: _intervalTimeMonthsController,
+                    mileageController: _intervalMileageController,
+                    timeHint: AppLocalizations.of(context)!.timeHint,
+                    mileageHint: AppLocalizations.of(
                       context,
-                    )!.noteMaintenanceItemHint,
+                    )!.mileageHint(localeProvider.mileageUnit),
                   ),
-                  maxLines: 3,
-                  minLines: 1,
-                ),
-                const SizedBox(height: 30),
-                ElevatedButton(
-                  onPressed: _isSubmitting ? null : _submitForm,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: bgColor,
-                    padding: const EdgeInsets.symmetric(vertical: 15),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(25),
+                  const SizedBox(height: 20),
+                  TextFormField(
+                    controller: _notesController,
+                    style: TextStyle(
+                      color: themeExtensions.textColorOnBackground,
                     ),
-                    textStyle: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!
+                          .optionalFieldLabel(
+                            AppLocalizations.of(context)!.notes,
+                            AppLocalizations.of(context)!.optionalEntry,
+                          ),
+                      hintText: AppLocalizations.of(
+                        context,
+                      )!.noteMaintenanceItemHint,
                     ),
+                    maxLines: 3,
+                    minLines: 1,
                   ),
-                  child: _isSubmitting
-                      ? SizedBox.square(
-                          key: const ValueKey('plan-submit-progress'),
-                          dimension: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: isDark
-                                ? Theme.of(context).colorScheme.onPrimary
-                                : Theme.of(context).colorScheme.primary,
+                  const SizedBox(height: 30),
+                  ElevatedButton(
+                    onPressed: _isSubmitting ? null : _submitForm,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: bgColor,
+                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                      textStyle: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    child: _isSubmitting
+                        ? SizedBox.square(
+                            key: const ValueKey('plan-submit-progress'),
+                            dimension: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: isDark
+                                  ? Theme.of(context).colorScheme.onPrimary
+                                  : Theme.of(context).colorScheme.primary,
+                            ),
+                          )
+                        : Text(
+                            AppLocalizations.of(
+                              context,
+                            )!.addEditButtonText(_isEditing ? 'edit' : 'add'),
+                            style: TextStyle(
+                              color: isDark
+                                  ? Theme.of(context).colorScheme.onPrimary
+                                  : Theme.of(context).colorScheme.primary,
+                            ),
                           ),
-                        )
-                      : Text(
-                          AppLocalizations.of(
-                            context,
-                          )!.addEditButtonText(_isEditing ? 'edit' : 'add'),
-                          style: TextStyle(
-                            color: isDark
-                                ? Theme.of(context).colorScheme.onPrimary
-                                : Theme.of(context).colorScheme.primary,
-                          ),
-                        ),
-                ),
-              ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),

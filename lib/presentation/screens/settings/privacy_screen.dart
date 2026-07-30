@@ -25,82 +25,87 @@ class PrivacyScreen extends StatelessWidget {
             onPressed: () => Navigator.of(context).pop(),
           ),
         ),
-        body: SingleChildScrollView(
-          child: Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Center(
-              child: Column(
-                children: [
-                  SizedBox(height: 32),
-                  Icon(
-                    Icons.verified_user_outlined,
-                    size: 128,
-                    color: themeExtensions.textColorOnBackground.withValues(
-                      alpha: 0.8,
+        body: SafeArea(
+          top: false,
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Center(
+                child: Column(
+                  children: [
+                    SizedBox(height: 32),
+                    Icon(
+                      Icons.verified_user_outlined,
+                      size: 128,
+                      color: themeExtensions.textColorOnBackground.withValues(
+                        alpha: 0.8,
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 24),
-                  Text(
-                    AppLocalizations.of(context)!.privacyHeadline,
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: themeExtensions.textColorOnBackground,
+                    SizedBox(height: 24),
+                    Text(
+                      AppLocalizations.of(context)!.privacyHeadline,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: themeExtensions.textColorOnBackground,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: 48),
-                  Container(
-                    padding: EdgeInsets.only(left: 8, right: 8),
-                    child: Column(
-                      spacing: 20,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          spacing: 8,
-                          children: [
-                            Icon(
-                              Icons.cloud_off_outlined,
-                              color: themeExtensions.textColorOnBackground,
-                            ),
-                            SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                AppLocalizations.of(
-                                  context,
-                                )!.privacyLocalStorage,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: themeExtensions.textColorOnBackground,
+                    SizedBox(height: 48),
+                    Container(
+                      padding: EdgeInsets.only(left: 8, right: 8),
+                      child: Column(
+                        spacing: 20,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            spacing: 8,
+                            children: [
+                              Icon(
+                                Icons.cloud_off_outlined,
+                                color: themeExtensions.textColorOnBackground,
+                              ),
+                              SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  AppLocalizations.of(
+                                    context,
+                                  )!.privacyLocalStorage,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color:
+                                        themeExtensions.textColorOnBackground,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          spacing: 8,
-                          children: [
-                            Icon(
-                              Icons.pan_tool_outlined,
-                              color: themeExtensions.textColorOnBackground,
-                            ),
-                            SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                AppLocalizations.of(context)!.privacyControl,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: themeExtensions.textColorOnBackground,
+                            ],
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            spacing: 8,
+                            children: [
+                              Icon(
+                                Icons.pan_tool_outlined,
+                                color: themeExtensions.textColorOnBackground,
+                              ),
+                              SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  AppLocalizations.of(context)!.privacyControl,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color:
+                                        themeExtensions.textColorOnBackground,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ],
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

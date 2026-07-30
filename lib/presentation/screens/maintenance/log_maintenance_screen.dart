@@ -585,192 +585,200 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
             onPressed: () => Navigator.of(context).pop(),
           ),
         ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(20.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                Text(
-                  AppLocalizations.of(context)!.addEditMaintenanceLogForVeh(
-                    _isEditing ? 'edit' : 'add',
-                    _vehicleName,
-                  ),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: themeExtensions.textColorOnBackground.withValues(
-                      alpha: 0.8,
+        body: SafeArea(
+          top: false,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  Text(
+                    AppLocalizations.of(context)!.addEditMaintenanceLogForVeh(
+                      _isEditing ? 'edit' : 'add',
+                      _vehicleName,
                     ),
-                    height: 1.5,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                // Date
-                TextFormField(
-                  key: const ValueKey('log-date-field'),
-                  controller: _dateController,
-                  style: TextStyle(
-                    color: themeExtensions.textColorOnBackground,
-                  ),
-                  decoration: InputDecoration(
-                    labelText: AppLocalizations.of(context)!.requiredFieldLabel(
-                      AppLocalizations.of(context)!.maintenanceDate,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: themeExtensions.textColorOnBackground.withValues(
+                        alpha: 0.8,
+                      ),
+                      height: 1.5,
                     ),
-                    suffixIcon: Icon(
-                      Icons.calendar_today,
+                  ),
+                  const SizedBox(height: 20),
+                  // Date
+                  TextFormField(
+                    key: const ValueKey('log-date-field'),
+                    controller: _dateController,
+                    style: TextStyle(
                       color: themeExtensions.textColorOnBackground,
                     ),
-                  ),
-                  readOnly: true,
-                  onTap: () => _selectServiceDate(context),
-                  validator: (value) => (value == null || value.isEmpty)
-                      ? AppLocalizations.of(context)!.invalidEmptyEntry(
-                          AppLocalizations.of(context)!.maintenanceDate,
-                        )
-                      : null,
-                ),
-                const SizedBox(height: 20),
-
-                // Mileage
-                TextFormField(
-                  key: const ValueKey('log-mileage-field'),
-                  controller: _mileageController,
-                  style: TextStyle(
-                    color: themeExtensions.textColorOnBackground,
-                  ),
-                  decoration: InputDecoration(
-                    labelText: AppLocalizations.of(context)!
-                        .requiredFieldWithUnit(
-                          AppLocalizations.of(context)!.mileageAtService,
-                          localeProvider.mileageUnit,
-                        ),
-                  ),
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  inputFormatters: [
-                    LocalizedNumberTextInputFormatter.decimal(
-                      inputLocale,
-                      maxFractionDigits: 1,
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!
+                          .requiredFieldLabel(
+                            AppLocalizations.of(context)!.maintenanceDate,
+                          ),
+                      suffixIcon: Icon(
+                        Icons.calendar_today,
+                        color: themeExtensions.textColorOnBackground,
+                      ),
                     ),
-                  ],
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return AppLocalizations.of(context)!.invalidEmptyEntry(
-                        AppLocalizations.of(context)!.maintenanceDate,
-                      );
-                    }
-                    final mileage = LocalizedNumberInput.parseDouble(
-                      value,
-                      inputLocale,
-                    );
-                    if (mileage == null || mileage <= 0) {
-                      return AppLocalizations.of(context)!.invalidOptionalEntry(
-                        AppLocalizations.of(context)!.maintenanceDate,
-                      );
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 20),
-
-                // Item Selection Section
-                _buildItemSelectionSection(),
-                const SizedBox(height: 20),
-
-                // Cost
-                TextFormField(
-                  key: const ValueKey('log-cost-field'),
-                  controller: _costController,
-                  style: TextStyle(
-                    color: themeExtensions.textColorOnBackground,
-                  ),
-                  decoration: InputDecoration(
-                    labelText: AppLocalizations.of(context)!.optionalFieldLabel(
-                      AppLocalizations.of(context)!.cost,
-                      AppLocalizations.of(context)!.optionalEntry,
-                    ),
-                  ),
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  inputFormatters: [
-                    LocalizedNumberTextInputFormatter.decimal(
-                      inputLocale,
-                      maxFractionDigits: 2,
-                    ),
-                  ],
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) return null;
-                    final cost = LocalizedNumberInput.parseDouble(
-                      value,
-                      inputLocale,
-                    );
-                    return cost == null || cost < 0
-                        ? AppLocalizations.of(context)!.invalidOptionalEntry(
-                            AppLocalizations.of(context)!.cost,
+                    readOnly: true,
+                    onTap: () => _selectServiceDate(context),
+                    validator: (value) => (value == null || value.isEmpty)
+                        ? AppLocalizations.of(context)!.invalidEmptyEntry(
+                            AppLocalizations.of(context)!.maintenanceDate,
                           )
-                        : null;
-                  },
-                ),
-                const SizedBox(height: 20),
+                        : null,
+                  ),
+                  const SizedBox(height: 20),
 
-                // Notes
-                TextFormField(
-                  controller: _notesController,
-                  style: TextStyle(
-                    color: themeExtensions.textColorOnBackground,
-                  ),
-                  decoration: InputDecoration(
-                    labelText: AppLocalizations.of(context)!.optionalFieldLabel(
-                      AppLocalizations.of(context)!.notes,
-                      AppLocalizations.of(context)!.optionalEntry,
+                  // Mileage
+                  TextFormField(
+                    key: const ValueKey('log-mileage-field'),
+                    controller: _mileageController,
+                    style: TextStyle(
+                      color: themeExtensions.textColorOnBackground,
                     ),
-                    hintText: AppLocalizations.of(context)!.notesMLogHint,
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!
+                          .requiredFieldWithUnit(
+                            AppLocalizations.of(context)!.mileageAtService,
+                            localeProvider.mileageUnit,
+                          ),
+                    ),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    inputFormatters: [
+                      LocalizedNumberTextInputFormatter.decimal(
+                        inputLocale,
+                        maxFractionDigits: 1,
+                      ),
+                    ],
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return AppLocalizations.of(context)!.invalidEmptyEntry(
+                          AppLocalizations.of(context)!.maintenanceDate,
+                        );
+                      }
+                      final mileage = LocalizedNumberInput.parseDouble(
+                        value,
+                        inputLocale,
+                      );
+                      if (mileage == null || mileage <= 0) {
+                        return AppLocalizations.of(
+                          context,
+                        )!.invalidOptionalEntry(
+                          AppLocalizations.of(context)!.maintenanceDate,
+                        );
+                      }
+                      return null;
+                    },
                   ),
-                  maxLines: 3,
-                  minLines: 1,
-                ),
-                const SizedBox(height: 30),
+                  const SizedBox(height: 20),
 
-                ElevatedButton(
-                  onPressed: _isSubmitting ? null : _submitForm,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: bgColor,
-                    padding: const EdgeInsets.symmetric(vertical: 15),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(25),
+                  // Item Selection Section
+                  _buildItemSelectionSection(),
+                  const SizedBox(height: 20),
+
+                  // Cost
+                  TextFormField(
+                    key: const ValueKey('log-cost-field'),
+                    controller: _costController,
+                    style: TextStyle(
+                      color: themeExtensions.textColorOnBackground,
                     ),
-                    textStyle: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!
+                          .optionalFieldLabel(
+                            AppLocalizations.of(context)!.cost,
+                            AppLocalizations.of(context)!.optionalEntry,
+                          ),
                     ),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    inputFormatters: [
+                      LocalizedNumberTextInputFormatter.decimal(
+                        inputLocale,
+                        maxFractionDigits: 2,
+                      ),
+                    ],
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) return null;
+                      final cost = LocalizedNumberInput.parseDouble(
+                        value,
+                        inputLocale,
+                      );
+                      return cost == null || cost < 0
+                          ? AppLocalizations.of(context)!.invalidOptionalEntry(
+                              AppLocalizations.of(context)!.cost,
+                            )
+                          : null;
+                    },
                   ),
-                  child: _isSubmitting
-                      ? SizedBox.square(
-                          key: const ValueKey('log-submit-progress'),
-                          dimension: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: isDark
-                                ? Theme.of(context).colorScheme.onPrimary
-                                : Theme.of(context).colorScheme.primary,
+                  const SizedBox(height: 20),
+
+                  // Notes
+                  TextFormField(
+                    controller: _notesController,
+                    style: TextStyle(
+                      color: themeExtensions.textColorOnBackground,
+                    ),
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!
+                          .optionalFieldLabel(
+                            AppLocalizations.of(context)!.notes,
+                            AppLocalizations.of(context)!.optionalEntry,
                           ),
-                        )
-                      : Text(
-                          AppLocalizations.of(
-                            context,
-                          )!.addEditButtonText(_isEditing ? 'edit' : 'add'),
-                          style: TextStyle(
-                            color: isDark
-                                ? Theme.of(context).colorScheme.onPrimary
-                                : Theme.of(context).colorScheme.primary,
+                      hintText: AppLocalizations.of(context)!.notesMLogHint,
+                    ),
+                    maxLines: 3,
+                    minLines: 1,
+                  ),
+                  const SizedBox(height: 30),
+
+                  ElevatedButton(
+                    onPressed: _isSubmitting ? null : _submitForm,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: bgColor,
+                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                      textStyle: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    child: _isSubmitting
+                        ? SizedBox.square(
+                            key: const ValueKey('log-submit-progress'),
+                            dimension: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: isDark
+                                  ? Theme.of(context).colorScheme.onPrimary
+                                  : Theme.of(context).colorScheme.primary,
+                            ),
+                          )
+                        : Text(
+                            AppLocalizations.of(
+                              context,
+                            )!.addEditButtonText(_isEditing ? 'edit' : 'add'),
+                            style: TextStyle(
+                              color: isDark
+                                  ? Theme.of(context).colorScheme.onPrimary
+                                  : Theme.of(context).colorScheme.primary,
+                            ),
                           ),
-                        ),
-                ),
-              ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),

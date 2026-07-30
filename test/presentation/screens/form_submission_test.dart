@@ -144,6 +144,96 @@ void main() {
     await tester.pump();
   });
 
+  testWidgets('editing forms stay above the system navigation bar', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    const systemPadding = EdgeInsets.only(bottom: 48);
+    Future<void> expectFormAboveSystemNavigation(Type screenType) async {
+      final formScrollView = find.descendant(
+        of: find.byType(screenType),
+        matching: find.byType(SingleChildScrollView),
+      );
+      expect(formScrollView, findsOne);
+      expect(
+        tester.getBottomLeft(formScrollView).dy,
+        lessThanOrEqualTo(800 - systemPadding.bottom),
+      );
+
+      final submit = find.widgetWithText(ElevatedButton, 'Save changes');
+      await tester.ensureVisible(submit);
+      expect(
+        tester.getBottomLeft(submit).dy,
+        lessThanOrEqualTo(800 - systemPadding.bottom),
+      );
+    }
+
+    final vehicleCubit = VehicleCubit(
+      VehicleUseCases(_BlockingVehicleRepository(), PreferencesService()),
+    );
+
+    await tester.pumpWidget(
+      _testApp(
+        systemPadding: systemPadding,
+        providers: [BlocProvider<VehicleCubit>.value(value: vehicleCubit)],
+        child: AddEditVehicleScreen(vehicle: _vehicle()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await expectFormAboveSystemNavigation(AddEditVehicleScreen);
+
+    await tester.pumpWidget(const SizedBox());
+    await vehicleCubit.close();
+
+    final repository = _BlockingMaintenanceRepository();
+    final planCubit = MaintenancePlanCubit(
+      MaintenancePlanUseCases(repository),
+      1,
+    );
+    final logCubit = ServiceLogCubit(ServiceLogUseCases(repository), 1);
+
+    await tester.pumpWidget(
+      _testApp(
+        systemPadding: systemPadding,
+        providers: [
+          BlocProvider<MaintenancePlanCubit>.value(value: planCubit),
+          BlocProvider<ServiceLogCubit>.value(value: logCubit),
+        ],
+        child: AddEditMaintenancePlanItemScreen(
+          vehicleId: 1,
+          vehicleName: 'Vehicle',
+          planItemToEdit: _planItem(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await expectFormAboveSystemNavigation(AddEditMaintenancePlanItemScreen);
+
+    await tester.pumpWidget(
+      _testApp(
+        systemPadding: systemPadding,
+        providers: [
+          BlocProvider<MaintenancePlanCubit>.value(value: planCubit),
+          BlocProvider<ServiceLogCubit>.value(value: logCubit),
+        ],
+        child: LogMaintenanceScreen(
+          vehicleId: 1,
+          vehicleName: 'Vehicle',
+          logToEdit: _serviceLog(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await expectFormAboveSystemNavigation(LogMaintenanceScreen);
+
+    await tester.pumpWidget(const SizedBox());
+    await planCubit.close();
+    await logCubit.close();
+  });
+
   const chipThemeCases =
       <({String name, Brightness brightness, Color seedColor})>[
         (name: 'light', brightness: Brightness.light, seedColor: Colors.blue),
@@ -473,6 +563,7 @@ Widget _testApp({
   TextScaler textScaler = TextScaler.noScaling,
   Brightness brightness = Brightness.light,
   Color seedColor = Colors.blue,
+  EdgeInsets systemPadding = EdgeInsets.zero,
 }) {
   final preferences = PreferencesService();
   final colorScheme = ColorScheme.fromSeed(
@@ -502,7 +593,11 @@ Widget _testApp({
       builder: (context, appChild) {
         final mediaQuery = MediaQuery.of(context);
         return MediaQuery(
-          data: mediaQuery.copyWith(textScaler: textScaler),
+          data: mediaQuery.copyWith(
+            textScaler: textScaler,
+            padding: systemPadding,
+            viewPadding: systemPadding,
+          ),
           child: appChild!,
         );
       },
