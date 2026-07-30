@@ -168,6 +168,44 @@ void main() {
     expect(find.byTooltip('Log Maintenance'), findsOne);
     await vehicleCubit.close();
   });
+
+  testWidgets('vehicle details render a Persian plate as RTL content', (
+    tester,
+  ) async {
+    const plateNumber = '۱۲ ۳۴۵ الف ۶۷';
+    final vehicleRepository = _DeferredVehicleRepository()
+      ..completer.complete(_vehicle().copyWith(plateNumber: plateNumber));
+    final maintenanceRepository = _CountingMaintenanceRepository();
+    final preferences = PreferencesService();
+    final vehicleUseCases = VehicleUseCases(vehicleRepository, preferences);
+    final maintenancePlanUseCases = MaintenancePlanUseCases(
+      maintenanceRepository,
+    );
+    final serviceLogUseCases = ServiceLogUseCases(maintenanceRepository);
+    final vehicleCubit = VehicleCubit(vehicleUseCases);
+
+    await tester.pumpWidget(
+      _testApp(
+        vehicleCubit: vehicleCubit,
+        vehicleRepository: vehicleRepository,
+        maintenanceRepository: maintenanceRepository,
+        vehicleUseCases: vehicleUseCases,
+        maintenancePlanUseCases: maintenancePlanUseCases,
+        serviceLogUseCases: serviceLogUseCases,
+        child: VehicleDetailsScreen(
+          vehicleId: 1,
+          vehicleUseCases: vehicleUseCases,
+          maintenancePlanUseCases: maintenancePlanUseCases,
+          serviceLogUseCases: serviceLogUseCases,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final plateText = tester.widget<Text>(find.text(plateNumber));
+    expect(plateText.textDirection, TextDirection.rtl);
+    await vehicleCubit.close();
+  });
 }
 
 Widget _testApp({

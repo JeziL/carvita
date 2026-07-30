@@ -375,6 +375,51 @@ void main() {
     await tester.pump();
   });
 
+  testWidgets('vehicle plate field follows the entered script direction', (
+    tester,
+  ) async {
+    final cubit = VehicleCubit(
+      VehicleUseCases(_BlockingVehicleRepository(), PreferencesService()),
+    );
+
+    await tester.pumpWidget(
+      _testApp(
+        providers: [BlocProvider<VehicleCubit>.value(value: cubit)],
+        child: AddEditVehicleScreen(vehicle: _vehicle()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final plateField = find.byKey(const ValueKey('vehicle-plate-number-field'));
+    final plateEditableText = find.descendant(
+      of: plateField,
+      matching: find.byType(EditableText),
+    );
+    expect(
+      tester.widget<EditableText>(plateEditableText).textDirection,
+      TextDirection.ltr,
+    );
+
+    await tester.enterText(plateField, '۱۲ ۳۴۵ الف ۶۷');
+    await tester.pump();
+
+    expect(
+      tester.widget<EditableText>(plateEditableText).textDirection,
+      TextDirection.rtl,
+    );
+
+    await tester.enterText(plateField, 'ABC 123');
+    await tester.pump();
+
+    expect(
+      tester.widget<EditableText>(plateEditableText).textDirection,
+      TextDirection.ltr,
+    );
+
+    await tester.pumpWidget(const SizedBox());
+    await cubit.close();
+  });
+
   testWidgets('purchase and completed service pickers stop at today', (
     tester,
   ) async {

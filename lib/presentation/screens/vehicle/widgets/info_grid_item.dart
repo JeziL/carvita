@@ -3,8 +3,14 @@ import 'package:flutter/material.dart';
 class InfoGridItem extends StatelessWidget {
   final String label;
   final String value;
+  final TextDirection? valueTextDirection;
 
-  const InfoGridItem({super.key, required this.label, required this.value});
+  const InfoGridItem({
+    super.key,
+    required this.label,
+    required this.value,
+    this.valueTextDirection,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -29,6 +35,7 @@ class InfoGridItem extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             value,
+            textDirection: valueTextDirection,
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w500,
