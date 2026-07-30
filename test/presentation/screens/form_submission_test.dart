@@ -144,15 +144,25 @@ void main() {
     await tester.pump();
   });
 
-  testWidgets('editing forms stay above the system navigation bar', (
-    tester,
-  ) async {
+  testWidgets('editing forms respect system bars', (tester) async {
     tester.view.physicalSize = const Size(360, 800);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     const systemPadding = EdgeInsets.only(bottom: 48);
     Future<void> expectFormAboveSystemNavigation(Type screenType) async {
+      final appBar = tester.widget<AppBar>(
+        find.descendant(
+          of: find.byType(screenType),
+          matching: find.byType(AppBar),
+        ),
+      );
+      expect(
+        appBar.systemOverlayStyle?.statusBarIconBrightness,
+        Brightness.light,
+      );
+      expect(appBar.systemOverlayStyle?.statusBarBrightness, Brightness.dark);
+
       final formScrollView = find.descendant(
         of: find.byType(screenType),
         matching: find.byType(SingleChildScrollView),

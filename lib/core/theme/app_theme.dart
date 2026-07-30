@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class AppTheme {
+  static const SystemUiOverlayStyle gradientSystemOverlayStyle =
+      SystemUiOverlayStyle(
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+      );
+
   static ThemeData getThemeData(
     ColorScheme colorScheme,
     Brightness brightness,

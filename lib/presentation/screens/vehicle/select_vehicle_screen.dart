@@ -65,6 +65,7 @@ class SelectVehicleScreen extends StatelessWidget {
             context,
           ).colorScheme.inverseSurface.withValues(alpha: 0.1),
           elevation: 0,
+          systemOverlayStyle: AppTheme.gradientSystemOverlayStyle,
         ),
         body: SafeArea(
           top: false,

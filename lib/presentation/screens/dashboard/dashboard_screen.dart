@@ -303,10 +303,7 @@ class _DashboardScreenState extends State<DashboardScreen>
             context,
           ).colorScheme.inverseSurface.withValues(alpha: 0.1),
           elevation: 0,
-          systemOverlayStyle: const SystemUiOverlayStyle(
-            statusBarIconBrightness: Brightness.light,
-            statusBarBrightness: Brightness.dark,
-          ),
+          systemOverlayStyle: AppTheme.gradientSystemOverlayStyle,
         ),
         body: BlocBuilder<UpcomingMaintenanceCubit, UpcomingMaintenanceState>(
           builder: (context, upcomingState) {
