@@ -76,7 +76,7 @@ void main() {
 
   test('presentation reaches device plugins through injected ports', () {
     final pluginImports = RegExp(
-      r"import 'package:(?:file_picker|image_picker|package_info_plus|"
+      r"import 'package:(?:file_selector|image_picker|package_info_plus|"
       r"share_plus|url_launcher|quick_actions|flutter_local_notifications)/",
     );
     final violations = _dartFilesUnder('lib/presentation')

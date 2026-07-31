@@ -1,6 +1,6 @@
 import 'package:flutter/services.dart';
 
-import 'package:file_picker/file_picker.dart';
+import 'package:file_selector/file_selector.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:share_plus/share_plus.dart';
@@ -33,8 +33,8 @@ final class PluginPlatformService
 
   @override
   Future<String?> pickBackupFile() async {
-    final result = await FilePicker.platform.pickFiles();
-    return result?.files.single.path;
+    final file = await openFile();
+    return file?.path;
   }
 
   @override
