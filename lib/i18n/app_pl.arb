@@ -149,51 +149,51 @@
   "@viewAll": {
     "description": "Etykieta przycisku służącego do wyświetlania wszystkich pilnych czynności serwisowych, gdy jest ich zbyt wiele."
   },
-  "noVehicles": "You haven't added any vehicles yet.",
+  "noVehicles": "Nie dodałeś jeszcze żadnych pojazdów.",
   "@noVehicles": {
-    "description": "The label for the empty state of the vehicles list on the dashboard"
+    "description": "Etykieta dla pustej listy pojazdów na pulpicie"
   },
-  "regularInterval": "Regular interval",
+  "regularInterval": "Odstęp powtórzeń",
   "@regularInterval": {
-    "description": "The label for the regular interval when adding maintenance items"
+    "description": "Etykieta odstępu powtórzeń czynności serwisowych"
   },
-  "initialInterval": "Initial interval",
+  "initialInterval": "Odstęp początkowy",
   "@initialInterval": {
-    "description": "The label for the initial interval when adding maintenance items"
+    "description": "Etykieta początkowego odstępu podczas dodawania powtórzeń czynności serwisowych"
   },
-  "optionalEntry": "optional",
+  "optionalEntry": "opcjonalnie",
   "@optionalEntry": {
-    "description": "The indicator for optional entries in forms"
+    "description": "Wskaźnik pól opcjonalnych w formularzach"
   },
-  "invalidRegularInterval": "Regular interval: Please enter a valid time or mileage interval (must be greater than 0).",
+  "invalidRegularInterval": "Odstęp: Proszę wprowadzić prawidłowy odstęp czasowy lub przebiegowy (musi być większy niż 0).",
   "@invalidRegularInterval": {
-    "description": "Error message when the regular interval is invalid"
+    "description": "Komunikat o błędzie w przypadku nieprawidłowego odstępu"
   },
-  "invalidOptionalEntry": "{optionalEntry}: Must be a positive integer if entered.",
+  "invalidOptionalEntry": "{optionalEntry}: Jeśli zostanie podana, musi być liczbą całkowitą dodatnią.",
   "@invalidOptionalEntry": {
-    "description": "Error message when the optional entry is invalid",
+    "description": "Komunikat o błędzie nieprawidłowego wpisu opcjonalnego",
     "placeholders": {
       "optionalEntry": {
         "type": "String"
       }
     }
   },
-  "hintComesFirst": "Whichever comes first applies",
+  "hintComesFirst": "Decyduje to, co nastąpi wcześniej.",
   "@hintComesFirst": {
-    "description": "The hint for the time and mileage interval in the form"
+    "description": "Wskazówka dotycząca odstępu czasowego i przebiegowego w formularzu"
   },
-  "addEditMaintenanceItem": "{opType, select, add{Add} edit{Edit} other{}} maintenance item",
+  "addEditMaintenanceItem": "{opType, select, add{Dodaj} edit{Edytuj} other{}} czynność serwisową",
   "@addEditMaintenanceItem": {
-    "description": "The title for the add/edit maintenance item screen",
+    "description": "Tytuł ekranu dodawania/edycji czynności serwisowej",
     "placeholders": {
       "opType": {
         "type": "String"
       }
     }
   },
-  "addEditMaintenanceItemForVeh": "{opType, select, add{Add} edit{Edit} other{}} maintenance plan item for {vehicle}",
+  "addEditMaintenanceItemForVeh": "{opType, select, add{Dodaj} edit{Edytuj} other{}} pozycję planu czynności serwisowej dla {pojazdu}",
   "@addEditMaintenanceItemForVeh": {
-    "description": "The subtitle for the add/edit maintenance item screen",
+    "description": "Podtytuł ekranu dodawania/edycji czynności serwisowej",
     "placeholders": {
       "opType": {
         "type": "String"
@@ -203,81 +203,81 @@
       }
     }
   },
-  "itemName": "Item name",
+  "itemName": "Nazwa pozycji",
   "@itemName": {
-    "description": "The label for the item name field in the add/edit maintenance item screen"
+    "description": "Etykieta pola nazwy pozycji na ekranie dodawania/edycji czynności serwisowej"
   },
-  "itemNameHint": "e.g. Replace oil filter",
+  "itemNameHint": "np. wymiana filtra oleju",
   "@itemNameHint": {
-    "description": "The hint for the item name field in the add/edit maintenance item screen"
+    "description": "Podpowiedź dla pola nazwy pozycji na ekranie dodawania/edycji czynności serwisowej"
   },
-  "invalidEmptyEntry": "{entry}: cannot be empty",
+  "invalidEmptyEntry": "{entry}: nie może być puste",
   "@invalidEmptyEntry": {
-    "description": "Error message when a requird entry is empty",
+    "description": "Komunikat o błędzie w przypadku pustego pola obowiązkowego",
     "placeholders": {
       "entry": {
         "type": "String"
       }
     }
   },
-  "timeHint": "time (month)",
+  "timeHint": "czas (miesiąc)",
   "@timeHint": {
-    "description": "The hint for the time interval field in the add/edit maintenance item screen"
+    "description": "Wskazówka dotycząca pola odstępu czasowego na ekranie dodawania/edycji czynności serwisowej"
   },
-  "mileageHint": "mileage ({unit})",
+  "mileageHint": "przebieg ({jednostka})",
   "@mileageHint": {
-    "description": "The hint for the mileage interval field in the add/edit maintenance item screen",
+    "description": "Wskazówka dotycząca pola odstępu przebiegu na ekranie dodawania/edycji czynności serwisowej",
     "placeholders": {
       "unit":{
         "type": "String"
       }
     }
   },
-  "firstTimeHint": "first time (month)",
+  "firstTimeHint": "początkowy odstęp czasu (miesiąc)",
   "@firstTimeHint": {
-    "description": "The hint for the first time interval field in the add/edit maintenance item screen"
+    "description": "Podpowiedź dla pola początkowego odstępu czasowego na ekranie dodawania/edycji czynności serwisowej"
   },
-  "firstMileageHint": "first mileage ({unit})",
+  "firstMileageHint": "początkowy odstęp przebiegu ({jednostki})",
   "@firstMileageHint": {
-    "description": "The hint for the first mileage interval field in the add/edit maintenance item screen",
+    "description": "Podpowiedź dla pola początkowego odstępu przebiegu na ekranie dodawania/edycji czynności serwisowej",
     "placeholders": {
       "unit":{
         "type": "String"
       }
     }
   },
-  "notes": "Notes",
+  "notes": "Uwagi",
   "@notes": {
-    "description": "The label for the notes field in forms"
+    "description": "Etykieta pola na uwagi w formularzu"
   },
-  "noteMaintenanceItemHint": "e.g. Use specific part model, or special notes",
+  "noteMaintenanceItemHint": "np. użyj konkretnego modelu części, lub specjalne uwagi",
   "@noteMaintenanceItemHint": {
-    "description": "The hint for the notes field in the add/edit maintenance item screen"
+    "description": "Podpowiedź dla pola uwag na ekranie dodawania/edycji czynności serwisowej"
   },
-  "addEditButtonText": "{opType, select, add{Add} edit{Save changes} other{}}",
+  "addEditButtonText": "{opType, select, add{Dodaj} edit{Zapisz zmiany} other{}}",
   "@addEditButtonText": {
-    "description": "Button text for add/edit forms",
+    "description": "Tekst przycisku dla formularzy dodawania/edycji",
     "placeholders": {
       "opType": {
         "type": "String"
       }
     }
   },
-  "maintenanceDate": "Maintenance date",
+  "maintenanceDate": "Data czynności",
   "@maintenanceDate": {
-    "description": "The label for the maintenance date field in the log maintenance screen"
+    "description": "Etykieta pola daty czynności serwisowej na ekranie zapisu wykonanych czynności serwisowych"
   },
-  "maintenanceItems": "Maintenance items",
+  "maintenanceItems": "Czynności serwisowe",
   "@maintenanceItems": {
-    "description": "The label for the maintenance items field in the log maintenance screen"
+    "description": "Etykieta pola listy czynności serwisowych na ekranie zapisu wykonanych czynności serwisowych"
   },
-  "updateMileageTitle": "Update mileage?",
+  "updateMileageTitle": "Zaktualizować przebieg?",
   "@updateMileageTitle": {
-    "description": "The title for the dialog to update mileage when logging maintenance"
+    "description": "Tekst okna dialogowego do aktualizacji przebiegu podczas zapisu wykonanych czynności serwisowych"
   },
-  "updateMileageBody": "The mileage you entered ({newValue} {unit}) is higher than the current recorded mileage ({oldValue} {unit}) for {vehicleName}.\n\nDo you want to update the vehicle's current mileage to {newValue} {unit}?",
+  "updateMileageBody": "Wprowadzony przebieg ({newValue} {unit}) jest wyższy od ostatnio zapisanego przebiegu ({oldValue} {unit}) dla pojazdu {vehicleName}.\n\nCzy chcesz zaktualizować bieżący przebieg pojazdu do wartości {newValue} {unit}?",
   "@updateMileageBody": {
-    "description": "The body for the dialog to update mileage when logging maintenance",
+    "description": "Treść okna dialogowego służącego do aktualizacji przebiegu podczas zapisu wykonanych czynności serwisowych.",
     "placeholders": {
       "newValue": {
         "type": "String"
@@ -293,38 +293,38 @@
       }
     }
   },
-  "no": "No",
+  "no": "Nie",
   "@no": {
-    "description": "The label for the negative button in dialogs"
+    "description": "Etykieta przycisku zaprzeczenia w oknach dialogowych"
   },
-  "yes": "Yes",
+  "yes": "Tak",
   "@yes": {
-    "description": "The label for the positive button in dialogs"
+    "description": "Etykieta przycisku potwierdzającego w oknach dialogowych"
   },
-  "chooseFromPlan": "Choose from maintenance plan",
+  "chooseFromPlan": "Wybierz czynności serwisowe",
   "@chooseFromPlan": {
-    "description": "The label to choose from the vehicle's maintenance plan when logging maintenance"
+    "description": "Etykieta wyboru z listy zdefiniowanych czynności serwisowych podczas zapisu wykonanych czynności serwisowych."
   },
-  "customItemAdded": "Custom items added",
+  "customItemAdded": "Dodatki niestandardowe",
   "@customItemAdded": {
-    "description": "The label for the custom item added when logging maintenance"
+    "description": "Etykieta dla elementu niestandardowego dodanego podczas zapisu wykonanych czynności serwisowych"
   },
-  "customItemAddHint": "Enter custom maintenance item name",
+  "customItemAddHint": "Wprowadź nazwę niestandardowego elementu wykonanych czynności serwisowych",
   "@customItemAddHint": {
-    "description": "The hint for the custom item name field when logging maintenance"
+    "description": "Wskazówka dotycząca pola nazwy niestandardowego elementu podczas zapisu wykonanych czynności serwisowych"
   },
-  "addEditMaintenanceLog": "{opType, select, add{Log maintenance} edit{Edit maintenance log} other{}}",
+  "addEditMaintenanceLog": "{opType, select, add{Lista wykonanych czynności serwisowych} edit{Edytuj listę wykonanych czynności serwisowych} other{}}",
   "@addEditMaintenanceLog": {
-    "description": "The title for the add/edit maintenance log screen",
+    "description": "Tytuł ekranu dodawania/edycji zapisu wykonanych czynności serwisowych",
     "placeholders": {
       "opType": {
         "type": "String"
       }
     }
   },
-  "addEditMaintenanceLogForVeh": "{opType, select, add{Log maintenance} edit{Edit maintenance log} other{}} for {vehicle}",
+  "addEditMaintenanceLogForVeh": "{opType, select, add{Lista wykonanych czynności serwisowych} edit{Edytuj listę wykonanych czynności serwisowych} other{}} dla {vehicle}",
   "@addEditMaintenanceLogForVeh": {
-    "description": "The subtitle for the add/edit maintenance log screen",
+    "description": "Podtytuł ekranu dodawania/edycji zapisu wykonanych czynności serwisowych",
     "placeholders": {
       "opType": {
         "type": "String"
@@ -334,21 +334,21 @@
       }
     }
   },
-  "mileageAtService": "Mileage at service",
+  "mileageAtService": "Przebieg w dniu czynności serwisowych",
   "@mileageAtService": {
-    "description": "The label for the mileage at service field in the log maintenance screen"
+    "description": "Etykieta pola przebiegu w dniu wykonywania czynności serwisowych na ekranie zapisu wykonanych czynności serwisowych"
   },
-  "cost": "Cost",
+  "cost": "Koszt",
   "@cost": {
-    "description": "The label for the cost field in the log maintenance screen"
+    "description": "Etykieta pola kosztu na ekranie zapisu wykonanych czynności serwisowych"
   },
-  "notesMLogHint": "e.g. Replaced with XX brand parts, location",
+  "notesMLogHint": "np. Zastąpiono częściami marki XX, lokalizacja",
   "@notesMLogHint": {
-    "description": "The hint for the notes field in the log maintenance screen"
+    "description": "Wskazówka dotycząca pola uwag na ekranie zapisu wykonanych czynności serwisowych"
   },
-  "allVehicles": "All vehicles",
+  "allVehicles": "Wszystkie pojazdy",
   "@allVehicles": {
-    "description": "The label for the all vehicles filter in the maintenance list screen"
+    "description": "Etykieta filtra wszystkich pojazdów na ekranie listy planowanych czynności serwisowych"
   },
   "upcomingMaintenance": "Upcoming maintenance",
   "@upcomingMaintenance": {
