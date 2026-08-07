@@ -126,7 +126,7 @@
   },
   "notificationBody": "{maintenanceItem} is due on {dueDate}.",
   "@notificationBody": {
-    "description": "The body of the notification",
+    "description": "Treść powiadomienia",
     "placeholders": {
       "maintenanceItem": {
         "type": "String"
@@ -350,53 +350,53 @@
   "@allVehicles": {
     "description": "Etykieta filtra wszystkich pojazdów na ekranie listy planowanych czynności serwisowych"
   },
-  "upcomingMaintenance": "Upcoming maintenance",
+  "upcomingMaintenance": "Zbliżające się czynności serwisowe",
   "@upcomingMaintenance": {
-    "description": "The title for the maintenance list screen"
+    "description": "Tytuł ekranu listy zbliżających się czynności serwisowych"
   },
-  "filterByVehicle": "Filter by vehicle",
+  "filterByVehicle": "Filtruj według pojazdu",
   "@filterByVehicle": {
-    "description": "The tooltip for the filter by vehicle button in the maintenance list screen"
+    "description": "Podpowiedź dla przycisku filtrowania według pojazdu na ekranie listy czynności serwisowych"
   },
-  "nextYear": "Next 1 year",
+  "nextYear": "Rok",
   "@nextYear": {
-    "description": "The filter label for the next 1 year in the maintenance list screen"
+    "description": "Etykieta filtra dla zakresu rocznego na ekranie listy konserwacji"
   },
-  "thisWeek": "This week",
+  "thisWeek": "Tydzień",
   "@thisWeek": {
-    "description": "The filter label for this week in the maintenance list screen"
+    "description": "Etykieta filtra dla zakresu tygodniowego na ekranie listy prac konserwacyjnych"
   },
-  "thisMonth": "This month",
+  "thisMonth": "Miesiąc",
   "@thisMonth": {
-    "description": "The filter label for this month in the maintenance list screen"
+    "description": "Etykieta filtra dla zakresu miesięcznego na ekranie listy konserwacji"
   },
-  "maintenanceListEmpty": "No upcoming maintenance items.",
+  "maintenanceListEmpty": "Brak zbliżających się czynności serwisowych.",
   "@maintenanceListEmpty": {
-    "description": "The label for the empty state of the maintenance list screen"
+    "description": "Etykieta stanu pustego ekranu listy czynności serwisowych"
   },
-  "maintenanceListEmptyAfterFilter": "No maintenance items match the current filters.",
+  "maintenanceListEmptyAfterFilter": "Żadna czynność serwisowa nie spełnia wskazanych kryteriów filtrowania.",
   "@maintenanceListEmptyAfterFilter": {
-    "description": "The label for the empty state of the maintenance list screen after filtering"
+    "description": "Etykieta stanu pustego ekranu listy czynności serwisowych po filtrowaniu"
   },
-  "status": "Status",
+  "status": "Stan",
   "@status": {
-    "description": "The label for the status prefix in the maintenance list screen"
+    "description": "Etykieta pola stanu na ekranie listy czynności serwisowych"
   },
-  "estimated": "Estimated",
+  "estimated": "Szacowany",
   "@estimated": {
-    "description": "The label for the estimated prefix in the maintenance list screen"
+    "description": "Etykieta pola szacowania na ekranie listy czynności serwisowych"
   },
-  "loading": "Loading...",
+  "loading": "Pobieram...",
   "@loading": {
-    "description": "The label for the loading state"
+    "description": "Etykieta stanu pobierania"
   },
-  "privacyPolicy": "Privacy Policy",
+  "privacyPolicy": "Polityka prywatności",
   "@privacyPolicy": {
-    "description": "The title for the privacy policy screen"
+    "description": "Tytuł ekranu polityki prywatności"
   },
-  "privacyHeadline": "Your data is stored entirely on your local device",
+  "privacyHeadline": "Twoje informacje są przechowywane tylko na Twoim urządzeniu",
   "@privacyHeadline": {
-    "description": "The headline for the privacy policy screen"
+    "description": "Nagłówek ekranu polityki prywatności"
   },
   "privacyLocalStorage": "None of your data is uploaded to the cloud — in fact, the app does not even have Internet access",
   "@privacyLocalStorage": {
