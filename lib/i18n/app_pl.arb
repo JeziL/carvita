@@ -398,106 +398,106 @@
   "@privacyHeadline": {
     "description": "Nagłówek ekranu polityki prywatności"
   },
-  "privacyLocalStorage": "None of your data is uploaded to the cloud — in fact, the app does not even have Internet access",
+  "privacyLocalStorage": "Żadne informacje nie są przesyłane do chmury — tak naprawdę aplikacja nie ma nawet dostępu do Internetu",
   "@privacyLocalStorage": {
-    "description": "The description for the local storage section of the privacy policy screen"
+    "description": "Opis sekcji dotyczącej pamięci lokalnej na ekranie polityki prywatności"
   },
-  "privacyControl": "You have full control over your data. Exporting, backing up, and deleting it is entirely up to you",
+  "privacyControl": "Masz pełną kontrolę nad swoimi danymi. Eksport, tworzenie kopii zapasowych i usuwanie danych zależy wyłącznie od Ciebie.",
   "@privacyControl": {
-    "description": "The description for the data control section of the privacy policy screen"
+    "description": "Opis sekcji kontroli danych na ekranie polityki prywatności"
   },
-  "notSet": "Not set",
+  "notSet": "Nie ustawiono",
   "@notSet": {
-    "description": "The label for the not set state of default vehicle"
+    "description": "Etykieta dla nieustawionego stanu domyślnego pojazdu"
   },
-  "defaultVehicle": "Default vehicle",
+  "defaultVehicle": "Domyślny pojazd",
   "@defaultVehicle": {
-    "description": "The title for the choose default vehicle entry in the settings screen"
+    "description": "Tytuł wpisu „Domyślny pojazd” na ekranie ustawień"
   },
-  "chooseDefaultVehicle": "Choose default vehicle",
+  "chooseDefaultVehicle": "Wybierz domyślny pojazd",
   "@chooseDefaultVehicle": {
-    "description": "The title for the choose default vehicle dialog in the settings screen"
+    "description": "Tytuł okna dialogowego wyboru domyślnego pojazdu na ekranie ustawień"
   },
-  "clearDefault": "Clear",
+  "clearDefault": "Wyczyść",
   "@clearDefault": {
-    "description": "The label for the clear button when choosing a default vehicle"
+    "description": "Etykieta przycisku „Wyczyść” przy wyborze domyślnego pojazdu"
   },
-  "cancel": "Cancel",
+  "cancel": "Anuluj",
   "@cancel": {
-    "description": "The label for the cancel button in dialogs"
+    "description": "Etykieta przycisku Anuluj w oknach dialogowych"
   },
-  "back": "Back",
+  "back": "Wstecz",
   "@back": {
-    "description": "The label for returning to the previous screen"
+    "description": "Etykieta powrotu do poprzedniego ekranu"
   },
-  "retry": "Retry",
+  "retry": "Ponów",
   "@retry": {
-    "description": "The label for retrying a failed operation"
+    "description": "Etykieta ponownej próby nieudanej operacji"
   },
-  "chooseThreshold": "Choose threshold",
+  "chooseThreshold": "Wybierz próg przypomnień",
   "@chooseThreshold": {
-    "description": "The title for the choose reminder threshold dialog in the settings screen"
+    "description": "Tytuł okna dialogowego wyboru progu przypomnienia na ekranie ustawień"
   },
-  "chooseDisplayItemCount": "Choose items count",
+  "chooseDisplayItemCount": "Wybierz liczbę wyświetlanych pozycji",
   "@chooseDisplayItemCount": {
-    "description": "The title for the choose display item count dialog in the settings screen"
+    "description": "Tytuł okna dialogowego wyboru liczby wyświetlanych pozycji na ekranie ustawień"
   },
-  "itemCount": "{count, plural, =1{1 item} other{{count} items}}",
+  "itemCount": "{count, plural, =1{1 pozycja} other{{count} pozycje/i}}",
   "@itemCount": {
-    "description": "The label for the item count in the choose display item count dialog",
+    "description": "Etykieta liczby pozycji w oknie dialogowym wyboru liczby wyświetlanych pozycji",
     "placeholders": {
       "count": {
         "type": "int"
       }
     }
   },
-  "exportPrepare": "Preparing export...",
+  "exportPrepare": "Przygotowywanie eksportu...",
   "@exportPrepare": {
-    "description": "The label for the preparing export state"
+    "description": "Etykieta dla przygotowywania eksportu"
   },
-  "errDBNotFound": "Database not found",
+  "errDBNotFound": "Nie znaleziono bazy danych",
   "@errDBNotFound": {
-    "description": "Error message when the database is not found"
+    "description": "Komunikat o błędzie, gdy baza danych nie zostanie znaleziona"
   },
-  "exportSuccess": "Export successful",
+  "exportSuccess": "Eksport zakończony sukcesem",
   "@exportSuccess": {
-    "description": "The label for the successful export state"
+    "description": "Etykieta dla udanego eksportu"
   },
-  "exportCancelled": "Export cancelled",
+  "exportCancelled": "Eksport anulowany",
   "@exportCancelled": {
-    "description": "The label for the cancelled export state"
+    "description": "Etykieta dla anulowanego ekportu"
   },
-  "restoreData": "Restore data",
+  "restoreData": "Przywróć dane",
   "@restoreData": {
-    "description": "The label for the restore data entry in the settings screen"
+    "description": "Etykieta przywracania danych na ekranie ustawień"
   },
-  "restoreWarningTitle": "Warning: Restore data",
+  "restoreWarningTitle": "Ostrzeżenie: Przywracanie danych",
   "@restoreWarningTitle": {
-    "description": "The title for the restore warning dialog"
+    "description": "Tytuł okna dialogowego z ostrzeżeniem o przywracaniu danych"
   },
-  "restoreWarningBody": "This will overwrite all current app data with the selected file and cannot be undone.\n\nIt is strongly recommended that you export your current data as a backup before proceeding.\n\nAre you sure you want to continue?",
+  "restoreWarningBody": "Spowoduje to nadpisanie wszystkich bieżących danych aplikacji wybranym plikiem. Tej operacji nie można cofnąć.\n\nZdecydowanie zaleca się wyeksportowanie bieżących danych jako kopii zapasowej przed kontynuowaniem.\n\nCzy na pewno chcesz kontynuować?",
   "@restoreWarningBody": {
-    "description": "The body for the restore warning dialog"
+    "description": "Treść okna dialogowego z ostrzeżeniem o przywracaniu"
   },
-  "chooseDBFile": "Choose database file...",
+  "chooseDBFile": "Wybierz plik bazy danych...",
   "@chooseDBFile": {
-    "description": "The title for the choose database file dialog"
+    "description": "Tytuł okna dialogowego wyboru pliku bazy danych"
   },
-  "restoreSuccessTitle": "Restore successful",
+  "restoreSuccessTitle": "Przywracanie zakończone sukcesem",
   "@restoreSuccessTitle": {
-    "description": "The title for the successful restore state"
+    "description": "Tytuł pomyślnego przywrócenia danych"
   },
-  "restoreSuccessBody": "Data has been successfully restored!\n\nTo ensure all changes take effect, please restart the app.",
+  "restoreSuccessBody": "Dane zostały pomyślnie przywrócone!\n\nUruchom ponownie aplikację, aby zastosować zmiany.",
   "@restoreSuccessBody": {
-    "description": "The body for the successful restore state"
+    "description": "Treść komunikatu o pomyślnym przywróceniu danych"
   },
-  "exitButton": "Exit",
+  "exitButton": "Wyjście",
   "@exitButton": {
-    "description": "The label for the exit button in the successful restore state"
+    "description": "Etykieta przycisku wyjścia po pomyślnym przywróceniu"
   },
-  "importCancelled": "Import cancelled",
+  "importCancelled": "Import anulowany",
   "@importCancelled": {
-    "description": "The label for the cancelled import state"
+    "description": "Etykieta anulowanego importu"
   },
   "chooseLeadTime": "Choose notification time",
   "@chooseLeadTime": {
