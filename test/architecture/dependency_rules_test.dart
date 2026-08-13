@@ -3,6 +3,47 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('Flutter UI imports use the standalone 3.47 design package', () {
+    const legacyMaterialImport =
+        "import 'package:flutter/"
+        "material.dart'";
+    const legacyCupertinoImport =
+        "import 'package:flutter/"
+        "cupertino.dart'";
+    const legacyLocalizationsImport =
+        "import 'package:flutter_"
+        "localizations/flutter_localizations.dart'";
+    const legacyMaterialAdapter =
+        'lib/core/widgets/legacy_material_bridge.dart';
+    final violations = <String>[
+      for (final root in const ['lib', 'test', 'tool'])
+        ..._dartFilesUnder(root)
+            .where((file) {
+              final normalizedPath = file.path.replaceAll('\\', '/');
+              return !normalizedPath.startsWith('lib/i18n/generated/');
+            })
+            .where((file) {
+              final source = file.readAsStringSync();
+              final normalizedPath = file.path.replaceAll('\\', '/');
+              return (source.contains(legacyMaterialImport) &&
+                      normalizedPath != legacyMaterialAdapter) ||
+                  source.contains(legacyCupertinoImport) ||
+                  source.contains(legacyLocalizationsImport);
+            })
+            .map((file) => file.path),
+    ];
+
+    expect(violations, isEmpty);
+    expect(
+      File(legacyMaterialAdapter).readAsStringSync(),
+      contains(legacyMaterialImport),
+    );
+
+    final pubspec = File('pubspec.yaml').readAsStringSync();
+    expect(pubspec, contains('material_ui: ^1.0.0'));
+    expect(pubspec, contains('flutter_localizations:'));
+  });
+
   test('data models do not depend on Flutter UI or localization', () {
     final violations = _dartFilesUnder('lib/data/models')
         .where((file) {

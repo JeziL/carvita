@@ -1,8 +1,7 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl_standalone.dart';
 import 'package:provider/provider.dart';
 
@@ -267,9 +266,7 @@ class CarVitaApp extends StatelessWidget {
             // i18n
             localizationsDelegates: [
               AppLocalizations.delegate,
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
+              ...GlobalMaterialLocalizations.delegates,
             ],
             supportedLocales: appSupportedLocales.map(
               (lang) => lang['locale'] as Locale,

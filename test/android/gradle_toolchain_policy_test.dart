@@ -22,6 +22,9 @@ void main() {
     expect(wrapperProperties, contains('gradle-9.3.1-all.zip'));
     expect(gradleProperties, contains('android.builtInKotlin=true'));
     expect(gradleProperties, contains('android.newDsl=false'));
+    expect(appBuild, contains('compileSdk = flutter.compileSdkVersion'));
+    expect(appBuild, contains('minSdk = flutter.minSdkVersion'));
+    expect(appBuild, contains('targetSdk = flutter.targetSdkVersion'));
     expect(
       appBuild,
       isNot(

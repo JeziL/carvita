@@ -1,9 +1,8 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:carvita/application/use_cases/maintenance_plan_use_cases.dart';
 import 'package:carvita/application/use_cases/service_log_use_cases.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'package:carvita/core/constants/app_routes.dart';
 import 'package:carvita/data/models/vehicle.dart';
@@ -127,9 +126,7 @@ void main() {
       MaterialApp(
         localizationsDelegates: const [
           AppLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
+          ...GlobalMaterialLocalizations.delegates,
         ],
         supportedLocales: const [Locale('en')],
         locale: const Locale('en'),

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:carvita/core/theme/app_theme.dart';
 import 'package:carvita/core/widgets/gradient_background.dart';

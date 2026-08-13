@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:collection/collection.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -15,6 +15,7 @@ import 'package:carvita/core/services/preferences_service.dart';
 import 'package:carvita/core/theme/app_theme.dart';
 import 'package:carvita/core/utils/preference_selection.dart';
 import 'package:carvita/core/widgets/gradient_background.dart';
+import 'package:carvita/core/widgets/legacy_material_bridge.dart';
 import 'package:carvita/data/models/vehicle.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/main.dart';
@@ -528,11 +529,13 @@ class _SettingsScreenState extends State<SettingsScreen>
             ),
           ),
           content: SingleChildScrollView(
-            child: ColorPicker(
-              pickerColor: pickerColor,
-              onColorChanged: (color) => pickerColor = color,
-              enableAlpha: false, // Usually seed colors don't need alpha
-              pickerAreaHeightPercent: 0.8,
+            child: LegacyMaterialBridge(
+              child: ColorPicker(
+                pickerColor: pickerColor,
+                onColorChanged: (color) => pickerColor = color,
+                enableAlpha: false, // Usually seed colors don't need alpha
+                pickerAreaHeightPercent: 0.8,
+              ),
             ),
           ),
           actions: <Widget>[

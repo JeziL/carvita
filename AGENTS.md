@@ -34,8 +34,9 @@ CarVita 用于：
 - 持久化：
   - `sqflite` 保存业务数据；
   - `shared_preferences` 保存用户偏好。
-- Android 构建使用 Kotlin DSL、Java 17、compile/target SDK 36、AGP 9.1.0、built-in Kotlin 2.4.0 与 Gradle 9.3.1。应用模块不再应用 `kotlin-android`，并启用 `android.builtInKotlin=true`。顶层 `org.jetbrains.kotlin.android 2.4.0 apply false` 仅供 Flutter 3.47 校验 KGP 版本，不会把 KGP 应用到模块。Flutter 3.47 的 Gradle 插件仍依赖旧 AGP DSL 类型，因此暂时保留 `android.newDsl=false`，待 Flutter 上游完成新 DSL 迁移后再启用。
+- Android 构建使用 Kotlin DSL、Java 17、AGP 9.1.0、built-in Kotlin 2.4.0 与 Gradle 9.3.1。应用模块通过 `flutter.compileSdkVersion`、`flutter.targetSdkVersion` 和 `flutter.minSdkVersion` 跟随 Flutter SDK 的 Android API 基线（Flutter 3.47 当前为 compile/target SDK 36、min SDK 24）。应用模块不再应用 `kotlin-android`，并启用 `android.builtInKotlin=true`。顶层 `org.jetbrains.kotlin.android 2.4.0 apply false` 仅供 Flutter 3.47 校验 KGP 版本，不会把 KGP 应用到模块。Flutter 3.47 的 Gradle 插件仍依赖旧 AGP DSL 类型，因此暂时保留 `android.newDsl=false`，待 Flutter 上游完成新 DSL 迁移后再启用。
 - AGP 9 下所有含 Kotlin 源码的 Android 插件也必须支持 built-in Kotlin。当前兼容基线为 `package_info_plus 10.2.1`、`share_plus 13.3.0`、`shared_preferences 2.5.5` / `shared_preferences_android 2.4.27`；升级或降级平台插件后必须重新构建 debug APK，禁止通过关闭 built-in Kotlin 掩盖插件不兼容。
+- Flutter 3.47 的 UI 已迁移到独立 `material_ui 1.0.0` 包；除隔离旧依赖的 `lib/core/widgets/legacy_material_bridge.dart` 外，生产代码和测试不得重新导入 `package:flutter/material.dart` 或 `package:flutter/cupertino.dart`，手写代码也不得导入 `package:flutter_localizations/flutter_localizations.dart`。`flutter_localizations` 仅作为 `flutter gen-l10n` 生成代码的直接 SDK 依赖保留；Material/Cupertino/Widgets 本地化统一通过 `GlobalMaterialLocalizations.delegates` 注入。依赖仍使用旧 Material API 的第三方 Widget 必须用最小范围的 `LegacyMaterialBridge` 包裹；当前仅 `flutter_colorpicker 1.1.0` 需要该桥接，依赖迁移后应及时移除适配器和例外。
 - 当前受支持并纳入版本控制的平台只有 Android；`ios/`、`web/`、`linux/`、`macos/`、`windows/` 均被忽略。
 - Android application ID 和 namespace 均为 `com.wangjinli.carvita`。
 
@@ -246,6 +247,8 @@ repository、Cubit 和平台异常使用 `AppFailure`/`OperationFailure` 分类�
 - 紧急/删除语义统一使用 `AppColors.urgentReminderText`。
 - 同时检查亮色、暗色和自定义 seed color；不要假定固定背景上的文字颜色。
 - 应用遵循系统文字缩放；关键页面必须在 200% 缩放下无 overflow，并避免固定高度、单行标签或非 directional 布局导致本地化文本截断。
+- Flutter 3.47 起 Android/iOS 上 `Semantics(header: true)` 不再声明无障碍标题；标题语义必须使用大于 0 的 `headingLevel`，并按页面层级选择合理数值。
+- 项目当前没有自定义 fragment shader 或 `flutter_gpu` 代码。若后续新增，不要为 OpenGL ES render-target texture 添加旧式 Y 轴翻转；Flutter 3.47 已统一为 top-down 存储。
 - 车辆图片在选择时压缩到质量 70、最大宽度 800，并直接写入数据库；增大图片尺寸会直接放大数据库和备份。
 - app icon 源文件是 `assets/icon/icon.png`，可由 `assets/icon/icon_generator.py` 重新生成；launcher 资源由 `flutter_launcher_icons.yaml` 控制。
 - Android app shortcut 使用 `action_log` 和 `action_upcoming_list`，图标分别来自 `ic_action_log`、`ic_action_list` 的亮/暗资源。修改类型字符串时要同步监听、动态 shortcut 和原生资源。
