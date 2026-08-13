@@ -170,9 +170,9 @@ class _BackupSettingsSectionState extends State<BackupSettingsSection> {
         builder: (dialogContext) => PopScope(
           canPop: false,
           child: AlertDialog(
-            backgroundColor: Theme.of(
-              context,
-            ).colorScheme.surfaceContainerLowest,
+            backgroundColor: Theme.of(context)
+                .colorScheme
+                .surfaceContainerLowest,
             title: Text(AppLocalizations.of(context)!.restoreSuccessTitle),
             content: Text(AppLocalizations.of(context)!.restoreSuccessBody),
             actions: [

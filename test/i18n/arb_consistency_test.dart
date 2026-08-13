@@ -29,9 +29,8 @@ void main() {
       for (final entry in template.entries) {
         for (final placeholder in templatePlaceholders[entry.key] ?? const {}) {
           expect(
-            RegExp(
-              '\\{${RegExp.escape(placeholder)}(?:[},])',
-            ).hasMatch(messages[entry.key]!),
+            RegExp('\\{${RegExp.escape(placeholder)}(?:[},])')
+                .hasMatch(messages[entry.key]!),
             isTrue,
             reason: '${file.path} is missing {$placeholder} in ${entry.key}',
           );

@@ -329,9 +329,9 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.surfaceContainerLowest,
+                      color: Theme.of(context)
+                          .colorScheme
+                          .surfaceContainerLowest,
                       borderRadius: const BorderRadius.only(
                         topLeft: Radius.circular(24),
                         topRight: Radius.circular(24),

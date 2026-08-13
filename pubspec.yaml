@@ -4,8 +4,8 @@ publish_to: 'none'
 version: 1.2.1+10
 
 environment:
-  sdk: '>=3.12.2 <4.0.0'
-  flutter: '>=3.44.8'
+  sdk: '>=3.13.0 <4.0.0'
+  flutter: '>=3.47.0'
 
 dependencies:
   archive: ^4.0.7
@@ -22,13 +22,13 @@ dependencies:
     sdk: flutter
   image_picker: ^1.1.2
   intl: any
-  package_info_plus: ^8.3.0
+  package_info_plus: ^10.2.1
   path: ^1.9.1
   path_provider: ^2.1.5
   provider: ^6.1.5
   quick_actions: ^1.1.0
-  share_plus: ^11.0.0
-  shared_preferences: ^2.5.3
+  share_plus: ^13.3.0
+  shared_preferences: ^2.5.5
   sqflite: ^2.4.3
   timezone: ^0.10.1
   transparent_image: ^2.0.1

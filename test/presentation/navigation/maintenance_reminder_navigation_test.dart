@@ -26,9 +26,8 @@ void main() {
       ),
     );
 
-    DefaultMaintenanceReminderNavigation(
-      MainNavigationController(),
-    ).openVehicleMaintenancePlan(42);
+    DefaultMaintenanceReminderNavigation(MainNavigationController())
+        .openVehicleMaintenancePlan(42);
     await tester.pumpAndSettle();
 
     expect(capturedSettings?.name, AppRoutes.vehicleDetailsRoute);
@@ -49,9 +48,8 @@ void main() {
       ),
     );
 
-    Navigator.of(
-      NavigationService.navigatorKey.currentContext!,
-    ).push(MaterialPageRoute<void>(builder: (_) => const Text('details')));
+    Navigator.of(NavigationService.navigatorKey.currentContext!)
+        .push(MaterialPageRoute<void>(builder: (_) => const Text('details')));
     await tester.pumpAndSettle();
 
     DefaultMaintenanceReminderNavigation(controller).openUpcomingMaintenance();

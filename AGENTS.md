@@ -25,8 +25,8 @@ CarVita 用于：
 
 ## 技术栈与工具链
 
-- CI 固定使用 Flutter `3.44.8`；当前对应 Dart `3.12.2`。
-- `pubspec.yaml` 的最低工具链约束为 Dart `>=3.12.2 <4.0.0`、Flutter `>=3.44.8`，与 CI 固定版本一致。
+- CI 固定使用 Flutter `3.47.0`；当前对应 Dart `3.13.0`。
+- `pubspec.yaml` 的最低工具链约束为 Dart `>=3.13.0 <4.0.0`、Flutter `>=3.47.0`，与 CI 固定版本一致。
 - 状态管理同时使用：
   - `flutter_bloc` / Cubit：车辆、保养计划、保养记录、全局到期预测；
   - `provider` / `ChangeNotifier`：语言、里程单位和主题；
@@ -34,7 +34,8 @@ CarVita 用于：
 - 持久化：
   - `sqflite` 保存业务数据；
   - `shared_preferences` 保存用户偏好。
-- Android 构建使用 Kotlin DSL、Java 17、compile/target SDK 36、AGP 8.13.2、Kotlin 2.3.20、Gradle 8.14.3。
+- Android 构建使用 Kotlin DSL、Java 17、compile/target SDK 36、AGP 9.1.0、built-in Kotlin 2.4.0 与 Gradle 9.3.1。应用模块不再应用 `kotlin-android`，并启用 `android.builtInKotlin=true`。顶层 `org.jetbrains.kotlin.android 2.4.0 apply false` 仅供 Flutter 3.47 校验 KGP 版本，不会把 KGP 应用到模块。Flutter 3.47 的 Gradle 插件仍依赖旧 AGP DSL 类型，因此暂时保留 `android.newDsl=false`，待 Flutter 上游完成新 DSL 迁移后再启用。
+- AGP 9 下所有含 Kotlin 源码的 Android 插件也必须支持 built-in Kotlin。当前兼容基线为 `package_info_plus 10.2.1`、`share_plus 13.3.0`、`shared_preferences 2.5.5` / `shared_preferences_android 2.4.27`；升级或降级平台插件后必须重新构建 debug APK，禁止通过关闭 built-in Kotlin 掩盖插件不兼容。
 - 当前受支持并纳入版本控制的平台只有 Android；`ios/`、`web/`、`linux/`、`macos/`、`windows/` 均被忽略。
 - Android application ID 和 namespace 均为 `com.wangjinli.carvita`。
 
@@ -341,7 +342,7 @@ pull request 和 `main` push 会运行不依赖发布密钥的 `Quality` job，�
 
 tag 发布会先通过 `Quality`，再运行 `Release`：
 
-1. 使用 Flutter 3.44.8；
+1. 使用 Flutter 3.47.0；
 2. 验证 tag 与 `pubspec.yaml` version 精确一致、versionCode 单调递增，且英文和简体中文 changelog 都存在且非空；
 3. 验证签名 secrets，并生成临时 keystore 和 `key.properties`；
 4. 构建 release APK，使用 `APP_CERT_SHA256` 校验证书身份；

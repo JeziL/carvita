@@ -170,9 +170,8 @@ void main() {
 
     databaseHelper.resetDiagnosticReadQueryCount();
     final stopwatch = Stopwatch()..start();
-    final snapshot = await MaintenanceRepository(
-      dbHelper: databaseHelper,
-    ).getPredictionSnapshot();
+    final snapshot = await MaintenanceRepository(dbHelper: databaseHelper)
+        .getPredictionSnapshot();
     stopwatch.stop();
 
     expect(snapshot.planItemsByVehicleId, hasLength(200));

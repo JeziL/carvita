@@ -102,9 +102,8 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
     List<String> parts = [];
     if (item.intervalMileage != null) {
       parts.add(
-        AppLocalizations.of(
-          context,
-        )!.everyNMileage(item.intervalMileage!, localeProvider.mileageUnit),
+        AppLocalizations.of(context)!
+            .everyNMileage(item.intervalMileage!, localeProvider.mileageUnit),
       );
     }
     if (item.intervalTimeMonths != null) {
@@ -218,9 +217,8 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
                     child: Padding(
                       padding: EdgeInsets.symmetric(vertical: 30.0),
                       child: Text(
-                        AppLocalizations.of(
-                          context,
-                        )!.emptyMPlan(AppLocalizations.of(context)!.addMPlan),
+                        AppLocalizations.of(context)!
+                            .emptyMPlan(AppLocalizations.of(context)!.addMPlan),
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.onSurface,
@@ -240,9 +238,9 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
                       final regularIntervalString = _formatInterval(item);
 
                       return Card(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.surfaceContainerLowest,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerLowest,
                         elevation: 1,
                         margin: const EdgeInsets.only(bottom: 12),
                         shape: RoundedRectangleBorder(
@@ -266,9 +264,9 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
                                       style: TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.w500,
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.onSurface,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface,
                                       ),
                                     ),
                                     const SizedBox(height: 8),
@@ -288,12 +286,12 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
                                     if (item.notes != null &&
                                         item.notes!.isNotEmpty)
                                       Text(
-                                        AppLocalizations.of(
-                                          context,
-                                        )!.labeledValue(
-                                          AppLocalizations.of(context)!.notes,
-                                          item.notes!,
-                                        ),
+                                        AppLocalizations.of(context)!
+                                            .labeledValue(
+                                              AppLocalizations.of(context)!
+                                                  .notes,
+                                              item.notes!,
+                                            ),
                                         style: TextStyle(
                                           fontSize: 13,
                                           color: Theme.of(context)
@@ -339,20 +337,19 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
                                           children: [
                                             Icon(
                                               Icons.edit_outlined,
-                                              color: Theme.of(
-                                                context,
-                                              ).colorScheme.primary,
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .primary,
                                               size: 20,
                                             ),
                                             SizedBox(width: 8),
                                             Text(
-                                              AppLocalizations.of(
-                                                context,
-                                              )!.edit,
+                                              AppLocalizations.of(context)!
+                                                  .edit,
                                               style: TextStyle(
-                                                color: Theme.of(
-                                                  context,
-                                                ).colorScheme.onSurface,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurface,
                                               ),
                                             ),
                                           ],
@@ -370,13 +367,12 @@ class _MaintenancePlanTabState extends State<MaintenancePlanTab> {
                                             ),
                                             SizedBox(width: 8),
                                             Text(
-                                              AppLocalizations.of(
-                                                context,
-                                              )!.delete,
+                                              AppLocalizations.of(context)!
+                                                  .delete,
                                               style: TextStyle(
-                                                color: Theme.of(
-                                                  context,
-                                                ).colorScheme.onSurface,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurface,
                                               ),
                                             ),
                                           ],

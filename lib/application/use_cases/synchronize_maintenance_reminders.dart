@@ -7,8 +7,9 @@ import 'package:carvita/application/ports/reminder_schedule_port.dart';
 import 'package:carvita/application/reminders/maintenance_reminder_payload.dart';
 import 'package:carvita/data/models/predicted_maintenance.dart';
 
-typedef ReminderContentBuilder =
-    ReminderContent Function(PredictedMaintenanceInfo prediction);
+typedef ReminderContentBuilder = ReminderContent Function(
+  PredictedMaintenanceInfo prediction,
+);
 
 final class ReminderContent {
   const ReminderContent({required this.title, required this.body});

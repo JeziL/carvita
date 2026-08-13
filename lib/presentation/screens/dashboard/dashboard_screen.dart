@@ -156,9 +156,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    AppLocalizations.of(
-                      context,
-                    )!.itemsDueSoon(filteredPredictions.length),
+                    AppLocalizations.of(context)!
+                        .itemsDueSoon(filteredPredictions.length),
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.onSurface,
                       fontSize: 18,
@@ -199,9 +198,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                           Text(
                             vehicleName,
                             style: TextStyle(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurface.withValues(alpha: 0.7),
+                              color: Theme.of(context).colorScheme.onSurface
+                                  .withValues(alpha: 0.7),
                               fontSize: 12,
                             ),
                           ),
@@ -258,9 +256,8 @@ class _DashboardScreenState extends State<DashboardScreen>
         .sorted((a, b) => a.predictedDueDate.compareTo(b.predictedDueDate))
         .firstOrNull;
 
-    String nextMaintenanceDisplay = AppLocalizations.of(
-      context,
-    )!.noNextMaintenance;
+    String nextMaintenanceDisplay = AppLocalizations.of(context)!
+        .noNextMaintenance;
     if (nextServiceForThisVehicle != null) {
       nextMaintenanceDisplay = nextServiceForThisVehicle.displayInfo(context);
     }
@@ -299,9 +296,8 @@ class _DashboardScreenState extends State<DashboardScreen>
             AppLocalizations.of(context)!.dashboardTitle,
             style: TextStyle(fontSize: 28),
           ),
-          backgroundColor: Theme.of(
-            context,
-          ).colorScheme.inverseSurface.withValues(alpha: 0.1),
+          backgroundColor: Theme.of(context).colorScheme.inverseSurface
+              .withValues(alpha: 0.1),
           elevation: 0,
           systemOverlayStyle: AppTheme.gradientSystemOverlayStyle,
         ),

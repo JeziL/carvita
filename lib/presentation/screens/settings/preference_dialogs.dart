@@ -42,9 +42,8 @@ Future<PreferenceSelection<int>?> showDefaultVehicleSelectionDialog({
                   groupValue: currentVehicleId,
                   onChanged: (value) {
                     if (value != null) {
-                      Navigator.of(
-                        dialogContext,
-                      ).pop(PreferenceSelected<int>(value));
+                      Navigator.of(dialogContext)
+                          .pop(PreferenceSelected<int>(value));
                     }
                   },
                   child: ListView.builder(
@@ -117,13 +116,11 @@ Future<PreferenceSelection<Locale>?> showLanguageSelectionDialog({
           return SimpleDialogOption(
             onPressed: () {
               if (locale == null) {
-                Navigator.of(
-                  dialogContext,
-                ).pop(const PreferenceCleared<Locale>());
+                Navigator.of(dialogContext)
+                    .pop(const PreferenceCleared<Locale>());
               } else {
-                Navigator.of(
-                  dialogContext,
-                ).pop(PreferenceSelected<Locale>(locale));
+                Navigator.of(dialogContext)
+                    .pop(PreferenceSelected<Locale>(locale));
               }
             },
             child: Padding(

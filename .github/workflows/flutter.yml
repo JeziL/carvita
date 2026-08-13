@@ -28,15 +28,15 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-          flutter-version: 3.44.8
+          flutter-version: 3.47.0
           cache: true
 
       - name: Verify toolchain
         run: |
           flutter --version
           dart --version
-          test "$(flutter --version --machine | jq -r .frameworkVersion)" = "3.44.8"
-          test "$(dart --version 2>&1 | awk '{print $4}')" = "3.12.2"
+          test "$(flutter --version --machine | jq -r .frameworkVersion)" = "3.47.0"
+          test "$(dart --version 2>&1 | awk '{print $4}')" = "3.13.0"
 
       - name: Get dependencies
         run: flutter pub get
@@ -73,7 +73,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-          flutter-version: 3.44.8
+          flutter-version: 3.47.0
           cache: true
 
       - name: Get dependencies

@@ -4,6 +4,7 @@ import 'package:carvita/application/use_cases/vehicle_use_cases.dart';
 import 'package:carvita/core/failures/app_failure.dart';
 import 'package:carvita/core/utils/operation_result.dart';
 import 'package:carvita/data/models/vehicle.dart';
+
 import 'vehicle_state.dart';
 
 class VehicleCubit extends Cubit<VehicleState> {

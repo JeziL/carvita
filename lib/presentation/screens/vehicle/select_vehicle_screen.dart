@@ -61,9 +61,8 @@ class SelectVehicleScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           title: Text(AppLocalizations.of(context)!.chooseVehicle),
-          backgroundColor: Theme.of(
-            context,
-          ).colorScheme.inverseSurface.withValues(alpha: 0.1),
+          backgroundColor: Theme.of(context).colorScheme.inverseSurface
+              .withValues(alpha: 0.1),
           elevation: 0,
           systemOverlayStyle: AppTheme.gradientSystemOverlayStyle,
         ),
@@ -95,9 +94,8 @@ class SelectVehicleScreen extends StatelessWidget {
                   subtitle: Text(
                     vehicle.model ?? AppLocalizations.of(context)!.unknownModel,
                     style: TextStyle(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurface.withValues(alpha: 0.7),
+                      color: Theme.of(context).colorScheme.onSurface
+                          .withValues(alpha: 0.7),
                     ),
                   ),
                   onTap: () {

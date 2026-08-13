@@ -337,13 +337,11 @@ class _AddEditMaintenancePlanItemScreenState
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           title: Text(
-            AppLocalizations.of(
-              context,
-            )!.addEditMaintenanceItem(_isEditing ? 'edit' : 'add'),
+            AppLocalizations.of(context)!
+                .addEditMaintenanceItem(_isEditing ? 'edit' : 'add'),
           ),
-          backgroundColor: Theme.of(
-            context,
-          ).colorScheme.inverseSurface.withValues(alpha: 0.1),
+          backgroundColor: Theme.of(context).colorScheme.inverseSurface
+              .withValues(alpha: 0.1),
           elevation: 0,
           systemOverlayStyle: AppTheme.gradientSystemOverlayStyle,
           leading: IconButton(
@@ -404,9 +402,8 @@ class _AddEditMaintenancePlanItemScreenState
                     timeController: _intervalTimeMonthsController,
                     mileageController: _intervalMileageController,
                     timeHint: AppLocalizations.of(context)!.timeHint,
-                    mileageHint: AppLocalizations.of(
-                      context,
-                    )!.mileageHint(localeProvider.mileageUnit),
+                    mileageHint: AppLocalizations.of(context)!
+                        .mileageHint(localeProvider.mileageUnit),
                   ),
                   const SizedBox(height: 20),
                   TextFormField(
@@ -420,9 +417,8 @@ class _AddEditMaintenancePlanItemScreenState
                             AppLocalizations.of(context)!.notes,
                             AppLocalizations.of(context)!.optionalEntry,
                           ),
-                      hintText: AppLocalizations.of(
-                        context,
-                      )!.noteMaintenanceItemHint,
+                      hintText: AppLocalizations.of(context)!
+                          .noteMaintenanceItemHint,
                     ),
                     maxLines: 3,
                     minLines: 1,
@@ -453,9 +449,8 @@ class _AddEditMaintenancePlanItemScreenState
                             ),
                           )
                         : Text(
-                            AppLocalizations.of(
-                              context,
-                            )!.addEditButtonText(_isEditing ? 'edit' : 'add'),
+                            AppLocalizations.of(context)!
+                                .addEditButtonText(_isEditing ? 'edit' : 'add'),
                             style: TextStyle(
                               color: isDark
                                   ? Theme.of(context).colorScheme.onPrimary

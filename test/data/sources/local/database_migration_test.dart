@@ -344,9 +344,8 @@ void main() {
           intervalMileage: 12000,
         ),
       );
-      final edited = (await helper.getMaintenancePlanItemsForVehicle(
-        vehicleId,
-      )).single;
+      final edited = (await helper.getMaintenancePlanItemsForVehicle(vehicleId))
+          .single;
       expect(edited.baselineDate, DateTime(2026, 7, 29));
       expect(edited.baselineMileage, 45678);
     },
@@ -390,9 +389,9 @@ void main() {
       expect(softDeletedHistory.displayName, 'Oil');
 
       await helper.deleteMaintenancePlanItem(planId);
-      final preservedHistory = (await helper.getServiceLogByIdWithItems(
-        logId,
-      ))!.performedItems.single;
+      final preservedHistory = (await helper.getServiceLogByIdWithItems(logId))!
+          .performedItems
+          .single;
       expect(preservedHistory.maintenancePlanItemId, isNull);
       expect(preservedHistory.customItemName, 'Oil');
 
@@ -619,15 +618,15 @@ Future<Map<String, int>> _tableCounts(sqflite.Database database) async {
 }
 
 Future<List<String>> _predictionSignatures(sqflite.Database database) async {
-  final vehicles = (await database.query(
-    'vehicles',
-  )).map(Vehicle.fromMap).toList(growable: false);
-  final plans = (await database.query(
-    'maintenance_plan_items',
-  )).map(MaintenancePlanItem.fromMap).toList(growable: false);
-  final logs = (await database.query(
-    'service_log_entries',
-  )).map(ServiceLogEntry.fromMap).toList(growable: false);
+  final vehicles = (await database.query('vehicles'))
+      .map(Vehicle.fromMap)
+      .toList(growable: false);
+  final plans = (await database.query('maintenance_plan_items'))
+      .map(MaintenancePlanItem.fromMap)
+      .toList(growable: false);
+  final logs = (await database.query('service_log_entries'))
+      .map(ServiceLogEntry.fromMap)
+      .toList(growable: false);
   final links =
       (await database.query(
             'service_log_performed_items',

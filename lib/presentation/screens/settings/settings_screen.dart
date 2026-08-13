@@ -160,9 +160,9 @@ class _SettingsScreenState extends State<SettingsScreen>
           context: context,
           builder: (BuildContext dialogContext) {
             return SimpleDialog(
-              backgroundColor: Theme.of(
-                context,
-              ).colorScheme.surfaceContainerLowest,
+              backgroundColor: Theme.of(context)
+                  .colorScheme
+                  .surfaceContainerLowest,
               title: Text(
                 AppLocalizations.of(context)!.chooseThreshold,
                 style: TextStyle(
@@ -408,9 +408,8 @@ class _SettingsScreenState extends State<SettingsScreen>
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurface.withValues(alpha: 0.6),
+                  color: Theme.of(context).colorScheme.onSurface
+                      .withValues(alpha: 0.6),
                 ),
               ),
             ),
@@ -448,9 +447,8 @@ class _SettingsScreenState extends State<SettingsScreen>
               value,
               style: TextStyle(
                 fontSize: 14,
-                color: Theme.of(
-                  context,
-                ).colorScheme.onSurface.withValues(alpha: 0.7),
+                color: Theme.of(context).colorScheme.onSurface
+                    .withValues(alpha: 0.7),
               ),
             )
           : null,
@@ -459,9 +457,8 @@ class _SettingsScreenState extends State<SettingsScreen>
           (onTap != null
               ? Icon(
                   Icons.chevron_right,
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurface.withValues(alpha: 0.5),
+                  color: Theme.of(context).colorScheme.onSurface
+                      .withValues(alpha: 0.5),
                 )
               : null),
       onTap: onTap,
@@ -626,9 +623,8 @@ class _SettingsScreenState extends State<SettingsScreen>
         appBar: AppBar(
           automaticallyImplyLeading: false,
           title: Text(AppLocalizations.of(context)!.navSettings),
-          backgroundColor: Theme.of(
-            context,
-          ).colorScheme.inverseSurface.withValues(alpha: 0.1),
+          backgroundColor: Theme.of(context).colorScheme.inverseSurface
+              .withValues(alpha: 0.1),
           elevation: 0,
           systemOverlayStyle: AppTheme.gradientSystemOverlayStyle,
         ),
@@ -664,9 +660,8 @@ class _SettingsScreenState extends State<SettingsScreen>
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(
-                                AppLocalizations.of(
-                                  context,
-                                )!.errNotificationPermission,
+                                AppLocalizations.of(context)!
+                                    .errNotificationPermission,
                               ),
                               backgroundColor: AppColors.urgentReminderText,
                             ),
@@ -686,12 +681,10 @@ class _SettingsScreenState extends State<SettingsScreen>
                 ),
                 _buildSettingItem(
                   icon: Icons.schedule_outlined,
-                  label: AppLocalizations.of(
-                    context,
-                  )!.notificationLeadTimeLabel,
-                  value: AppLocalizations.of(
-                    context,
-                  )!.notificationLeadTime(_selectedLeadTimeDays),
+                  label: AppLocalizations.of(context)!
+                      .notificationLeadTimeLabel,
+                  value: AppLocalizations.of(context)!
+                      .notificationLeadTime(_selectedLeadTimeDays),
                   onTap: () => _showSelectReminderLeadTimeDialog(context),
                 ),
               ],
@@ -719,9 +712,9 @@ class _SettingsScreenState extends State<SettingsScreen>
                             content: Text(
                               AppLocalizations.of(context)!.noVehicles,
                             ),
-                            backgroundColor: Theme.of(
-                              context,
-                            ).colorScheme.primary,
+                            backgroundColor: Theme.of(context)
+                                .colorScheme
+                                .primary,
                           ),
                         );
                       }
@@ -729,9 +722,9 @@ class _SettingsScreenState extends State<SettingsScreen>
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(AppLocalizations.of(context)!.loading),
-                          backgroundColor: Theme.of(
-                            context,
-                          ).colorScheme.primary,
+                          backgroundColor: Theme.of(context)
+                              .colorScheme
+                              .primary,
                         ),
                       );
                       context.read<VehicleCubit>().fetchVehicles();
@@ -747,9 +740,8 @@ class _SettingsScreenState extends State<SettingsScreen>
                 _buildSettingItem(
                   icon: Icons.checklist_outlined,
                   label: AppLocalizations.of(context)!.reminderDisplayItemCount,
-                  value: AppLocalizations.of(
-                    context,
-                  )!.itemCount(_selectedReminderItemCount),
+                  value: AppLocalizations.of(context)!
+                      .itemCount(_selectedReminderItemCount),
                   onTap: () => _showSelectReminderItemCountDialog(context),
                 ),
               ],
@@ -767,9 +759,8 @@ class _SettingsScreenState extends State<SettingsScreen>
                 _buildSettingItem(
                   icon: Icons.straighten_outlined,
                   label: AppLocalizations.of(context)!.mileageUnitLabel,
-                  value: AppLocalizations.of(
-                    context,
-                  )!.mileageUnit(localeProvider.mileageUnit),
+                  value: AppLocalizations.of(context)!
+                      .mileageUnit(localeProvider.mileageUnit),
                   onTap: () =>
                       _showSelectMileageUnitDialog(context, localeProvider),
                 ),

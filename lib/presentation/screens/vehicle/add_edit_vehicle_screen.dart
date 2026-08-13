@@ -215,9 +215,8 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              AppLocalizations.of(
-                context,
-              )!.invalidEmptyEntry(AppLocalizations.of(context)!.boughtDate),
+              AppLocalizations.of(context)!
+                  .invalidEmptyEntry(AppLocalizations.of(context)!.boughtDate),
               style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
             ),
             backgroundColor: AppColors.urgentReminderText,
@@ -371,13 +370,11 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           title: Text(
-            AppLocalizations.of(
-              context,
-            )!.addEditVehicle(_isEditing ? 'edit' : 'add'),
+            AppLocalizations.of(context)!
+                .addEditVehicle(_isEditing ? 'edit' : 'add'),
           ),
-          backgroundColor: Theme.of(
-            context,
-          ).colorScheme.inverseSurface.withValues(alpha: 0.1),
+          backgroundColor: Theme.of(context).colorScheme.inverseSurface
+              .withValues(alpha: 0.1),
           elevation: 0,
           systemOverlayStyle: AppTheme.gradientSystemOverlayStyle,
           leading: IconButton(
@@ -434,16 +431,13 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
                                     ),
                                     SizedBox(height: 8),
                                     Text(
-                                      AppLocalizations.of(
-                                        context,
-                                      )!.optionalFieldLabel(
-                                        AppLocalizations.of(
-                                          context,
-                                        )!.uploadVehicleImage,
-                                        AppLocalizations.of(
-                                          context,
-                                        )!.optionalEntry,
-                                      ),
+                                      AppLocalizations.of(context)!
+                                          .optionalFieldLabel(
+                                            AppLocalizations.of(context)!
+                                                .uploadVehicleImage,
+                                            AppLocalizations.of(context)!
+                                                .optionalEntry,
+                                          ),
                                       textAlign: TextAlign.center,
                                       style: TextStyle(
                                         color: themeExtensions
@@ -484,9 +478,8 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
                     validator: (val) {
                       if (val == null || val.isEmpty) {
                         return AppLocalizations.of(context)!.invalidEmptyEntry(
-                          AppLocalizations.of(
-                            context,
-                          )!.mileageLabelWithUnit(""),
+                          AppLocalizations.of(context)!
+                              .mileageLabelWithUnit(""),
                         );
                       }
                       final mileage = LocalizedNumberInput.parseDouble(
@@ -494,13 +487,11 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
                         inputLocale,
                       );
                       if (mileage == null || mileage < 0) {
-                        return AppLocalizations.of(
-                          context,
-                        )!.invalidOptionalEntry(
-                          AppLocalizations.of(
-                            context,
-                          )!.mileageLabelWithUnit(""),
-                        );
+                        return AppLocalizations.of(context)!
+                            .invalidOptionalEntry(
+                              AppLocalizations.of(context)!
+                                  .mileageLabelWithUnit(""),
+                            );
                       }
                       return null;
                     },
@@ -527,11 +518,10 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
                       onTap: () => _selectBoughtDate(context),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return AppLocalizations.of(
-                            context,
-                          )!.invalidEmptyEntry(
-                            AppLocalizations.of(context)!.boughtDate,
-                          );
+                          return AppLocalizations.of(context)!
+                              .invalidEmptyEntry(
+                                AppLocalizations.of(context)!.boughtDate,
+                              );
                         }
                         return null;
                       },
@@ -589,9 +579,8 @@ class _AddEditVehicleScreenState extends State<AddEditVehicleScreen> {
                             ),
                           )
                         : Text(
-                            AppLocalizations.of(
-                              context,
-                            )!.addEditButtonText(_isEditing ? 'edit' : 'add'),
+                            AppLocalizations.of(context)!
+                                .addEditButtonText(_isEditing ? 'edit' : 'add'),
                             style: TextStyle(
                               color: isDark
                                   ? Theme.of(context).colorScheme.onPrimary
