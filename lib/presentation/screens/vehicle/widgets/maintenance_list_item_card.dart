@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:intl/intl.dart';
 
@@ -31,9 +31,8 @@ class MaintenanceListItemCard extends StatelessWidget {
     String daysRemainingText = daysRemaining >= 0
         ? AppLocalizations.of(context)!.daysLater(daysRemaining)
         : AppLocalizations.of(context)!.daysOverdue(-daysRemaining);
-    final dueText = AppLocalizations.of(
-      context,
-    )!.dateWithRelative(dueDate, daysRemainingText);
+    final dueText = AppLocalizations.of(context)!
+        .dateWithRelative(dueDate, daysRemainingText);
     return MaintenanceListItemCard(
       title: item.planItem.itemName,
       isUrgent: isUrgent,

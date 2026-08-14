@@ -61,9 +61,9 @@ List<String> validateReleaseMetadata({
   final publishedCodes = existingTags
       .where((existingTag) => existingTag != tag)
       .map(
-        (existingTag) => RegExp(
-          r'^v[0-9]+\.[0-9]+\.[0-9]+\+([0-9]+)$',
-        ).firstMatch(existingTag),
+        (existingTag) =>
+            RegExp(r'^v[0-9]+\.[0-9]+\.[0-9]+\+([0-9]+)$')
+                .firstMatch(existingTag),
       )
       .whereType<RegExpMatch>()
       .map((match) => int.parse(match.group(1)!))

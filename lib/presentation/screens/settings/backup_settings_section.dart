@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:provider/provider.dart';
 
@@ -170,9 +170,9 @@ class _BackupSettingsSectionState extends State<BackupSettingsSection> {
         builder: (dialogContext) => PopScope(
           canPop: false,
           child: AlertDialog(
-            backgroundColor: Theme.of(
-              context,
-            ).colorScheme.surfaceContainerLowest,
+            backgroundColor: Theme.of(context)
+                .colorScheme
+                .surfaceContainerLowest,
             title: Text(AppLocalizations.of(context)!.restoreSuccessTitle),
             content: Text(AppLocalizations.of(context)!.restoreSuccessBody),
             actions: [

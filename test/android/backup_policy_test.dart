@@ -4,12 +4,10 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test('Android backup policy disables cloud and device transfer data', () {
-    final manifest = File(
-      'android/app/src/main/AndroidManifest.xml',
-    ).readAsStringSync();
-    final legacyRules = File(
-      'android/app/src/main/res/xml/backup_rules.xml',
-    ).readAsStringSync();
+    final manifest = File('android/app/src/main/AndroidManifest.xml')
+        .readAsStringSync();
+    final legacyRules = File('android/app/src/main/res/xml/backup_rules.xml')
+        .readAsStringSync();
     final extractionRules = File(
       'android/app/src/main/res/xml/data_extraction_rules.xml',
     ).readAsStringSync();

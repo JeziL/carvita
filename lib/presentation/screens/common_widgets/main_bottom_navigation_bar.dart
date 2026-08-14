@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:carvita/i18n/generated/app_localizations.dart';
 import 'package:carvita/presentation/navigation/main_navigation_controller.dart';
@@ -18,9 +18,8 @@ class MainBottomNavigationBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(
-          context,
-        ).colorScheme.surfaceContainerLowest.withValues(alpha: 0.95),
+        color: Theme.of(context).colorScheme.surfaceContainerLowest
+            .withValues(alpha: 0.95),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.1),

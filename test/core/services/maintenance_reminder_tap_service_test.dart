@@ -205,7 +205,7 @@ class _FakeVehicleRepository implements VehicleRepositoryPort {
   Future<Uint8List?> getVehicleImage(int id) async => vehicle?.image;
 
   @override
-  Future<List<Vehicle>> getVehicles() async => [if (vehicle != null) vehicle!];
+  Future<List<Vehicle>> getVehicles() async => [?vehicle];
 
   @override
   Future<void> addVehicle(Vehicle vehicle) async {}

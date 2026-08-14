@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -253,9 +253,9 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
           barrierDismissible: false,
           builder: (BuildContext dialogContext) {
             return AlertDialog(
-              backgroundColor: Theme.of(
-                context,
-              ).colorScheme.surfaceContainerLowest,
+              backgroundColor: Theme.of(context)
+                  .colorScheme
+                  .surfaceContainerLowest,
               title: Text(
                 AppLocalizations.of(context)!.updateMileageTitle,
                 style: TextStyle(
@@ -398,9 +398,8 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
                           item.id,
                         );
                         return Theme(
-                          data: Theme.of(
-                            context,
-                          ).copyWith(canvasColor: Colors.transparent),
+                          data: Theme.of(context)
+                              .copyWith(canvasColor: Colors.transparent),
                           child: ChoiceChip(
                             label: Text(
                               item.itemName,
@@ -422,9 +421,9 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
                               });
                             },
                             backgroundColor: Colors.transparent,
-                            selectedColor: Theme.of(
-                              context,
-                            ).colorScheme.onPrimary,
+                            selectedColor: Theme.of(context)
+                                .colorScheme
+                                .onPrimary,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(20),
                               side: BorderSide(
@@ -529,9 +528,8 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
                           color: themeExtensions.textColorOnBackground,
                         ),
                         decoration: InputDecoration(
-                          hintText: AppLocalizations.of(
-                            context,
-                          )!.customItemAddHint,
+                          hintText: AppLocalizations.of(context)!
+                              .customItemAddHint,
                         ),
                         onFieldSubmitted: (_) =>
                             _addCustomItem(), // Allow submitting with enter key
@@ -571,13 +569,11 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           title: Text(
-            AppLocalizations.of(
-              context,
-            )!.addEditMaintenanceLog(_isEditing ? 'edit' : 'add'),
+            AppLocalizations.of(context)!
+                .addEditMaintenanceLog(_isEditing ? 'edit' : 'add'),
           ),
-          backgroundColor: Theme.of(
-            context,
-          ).colorScheme.inverseSurface.withValues(alpha: 0.1),
+          backgroundColor: Theme.of(context).colorScheme.inverseSurface
+              .withValues(alpha: 0.1),
           elevation: 0,
           systemOverlayStyle: AppTheme.gradientSystemOverlayStyle,
           leading: IconButton(
@@ -671,11 +667,10 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
                         inputLocale,
                       );
                       if (mileage == null || mileage <= 0) {
-                        return AppLocalizations.of(
-                          context,
-                        )!.invalidOptionalEntry(
-                          AppLocalizations.of(context)!.maintenanceDate,
-                        );
+                        return AppLocalizations.of(context)!
+                            .invalidOptionalEntry(
+                              AppLocalizations.of(context)!.maintenanceDate,
+                            );
                       }
                       return null;
                     },
@@ -768,9 +763,8 @@ class _LogMaintenanceScreenState extends State<LogMaintenanceScreen> {
                             ),
                           )
                         : Text(
-                            AppLocalizations.of(
-                              context,
-                            )!.addEditButtonText(_isEditing ? 'edit' : 'add'),
+                            AppLocalizations.of(context)!
+                                .addEditButtonText(_isEditing ? 'edit' : 'add'),
                             style: TextStyle(
                               color: isDark
                                   ? Theme.of(context).colorScheme.onPrimary

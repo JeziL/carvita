@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:carvita/core/theme/app_theme.dart';
 import 'package:carvita/core/widgets/gradient_background.dart';
@@ -15,9 +15,8 @@ class PrivacyScreen extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: Text(AppLocalizations.of(context)!.privacyPolicy),
-          backgroundColor: Theme.of(
-            context,
-          ).colorScheme.inverseSurface.withValues(alpha: 0.1),
+          backgroundColor: Theme.of(context).colorScheme.inverseSurface
+              .withValues(alpha: 0.1),
           elevation: 0,
           systemOverlayStyle: AppTheme.gradientSystemOverlayStyle,
           leading: IconButton(
@@ -69,9 +68,8 @@ class PrivacyScreen extends StatelessWidget {
                               SizedBox(width: 8),
                               Expanded(
                                 child: Text(
-                                  AppLocalizations.of(
-                                    context,
-                                  )!.privacyLocalStorage,
+                                  AppLocalizations.of(context)!
+                                      .privacyLocalStorage,
                                   style: TextStyle(
                                     fontSize: 16,
                                     color:

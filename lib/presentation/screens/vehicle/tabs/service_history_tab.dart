@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -50,9 +50,8 @@ class _ServiceHistoryTabState extends State<ServiceHistoryTab> {
             style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
           ),
           content: Text(
-            AppLocalizations.of(
-              context,
-            )!.deleteConfirmMLog(logWithItems.entry.serviceDate),
+            AppLocalizations.of(context)!
+                .deleteConfirmMLog(logWithItems.entry.serviceDate),
             style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
           ),
           actions: <Widget>[
@@ -195,9 +194,8 @@ class _ServiceHistoryTabState extends State<ServiceHistoryTab> {
                     child: Padding(
                       padding: EdgeInsets.symmetric(vertical: 30.0),
                       child: Text(
-                        AppLocalizations.of(
-                          context,
-                        )!.emptyMLog(AppLocalizations.of(context)!.addMLog),
+                        AppLocalizations.of(context)!
+                            .emptyMLog(AppLocalizations.of(context)!.addMLog),
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.onSurface,
@@ -217,9 +215,9 @@ class _ServiceHistoryTabState extends State<ServiceHistoryTab> {
                       final entry = logWithItems.entry;
 
                       return Card(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.surfaceContainerLowest,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerLowest,
                         elevation: 1,
                         margin: const EdgeInsets.only(bottom: 12),
                         shape: RoundedRectangleBorder(
@@ -248,9 +246,8 @@ class _ServiceHistoryTabState extends State<ServiceHistoryTab> {
                                         context,
                                       )!.dateWithMileage(
                                         DateFormat.yMMMd(
-                                          Localizations.localeOf(
-                                            context,
-                                          ).toLanguageTag(),
+                                          Localizations.localeOf(context)
+                                              .toLanguageTag(),
                                         ).format(entry.serviceDate),
                                         AppLocalizations.of(context)!.nMileage(
                                           entry.mileageAtService.round(),
@@ -260,9 +257,9 @@ class _ServiceHistoryTabState extends State<ServiceHistoryTab> {
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w500,
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.onSurface,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface,
                                       ),
                                     ),
                                     const SizedBox(height: 8),
@@ -274,20 +271,18 @@ class _ServiceHistoryTabState extends State<ServiceHistoryTab> {
                                             CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            AppLocalizations.of(
-                                              context,
-                                            )!.labeledValue(
-                                              AppLocalizations.of(
-                                                context,
-                                              )!.serviceItemLabel,
-                                              logWithItems
-                                                  .performedItemDisplayNames
-                                                  .join(
-                                                    AppLocalizations.of(
-                                                      context,
-                                                    )!.seperator,
-                                                  ),
-                                            ),
+                                            AppLocalizations.of(context)!
+                                                .labeledValue(
+                                                  AppLocalizations.of(context)!
+                                                      .serviceItemLabel,
+                                                  logWithItems
+                                                      .performedItemDisplayNames
+                                                      .join(
+                                                        AppLocalizations.of(
+                                                          context,
+                                                        )!.seperator,
+                                                      ),
+                                                ),
                                             style: TextStyle(
                                               fontSize: 13,
                                               color: Theme.of(context)
@@ -301,9 +296,8 @@ class _ServiceHistoryTabState extends State<ServiceHistoryTab> {
                                       ),
                                     if (entry.cost != null)
                                       Text(
-                                        AppLocalizations.of(
-                                          context,
-                                        )!.costWithSign(entry.cost!),
+                                        AppLocalizations.of(context)!
+                                            .costWithSign(entry.cost!),
                                         style: TextStyle(
                                           fontSize: 13,
                                           color: Theme.of(context)
@@ -318,12 +312,12 @@ class _ServiceHistoryTabState extends State<ServiceHistoryTab> {
                                     if (entry.notes != null &&
                                         entry.notes!.isNotEmpty)
                                       Text(
-                                        AppLocalizations.of(
-                                          context,
-                                        )!.labeledValue(
-                                          AppLocalizations.of(context)!.notes,
-                                          entry.notes!,
-                                        ),
+                                        AppLocalizations.of(context)!
+                                            .labeledValue(
+                                              AppLocalizations.of(context)!
+                                                  .notes,
+                                              entry.notes!,
+                                            ),
                                         style: TextStyle(
                                           fontSize: 13,
                                           color: Theme.of(context)
@@ -367,20 +361,19 @@ class _ServiceHistoryTabState extends State<ServiceHistoryTab> {
                                           children: [
                                             Icon(
                                               Icons.edit_outlined,
-                                              color: Theme.of(
-                                                context,
-                                              ).colorScheme.primary,
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .primary,
                                               size: 20,
                                             ),
                                             SizedBox(width: 8),
                                             Text(
-                                              AppLocalizations.of(
-                                                context,
-                                              )!.edit,
+                                              AppLocalizations.of(context)!
+                                                  .edit,
                                               style: TextStyle(
-                                                color: Theme.of(
-                                                  context,
-                                                ).colorScheme.onSurface,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurface,
                                               ),
                                             ),
                                           ],
@@ -398,13 +391,12 @@ class _ServiceHistoryTabState extends State<ServiceHistoryTab> {
                                             ),
                                             SizedBox(width: 8),
                                             Text(
-                                              AppLocalizations.of(
-                                                context,
-                                              )!.delete,
+                                              AppLocalizations.of(context)!
+                                                  .delete,
                                               style: TextStyle(
-                                                color: Theme.of(
-                                                  context,
-                                                ).colorScheme.onSurface,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurface,
                                               ),
                                             ),
                                           ],

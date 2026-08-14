@@ -24,9 +24,9 @@ final class LocalizedNumberInput {
     final value = input.trim();
     if (value.isEmpty) return null;
 
-    final decimalSeparator = NumberFormat.decimalPattern(
-      locale.toLanguageTag(),
-    ).symbols.DECIMAL_SEP;
+    final decimalSeparator = NumberFormat.decimalPattern(locale.toLanguageTag())
+        .symbols
+        .DECIMAL_SEP;
     final buffer = StringBuffer();
     var hasDecimalSeparator = false;
 

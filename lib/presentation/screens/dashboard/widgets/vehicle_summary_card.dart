@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:carvita/data/models/vehicle.dart';
 import 'package:carvita/presentation/images/vehicle_thumbnail.dart';
@@ -53,9 +53,8 @@ class VehicleSummaryCard extends StatelessWidget {
                     Text(
                       nextMaintenanceInfo,
                       style: TextStyle(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onSurface.withValues(alpha: 0.7),
+                        color: Theme.of(context).colorScheme.onSurface
+                            .withValues(alpha: 0.7),
                         fontSize: 13,
                       ),
                     ),

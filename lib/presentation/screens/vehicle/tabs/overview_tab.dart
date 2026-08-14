@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:collection/collection.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -83,9 +83,8 @@ class OverviewTab extends StatelessWidget {
                       SizedBox(
                         width: itemWidth,
                         child: InfoGridItem(
-                          label: AppLocalizations.of(
-                            context,
-                          )!.mileageLabelWithUnit(""),
+                          label: AppLocalizations.of(context)!
+                              .mileageLabelWithUnit(""),
                           value: AppLocalizations.of(context)!.nMileage(
                             vehicle.mileage.round(),
                             localeProvider.mileageUnit,
@@ -139,9 +138,8 @@ class OverviewTab extends StatelessWidget {
                       AppLocalizations.of(context)!.noNextMaintenance,
                       style: TextStyle(
                         fontSize: 15,
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onSurface.withValues(alpha: 0.7),
+                        color: Theme.of(context).colorScheme.onSurface
+                            .withValues(alpha: 0.7),
                       ),
                     ),
             ],

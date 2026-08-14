@@ -115,7 +115,7 @@ class PluginLocalNotificationsPlatform implements LocalNotificationsPlatform {
     );
 
     await _notificationsPlugin.initialize(
-      initializationSettings,
+      settings: initializationSettings,
       onDidReceiveNotificationResponse: (response) {
         onNotificationTap(response.payload);
       },
@@ -189,11 +189,11 @@ class PluginLocalNotificationsPlatform implements LocalNotificationsPlatform {
     final tzScheduledDate = tz.TZDateTime.from(scheduledDateTime, tz.local);
 
     await _notificationsPlugin.zonedSchedule(
-      id,
-      title,
-      body,
-      tzScheduledDate,
-      const NotificationDetails(
+      id: id,
+      title: title,
+      body: body,
+      scheduledDate: tzScheduledDate,
+      notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
           'carvita_channel_id',
           'CarVita Reminders',

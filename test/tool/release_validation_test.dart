@@ -43,9 +43,8 @@ void main() {
   });
 
   test('requires non-empty English and Chinese changelogs', () {
-    File(
-      '${root.path}/fastlane/metadata/android/zh-CN/changelogs/9.txt',
-    ).writeAsStringSync('  ');
+    File('${root.path}/fastlane/metadata/android/zh-CN/changelogs/9.txt')
+        .writeAsStringSync('  ');
 
     expect(
       validateReleaseMetadata(

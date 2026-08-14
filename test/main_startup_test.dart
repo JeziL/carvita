@@ -1,7 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -75,9 +74,7 @@ void main() {
           locale: const Locale('en'),
           localizationsDelegates: const [
             AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
+            ...GlobalMaterialLocalizations.delegates,
           ],
           supportedLocales: AppLocalizations.supportedLocales,
           home: const ShortcutLocalizationWrapper(child: SizedBox()),
@@ -135,9 +132,7 @@ void main() {
           locale: const Locale('en'),
           localizationsDelegates: const [
             AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
+            ...GlobalMaterialLocalizations.delegates,
           ],
           supportedLocales: AppLocalizations.supportedLocales,
           home: const ShortcutLocalizationWrapper(child: SizedBox()),
@@ -193,9 +188,7 @@ void main() {
           locale: const Locale('en'),
           localizationsDelegates: const [
             AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
+            ...GlobalMaterialLocalizations.delegates,
           ],
           supportedLocales: AppLocalizations.supportedLocales,
           home: const ShortcutLocalizationWrapper(child: SizedBox()),
@@ -315,9 +308,7 @@ void main() {
           locale: locale,
           localizationsDelegates: const [
             AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
+            ...GlobalMaterialLocalizations.delegates,
           ],
           supportedLocales: AppLocalizations.supportedLocales,
           home: const ShortcutLocalizationWrapper(child: SizedBox()),
@@ -386,9 +377,7 @@ void main() {
             locale: const Locale('en'),
             localizationsDelegates: const [
               AppLocalizations.delegate,
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
+              ...GlobalMaterialLocalizations.delegates,
             ],
             supportedLocales: AppLocalizations.supportedLocales,
             home: const ShortcutLocalizationWrapper(
@@ -447,9 +436,7 @@ Future<UpcomingMaintenanceCubit> _pumpPermissionReconciliationApp(
         locale: const Locale('en'),
         localizationsDelegates: const [
           AppLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
+          ...GlobalMaterialLocalizations.delegates,
         ],
         supportedLocales: AppLocalizations.supportedLocales,
         home: const ShortcutLocalizationWrapper(child: SizedBox()),

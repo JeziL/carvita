@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 
 import 'package:collection/collection.dart';
@@ -329,9 +329,9 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.surfaceContainerLowest,
+                      color: Theme.of(context)
+                          .colorScheme
+                          .surfaceContainerLowest,
                       borderRadius: const BorderRadius.only(
                         topLeft: Radius.circular(24),
                         topRight: Radius.circular(24),

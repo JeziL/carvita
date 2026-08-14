@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:carvita/core/services/preferences_service.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';

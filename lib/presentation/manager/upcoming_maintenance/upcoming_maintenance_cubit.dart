@@ -7,6 +7,7 @@ import 'package:carvita/application/use_cases/synchronize_maintenance_reminders.
 import 'package:carvita/core/failures/app_failure.dart';
 import 'package:carvita/data/models/predicted_maintenance.dart';
 import 'package:carvita/i18n/generated/app_localizations.dart';
+
 import 'upcoming_maintenance_state.dart';
 
 class UpcomingMaintenanceCubit extends Cubit<UpcomingMaintenanceState> {

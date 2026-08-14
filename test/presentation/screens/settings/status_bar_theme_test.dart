@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -33,6 +33,25 @@ void main() {
 
     _expectLightStatusBar(tester);
   });
+
+  testWidgets(
+    'legacy color picker remains usable through the migration bridge',
+    (tester) async {
+      await tester.pumpWidget(_settingsApp());
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Theme'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Theme'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Custom'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Pick a color'), findsOneWidget);
+      expect(find.byType(ColorPicker), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets('settings-related gradient routes use light status bar icons', (
     tester,
@@ -97,9 +116,7 @@ Widget _testApp({required Widget child}) {
     locale: const Locale('en'),
     localizationsDelegates: const [
       AppLocalizations.delegate,
-      GlobalMaterialLocalizations.delegate,
-      GlobalWidgetsLocalizations.delegate,
-      GlobalCupertinoLocalizations.delegate,
+      ...GlobalMaterialLocalizations.delegates,
     ],
     supportedLocales: AppLocalizations.supportedLocales,
     theme: AppTheme.getThemeData(colorScheme, brightness),

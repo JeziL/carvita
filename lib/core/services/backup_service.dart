@@ -381,9 +381,8 @@ class BackupService implements BackupGateway {
       );
       final stagingFile = package == null
           ? await sourceFile.copy(stagingPath)
-          : await File(
-              stagingPath,
-            ).writeAsBytes(package.databaseBytes, flush: true);
+          : await File(stagingPath)
+                .writeAsBytes(package.databaseBytes, flush: true);
 
       try {
         await _validateDatabaseFile(

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -142,9 +142,8 @@ class _UpcomingMaintenanceListScreenState
               return PopupMenuButton<Vehicle?>(
                 icon: Icon(
                   Icons.filter_list,
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurface.withValues(alpha: 0.7),
+                  color: Theme.of(context).colorScheme.onSurface
+                      .withValues(alpha: 0.7),
                 ),
                 tooltip: AppLocalizations.of(context)!.filterByVehicle,
                 onSelected: (Vehicle? vehicle) {
@@ -182,9 +181,8 @@ class _UpcomingMaintenanceListScreenState
         bottom: TabBar(
           controller: _tabController,
           labelColor: Theme.of(context).colorScheme.primary,
-          unselectedLabelColor: Theme.of(
-            context,
-          ).colorScheme.onSurface.withValues(alpha: 0.7),
+          unselectedLabelColor: Theme.of(context).colorScheme.onSurface
+              .withValues(alpha: 0.7),
           indicatorColor: Theme.of(context).colorScheme.primary,
           indicatorWeight: 2.5,
           labelStyle: const TextStyle(
@@ -239,13 +237,11 @@ class _UpcomingMaintenanceListScreenState
                   child: Text(
                     _selectedVehicleFilter == null && _tabController.index == 0
                         ? AppLocalizations.of(context)!.maintenanceListEmpty
-                        : AppLocalizations.of(
-                            context,
-                          )!.maintenanceListEmptyAfterFilter,
+                        : AppLocalizations.of(context)!
+                              .maintenanceListEmptyAfterFilter,
                     style: TextStyle(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurface.withValues(alpha: 0.7),
+                      color: Theme.of(context).colorScheme.onSurface
+                          .withValues(alpha: 0.7),
                       fontSize: 15,
                     ),
                     textAlign: TextAlign.center,
@@ -304,9 +300,8 @@ class _UpcomingMaintenanceListScreenState
                         Text(
                           vehicleName,
                           style: TextStyle(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurface.withValues(alpha: 0.8),
+                            color: Theme.of(context).colorScheme.onSurface
+                                .withValues(alpha: 0.8),
                           ),
                         ),
                         Text(
@@ -327,9 +322,8 @@ class _UpcomingMaintenanceListScreenState
                             estimatedValue,
                           ),
                           style: TextStyle(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurface.withValues(alpha: 0.8),
+                            color: Theme.of(context).colorScheme.onSurface
+                                .withValues(alpha: 0.8),
                           ),
                         ),
                       ],

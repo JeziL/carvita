@@ -88,9 +88,9 @@ void main() {
       final archive = ZipDecoder().decodeBytes(
         await File(snapshotPath).readAsBytes(),
       );
-      final manifest =
-          jsonDecode(utf8.decode(archive.find('manifest.json')!.readBytes()!))
-              as Map<String, dynamic>;
+      final manifest = jsonDecode(
+        utf8.decode(archive.find('manifest.json')!.readBytes()!),
+      ) as Map<String, dynamic>;
       expect(manifest['formatVersion'], BackupService.backupFormatVersion);
       expect(manifest['databaseSchemaVersion'], DatabaseHelper.schemaVersion);
       expect(manifest['applicationVersion'], '1.1.0+8');
