@@ -542,7 +542,7 @@ Future<void> _createV1Schema(sqflite.Database database, int version) async {
 
 Map<String, Object?> _vehicleValues({int? id, required String name}) {
   return {
-    if (id != null) 'id': id,
+    'id': ?id,
     'name': name,
     'mileage': 1000.0,
     'mileage_last_updated': '2026-07-01T00:00:00.000',
@@ -556,7 +556,7 @@ Map<String, Object?> _planValues({
   required String name,
 }) {
   return {
-    if (id != null) 'id': id,
+    'id': ?id,
     'vehicleId': vehicleId,
     'itemName': name,
     'intervalTimeMonths': 12,
@@ -566,7 +566,7 @@ Map<String, Object?> _planValues({
 
 Map<String, Object?> _logValues({int? id, required int vehicleId}) {
   return {
-    if (id != null) 'id': id,
+    'id': ?id,
     'vehicleId': vehicleId,
     'serviceDate': '2026-06-01T00:00:00.000',
     'mileageAtService': 5000.0,
