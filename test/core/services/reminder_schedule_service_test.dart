@@ -140,8 +140,12 @@ void main() {
     final refresh = await service.refreshTimeZone();
 
     expect(refresh.usedFallback, isTrue);
-    expect(refresh.timeZoneId, 'UTC');
-    expect(tz.local.name, 'UTC');
+    expect(refresh.timeZoneId, 'Etc/UTC');
+    expect(tz.local.name, 'Etc/UTC');
+    expect(
+      tz.TZDateTime.from(DateTime.utc(2026, 7, 27), tz.local).timeZoneOffset,
+      Duration.zero,
+    );
   });
 
   test('concurrent refreshes share one device lookup', () async {
