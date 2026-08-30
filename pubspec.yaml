@@ -1,7 +1,7 @@
 name: carvita
 description: "Personal assistant for managing and predicting your vehicle's maintenance needs."
 publish_to: 'none'
-version: 1.2.2+11
+version: 1.2.3+12
 
 environment:
   sdk: '>=3.13.0 <4.0.0'
