@@ -40,4 +40,14 @@ void main() {
       contains('jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17'),
     );
   });
+
+  test('jni native builds omit path-dependent linker build IDs', () {
+    final rootBuild = File('android/build.gradle.kts').readAsStringSync();
+
+    expect(rootBuild, contains('val isJniPlugin = name == "jni"'));
+    expect(
+      rootBuild,
+      contains('-DCMAKE_SHARED_LINKER_FLAGS=-Wl,--build-id=none'),
+    );
+  });
 }

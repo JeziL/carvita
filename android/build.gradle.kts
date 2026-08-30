@@ -18,10 +18,21 @@ subprojects {
 
 subprojects {
     if (path != ":app") {
+        val isJniPlugin = name == "jni"
         afterEvaluate {
             if (plugins.hasPlugin("com.android.library")) {
                 extensions.configure<com.android.build.api.dsl.LibraryExtension> {
                     compileSdk = 36
+                    if (isJniPlugin) {
+                        defaultConfig {
+                            externalNativeBuild {
+                                cmake {
+                                    arguments +=
+                                        "-DCMAKE_SHARED_LINKER_FLAGS=-Wl,--build-id=none"
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
