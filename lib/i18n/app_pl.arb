@@ -12,7 +12,7 @@
   "@addVehicle": {
     "description": "Etykieta przycisku szybkiego dodawania nowego pojazdu"
   },
-  "logMaintenance": "Rejestr czynności",
+  "logMaintenance": "Rejestr czynności serwisowych",
   "@logMaintenance": {
     "description": "Etykieta przycisku szybkiego dodawania czynności serwisowej"
   },
@@ -20,7 +20,7 @@
   "@urgentReminders": {
     "description": "Etykieta sekcji przypomnień oczekujących na realizację w panelu"
   },
-  "itemsDueSoon": "{count, plural, =0{brak serwisów} =1{1 serwis} other{{count} serwisy}} wkrótce do wykonania",
+  "itemsDueSoon": "{count, plural, =0{brak czynności serwisowych} =1{1 czynność serwisowa} other{{count} czynności serwisowych}} wkrótce do wykonania",
   "@itemsDueSoon": {
     "description": "Tytuł sekcji z bieżącymi przypomnieniami na pulpicie nawigacyjnym",
     "placeholders": {
@@ -65,7 +65,7 @@
   },
   "nextMaintenance": "Następne terminy",
   "@nextMaintenance": {
-    "description": "Etykieta kolejnej sekcji serwisu na ekranie szczegółów pojazdu"
+    "description": "Etykieta kolejnej sekcji czynności serwisowych na ekranie szczegółów pojazdu"
   },
   "noNextMaintenance": "Brak planowanych czynności serwisowych",
   "@noNextMaintenance": {
@@ -124,7 +124,7 @@
   "@notificationPrefix": {
     "description": "Prefiks tytułu powiadomień"
   },
-  "notificationBody": "{maintenanceItem} is due on {dueDate}.",
+  "notificationBody": "{maintenanceItem} jest wymagane w dniu {dueDate}.",
   "@notificationBody": {
     "description": "Treść powiadomienia",
     "placeholders": {
@@ -191,7 +191,7 @@
       }
     }
   },
-  "addEditMaintenanceItemForVeh": "{opType, select, add{Dodaj} edit{Edytuj} other{}} pozycję planu czynności serwisowej dla {pojazdu}",
+  "addEditMaintenanceItemForVeh": "{opType, select, add{Dodaj} edit{Edytuj} other{}} pozycję planu czynności serwisowej dla {vehicle}",
   "@addEditMaintenanceItemForVeh": {
     "description": "Podtytuł ekranu dodawania/edycji czynności serwisowej",
     "placeholders": {
@@ -224,7 +224,7 @@
   "@timeHint": {
     "description": "Wskazówka dotycząca pola odstępu czasowego na ekranie dodawania/edycji czynności serwisowej"
   },
-  "mileageHint": "przebieg ({jednostka})",
+  "mileageHint": "przebieg ({unit})",
   "@mileageHint": {
     "description": "Wskazówka dotycząca pola odstępu przebiegu na ekranie dodawania/edycji czynności serwisowej",
     "placeholders": {
@@ -237,7 +237,7 @@
   "@firstTimeHint": {
     "description": "Podpowiedź dla pola początkowego odstępu czasowego na ekranie dodawania/edycji czynności serwisowej"
   },
-  "firstMileageHint": "początkowy odstęp przebiegu ({jednostki})",
+  "firstMileageHint": "początkowy odstęp przebiegu ({unit})",
   "@firstMileageHint": {
     "description": "Podpowiedź dla pola początkowego odstępu przebiegu na ekranie dodawania/edycji czynności serwisowej",
     "placeholders": {
@@ -360,15 +360,15 @@
   },
   "nextYear": "Rok",
   "@nextYear": {
-    "description": "Etykieta filtra dla zakresu rocznego na ekranie listy konserwacji"
+    "description": "Etykieta filtra dla zakresu rocznego na ekranie listy czynności serwisowych"
   },
   "thisWeek": "Tydzień",
   "@thisWeek": {
-    "description": "Etykieta filtra dla zakresu tygodniowego na ekranie listy prac konserwacyjnych"
+    "description": "Etykieta filtra dla zakresu tygodniowego na ekranie listy czynności serwisowych"
   },
   "thisMonth": "Miesiąc",
   "@thisMonth": {
-    "description": "Etykieta filtra dla zakresu miesięcznego na ekranie listy konserwacji"
+    "description": "Etykieta filtra dla zakresu miesięcznego na ekranie listy czynności serwisowych"
   },
   "maintenanceListEmpty": "Brak zbliżających się czynności serwisowych.",
   "@maintenanceListEmpty": {
@@ -495,70 +495,70 @@
   "@exitButton": {
     "description": "Etykieta przycisku wyjścia po pomyślnym przywróceniu"
   },
-  "importCancelled": "Import anulowany",
+ "importCancelled": "Import anulowany",
   "@importCancelled": {
     "description": "Etykieta anulowanego importu"
   },
-  "chooseLeadTime": "Choose notification time",
+  "chooseLeadTime": "Wybierz czas powiadomienia",
   "@chooseLeadTime": {
-    "description": "The title for the choose lead time dialog in the settings screen"
+    "description": "Tytuł okna wyboru czasu wyprzedzenia na ekranie ustawień"
   },
-  "notification": "Notification",
+  "notification": "Powiadomienia",
   "@notification": {
-    "description": "The label for the notification section in the settings screen"
+    "description": "Etykieta sekcji powiadomień na ekranie ustawień"
   },
-  "notificationEnabled": "Enabled",
+  "notificationEnabled": "Włączone",
   "@notificationEnabled": {
-    "description": "The label for the of notification switch"
+    "description": "Etykieta przełącznika włączającego powiadomienia"
   },
-  "errNotificationPermission": "Please enable notifications in your system settings.",
+  "errNotificationPermission": "Proszę włączyć powiadomienia w ustawieniach systemu.",
   "@errNotificationPermission": {
-    "description": "Error message when the notification permission is not granted"
+    "description": "Komunikat o błędzie, gdy uprawnienia do powiadomień nie zostały przyznane"
   },
-  "reminderDisplayItemCount": "Number of reminder items",
+  "reminderDisplayItemCount": "Liczba elementów przypomnienia",
   "@reminderDisplayItemCount": {
-    "description": "The label for the display items count setting in the settings screen"
+    "description": "Etykieta ustawienia liczby wyświetlanych elementów na ekranie ustawień"
   },
-  "data": "Data",
+  "data": "Dane",
   "@data": {
-    "description": "The label for the data section in the settings screen"
+    "description": "Etykieta sekcji danych na ekranie ustawień"
   },
-  "exportData": "Export data",
+  "exportData": "Eksportuj dane",
   "@exportData": {
-    "description": "The label for the export data entry in the settings screen"
+    "description": "Etykieta opcji eksportu danych na ekranie ustawień"
   },
-  "about": "About",
+  "about": "O aplikacji",
   "@about": {
-    "description": "The label for the about section in the settings screen"
+    "description": "Etykieta sekcji informacyjnej na ekranie ustawień"
   },
-  "appVersionEntry": "App version",
+  "appVersionEntry": "Wersja aplikacji",
   "@appVersionEntry": {
-    "description": "The label for the app version entry in the about section"
+    "description": "Etykieta wersji aplikacji w sekcji informacyjnej"
   },
-  "confirmDelete": "Confirm delete",
+  "confirmDelete": "Potwierdź usunięcie",
   "@confirmDelete": {
-    "description": "The title for the confirm delete dialog"
+    "description": "Tytuł okna dialogowego potwierdzenia usunięcia"
   },
-  "deleteConfirmMPlan": "Are you sure you want to delete the maintenance plan item \"{itemName}\"?",
+  "deleteConfirmMPlan": "Czy na pewno chcesz usunąć element planu czynności serwisowych \"{itemName}\"?",
   "@deleteConfirmMPlan": {
-    "description": "The body for the confirm delete dialog of maintenance plan items",
+    "description": "Treść okna dialogowego potwierdzenia usunięcia elementów planu czynności serwisowych",
     "placeholders": {
       "itemName": {
         "type": "String"
       }
     }
   },
-  "delete": "Delete",
+  "delete": "Usuń",
   "@delete": {
-    "description": "The label for the delete button in dialogs"
+   "description": "Etykieta przycisku usuwania w oknach dialogowych"
   },
-  "edit": "Edit",
+  "edit": "Edytuj",
   "@edit": {
-    "description": "The label for the edit button in dialogs"
+    "description": "Etykieta przycisku edycji w oknach dialogowych"
   },
-  "everyNMileage": "Every {count} {unit}",
+  "everyNMileage": "Co {count} {unit}",
   "@everyNMileage": {
-    "description": "The label for the every N mileage interval in the maintenance plan item screen",
+    "description": "Etykieta przedziału co N kilometrów/mil na ekranie czynności serwisowej",
     "placeholders": {
       "count": {
         "type": "int"
@@ -568,9 +568,9 @@
       }
     }
   },
-  "everyNMonth": "Every {count, plural, =1{1 month} other{{count} months}}",
+  "everyNMonth": "Co {count, plural, =1{1 miesiąc} separate{2 miesiące, 3 miesiące, 4 miesiące} one{1 miesiąc} few{{count} miesiące} many{{count} miesięcy} other{{count} miesiąca}}",
   "@everyNMonth": {
-    "description": "The label for the every N month interval in the maintenance plan item screen",
+    "description": "Etykieta przedziału co N miesięcy na ekranie czynności serwisowej",
     "placeholders": {
       "count": {
         "type": "int"
@@ -579,7 +579,7 @@
   },
   "nMileage": "{count} {unit}",
   "@nMileage": {
-    "description": "The label for the N mileage first interval in the maintenance plan item screen",
+    "description": "Etykieta pierwszego przedziału N kilometrów/mil na ekranie czynności serwisowej",
     "placeholders": {
       "count": {
         "type": "int"
@@ -591,7 +591,7 @@
   },
   "nMonth": "{count, plural, =1{1 month} other{{count} months}}",
   "@nMonth": {
-    "description": "The label for the N month first interval in the maintenance plan item screen",
+    "description": "Etykieta pierwszego interwału N miesięcy na ekranie czynności serwisowej",
     "placeholders": {
       "count": {
         "type": "int"
@@ -600,53 +600,53 @@
   },
   "maintenancePlanShort": "Plan",
   "@maintenancePlanShort": {
-    "description": "The tab label for the maintenance plan screen"
+    "description": "Etykieta zakładki ekranu planu czynności serwisowych"
   },
-  "maintenancePlan": "Maintenance plan",
+  "maintenancePlan": "Plan czynności serwisowych",
   "@maintenancePlan": {
-    "description": "The title for the maintenance plan screen"
+    "description": "Tytuł ekranu planu czynności serwisowych"
   },
-  "addMPlan": "Add",
+  "addMPlan": "Dodaj",
   "@addMPlan": {
-    "description": "The label for the add maintenance plan button"
+    "description": "Etykieta przycisku dodawania planu czynności serwisowych"
   },
-  "emptyMPlan": "No maintenance manual items yet.\nTap \"{addBtnLabel}\" in the top right to get started!",
+  "emptyMPlan": "Brak pozycji planu czynności serwisowych.\nNaciśnij \"{addBtnLabel}\" w prawym górnym rogu, aby rozpocząć!",
   "@emptyMPlan": {
-    "description": "The label for the empty state of the maintenance plan screen",
+    "description": "Etykieta pustego stanu ekranu planu czynności serwisowych",
     "placeholders": {
       "addBtnLabel": {
         "type": "String"
       }
     }
   },
-  "vehicleInfo": "Vehicle info",
+  "vehicleInfo": "Informacje o pojeździe",
   "@vehicleInfo": {
-    "description": "The title for the vehicle info section on vehicle screen"
+    "description": "Tytuł sekcji informacji o pojeździe na ekranie pojazdu"
   },
-  "mileageLabelWithUnit": "Mileage{unit}",
+  "mileageLabelWithUnit": "Przebieg{unit}",
   "@mileageLabelWithUnit": {
-    "description": "The label for the mileage",
+    "description": "Etykieta dla przebiegu",
     "placeholders": {
       "unit": {
         "type": "String"
       }
     }
   },
-  "plateNumber": "Plate number",
+  "plateNumber": "Numer rejestracyjny",
   "@plateNumber": {
-    "description": "The label for the plate number field in the vehicle info screen"
+    "description": "Etykieta pola numeru rejestracyjnego na ekranie informacji o pojeździe"
   },
   "vin": "VIN",
   "@vin": {
-    "description": "The label for the VIN field in the vehicle info screen"
+    "description": "Etykieta pola VIN na ekranie informacji o pojeździe"
   },
-  "engineNumber": "Engine number",
+  "engineNumber": "Numer silnika",
   "@engineNumber": {
-    "description": "The label for the engine number field in the vehicle info screen"
+    "description": "Etykieta pola numeru silnika na ekranie informacji o pojeździe"
   },
-  "deleteConfirmMLog": "Are you sure you want to delete the maintenance log on {logDate}?",
+  "deleteConfirmMLog": "Czy na pewno chcesz usunąć wpis z historii czynności serwisowych z {logDate}?",
   "@deleteConfirmMLog": {
-    "description": "The body for the confirm delete dialog of maintenance logs",
+    "description": "Treść okna dialogowego potwierdzenia usunięcia wpisów w historii czynności serwisowych",
     "placeholders": {
       "logDate": {
         "type": "DateTime",
@@ -654,38 +654,38 @@
       }
     }
   },
-  "maintenanceLogShort": "History",
+  "maintenanceLogShort": "Historia",
   "@maintenanceLogShort": {
-    "description": "The tab label for the maintenance log screen"
+    "description": "Etykieta zakładki ekranu historii czynności serwisowych"
   },
-  "maintenanceLog": "Service history",
+  "maintenanceLog": "Historia czynności serwisowych",
   "@maintenanceLog": {
-    "description": "The title for the maintenance log screen"
+    "description": "Tytuł ekranu historii czynności serwisowych"
   },
-  "addMLog": "Log",
+  "addMLog": "Dodaj",
   "@addMLog": {
-    "description": "The label for the add maintenance log button"
+    "description": "Etykieta przycisku dodawania wpisu historii czynności serwisowych"
   },
-  "emptyMLog": "No service history yet.\nTap \"{addBtnLabel}\" in the top right to get started!",
+  "emptyMLog": "Brak historii czynności serwisowych.\nNaciśnij \"{addBtnLabel}\" w prawym górnym rogu, aby rozpocząć!",
   "@emptyMLog": {
-    "description": "The label for the empty state of the maintenance log screen",
+    "description": "Etykieta pustego stanu ekranu historii czynności serwisowych",
     "placeholders": {
       "addBtnLabel": {
         "type": "String"
       }
     }
   },
-  "serviceItemLabel": "Items",
+  "serviceItemLabel": "Czynności serwisowe",
   "@serviceItemLabel": {
-    "description": "The label for the service item field in the maintenance log card"
+    "description": "Etykieta pola czynności serwisowych na karcie historii czynności serwisowych"
   },
   "seperator": ", ",
   "@seperator": {
-    "description": "The separator for the service items in the maintenance log card"
+    "description": "Separator czynności serwisowych na karcie historii czynności serwisowych"
   },
-  "costWithSign": "Cost: {cost}",
+  "costWithSign": "Koszt: {cost}",
   "@costWithSign": {
-    "description": "The label for the cost with sign",
+    "description": "Etykieta dla kosztu z oznaczeniem",
     "placeholders": {
       "cost": {
         "type": "double",
@@ -696,204 +696,204 @@
       }
     }
   },
-  "chooseFromGallery": "Choose from gallery",
+  "chooseFromGallery": "Wybierz z galerii",
   "@chooseFromGallery": {
-    "description": "The label for the choose from gallery button"
+    "description": "Etykieta przycisku wyboru z galerii"
   },
-  "takePhoto": "Take photo",
+  "takePhoto": "Zrób zdjęcie",
   "@takePhoto": {
-    "description": "The label for the take photo button"
+    "description": "Etykieta przycisku zrobienia zdjęcia"
   },
-  "removePhoto": "Remove photo",
+  "removePhoto": "Usuń zdjęcie",
   "@removePhoto": {
-    "description": "The label for the remove photo button"
+    "description": "Etykieta przycisku usuwania zdjęcia"
   },
-  "addEditVehicle": "{opType, select, add{Add new vehicle} edit{Edit vehicle info} other{}}",
+  "addEditVehicle": "{opType, select, add{Dodaj nowy pojazd} edit{Edytuj informacje o pojeździe} other{}}",
   "@addEditVehicle": {
-    "description": "The title for the add/edit vehicle screen",
+    "description": "Tytuł ekranu dodawania/edycji pojazdu",
     "placeholders": {
       "opType": {
         "type": "String"
       }
     }
   },
-  "uploadVehicleImage": "Upload vehicle image",
+  "uploadVehicleImage": "Prześlij zdjęcie pojazdu",
   "@uploadVehicleImage": {
-    "description": "The label for the upload vehicle image button"
+    "description": "Etykieta przycisku przesyłania zdjęcia pojazdu"
   },
-  "vehicleNickname": "Vehicle nickname",
+  "vehicleNickname": "Przydomek pojazdu",
   "@vehicleNickname": {
-    "description": "The label for the vehicle nickname field in the vehicle info screen"
+    "description": "Etykieta pola przydomku pojazdu na ekranie informacji o pojeździe"
   },
-  "vehicleNicknameHint": "e.g. My Tesla",
+  "vehicleNicknameHint": "np. Mój Tesla",
   "@vehicleNicknameHint": {
-    "description": "The hint for the vehicle nickname field in the vehicle info screen"
+    "description": "Podpowiedź dla pola przydomku pojazdu na ekranie informacji o pojeździe"
   },
-  "boughtDate": "Purchase date",
+  "boughtDate": "Data zakupu",
   "@boughtDate": {
-    "description": "The label for the purchase date field in the vehicle info screen"
+    "description": "Etykieta pola daty zakupu na ekranie informacji o pojeździe"
   },
   "vehicleModel": "Model",
   "@vehicleModel": {
-    "description": "The label for the vehicle model field in the vehicle info screen"
+    "description": "Etykieta pola modelu pojazdu na ekranie informacji o pojeździe"
   },
-  "vehicleModelHint": "e.g. Tesla Model 3",
+  "vehicleModelHint": "np. Tesla Model 3",
   "@vehicleModelHint": {
-    "description": "The hint for the vehicle model field in the vehicle info screen"
+    "description": "Podpowiedź dla pola modelu pojazdu na ekranie informacji o pojeździe"
   },
-  "vinHint": "Vehicle Identification Number",
+  "vinHint": "Nr VIN",
   "@vinHint": {
-    "description": "The hint for the VIN field in the vehicle info screen"
+    "description": "Podpowiedź dla pola VIN na ekranie informacji o pojeździe"
   },
-  "chooseVehicle": "Choose vehicle",
+  "chooseVehicle": "Wybierz pojazd",
   "@chooseVehicle": {
-    "description": "The title for the choose vehicle screen when logging maintenance without a default vehicle"
+    "description": "Tytuł ekranu wyboru pojazdu podczas zapisu czynności serwisowych bez domyślnego pojazdu"
   },
-  "unknownModel": "Unknown model",
+  "unknownModel": "Nieznany model",
   "@unknownModel": {
-    "description": "The label for the unknown model in the vehicle info"
+    "description": "Etykieta dla nieznanego modelu w informacji o pojeździe"
   },
-  "overview": "Overview",
+  "overview": "Przegląd",
   "@overview": {
-    "description": "The label for the overview tab in the vehicle info screen"
+    "description": "Etykieta zakładki przeglądu na ekranie informacji o pojeździe"
   },
-  "errVehDeleted": "This vehicle may have been deleted.",
+  "errVehDeleted": "Ten pojazd mógł zostać usunięty.",
   "@errVehDeleted": {
-    "description": "Error message when the vehicle has been deleted"
+    "description": "Komunikat o błędzie, gdy pojazd został usunięty"
   },
-  "deleteConfirmVeh": "Are you sure you want to delete the vehicle \"{itemName}\"?",
+  "deleteConfirmVeh": "Czy na pewno chcesz usunąć pojazd \"{itemName}\"?",
   "@deleteConfirmVeh": {
-    "description": "The body for the confirm delete dialog of vehicles",
+    "description": "Treść okna dialogowego potwierdzenia usunięcia pojazdu",
     "placeholders": {
       "itemName": {
         "type": "String"
       }
     }
   },
-  "emptyVehicle": "No vehicle yet.\nTap the bottom right button to get started!",
+  "emptyVehicle": "Brak pojazdów.\nNaciśnij przycisk w prawym dolnym rogu, aby rozpocząć!",
   "@emptyVehicle": {
-    "description": "The label for the empty state of the vehicle list screen"
+    "description": "Etykieta pustego stanu ekranu listy pojazdów"
   },
-  "general": "General",
+  "general": "Ogólne",
   "@general": {
-    "description": "The label for the general section in the settings screen"
+    "description": "Etykieta sekcji ogólnej na ekranie ustawień"
   },
-  "language": "Language",
+  "language": "Język",
   "@language": {
-    "description": "The label for the language setting in the settings screen"
+    "description": "Etykieta ustawienia języka na ekranie ustawień"
   },
   "languageFollowSystem": "System",
   "@languageFollowSystem": {
-    "description": "The value for language setting when following system locale"
+    "description": "Wartość ustawienia języka w przypadku korzystania z języka domyślnego systemowego"
   },
-  "chooseLanguage": "Choose language",
+  "chooseLanguage": "Wybierz język",
   "@chooseLanguage": {
-    "description": "The title for the language choosing dialog"
+    "description": "Tytuł okna dialogowego wyboru języka"
   },
-  "chooseMileageUnit": "Choose mileage unit",
+  "chooseMileageUnit": "Wybierz jednostkę przebiegu",
   "@chooseMileageUnit": {
-    "description": "The title of the choosing mileage unit dialog"
+    "description": "Tytuł okna dialogowego wyboru jednostki przebiegu"
   },
-  "mileageUnitLabel": "Mileage unit",
+  "mileageUnitLabel": "Jednostka przebiegu",
   "@mileageUnitLabel": {
-    "description": "The label of the mileage unit setting entry"
+    "description": "Etykieta wpisu ustawienia jednostki przebiegu"
   },
-  "mileageUnit": "{unit, select, km{Kilometers (km)} mi{Miles (mi)} other{}}",
+  "mileageUnit": "{unit, select, km{Kilometry (km)} mi{Mile (mi)} other{}}",
   "@mileageUnit": {
-    "description": "The option label of  the choosing mileage unit dialog",
+    "description": "Etykieta opcji w oknie dialogowym wyboru jednostki przebiegu",
     "placeholders": {
       "unit": {
         "type": "String"
       }
     }
   },
-  "helpAndSupport": "Help & support",
+  "helpAndSupport": "Pomoc i wsparcie",
   "@helpAndSupport": {
-    "description": "The label for the help and support entry in the settings screen"
+    "description": "Etykieta wpisu pomocy i wsparcia na ekranie ustawień"
   },
-  "openSourceLicenses": "Open source licenses",
+  "openSourceLicenses": "Licencje open source",
   "@openSourceLicenses": {
-    "description": "The label for the open source licenses entry in the settings screen"
+    "description": "Etykieta wpisu licencji open source na ekranie ustawień"
   },
   "themeSystem": "System",
   "@themeSystem": {
-    "description": "The value for theme setting when following system"
+    "description": "Wartość ustawienia motywu w przypadku korzystania z systemowego motywu"
   },
-  "themeLight": "Light",
+  "themeLight": "Jasny",
   "@themeLight": {
-    "description": "The value for theme setting option light mode"
+    "description": "Wartość ustawienia motywu dla trybu jasnego"
   },
-  "themeDark": "Dark",
+  "themeDark": "Ciemny",
   "@themeDark": {
-    "description": "The value for theme setting option dark mode"
+    "description": "Wartość ustawienia motywu dla trybu ciemnego"
   },
-  "themeCustom": "Custom",
+  "themeCustom": "Niestandardowy",
   "@themeCustom": {
-    "description": "The value for theme setting option custom mode"
+    "description": "Wartość ustawienia motywu dla trybu niestandardowego"
   },
-  "chooseColor": "Pick a color",
+  "chooseColor": "Wybierz kolor",
   "@chooseColor": {
-    "description": "The title for the dialog when user choosing custom theme color"
+    "description": "Tytuł okna dialogowego wyboru niestandardowego koloru motywu"
   },
   "ok": "OK",
   "@ok": {
-    "description": "The text for ok button of dialogs"
+    "description": "Tekst przycisku OK w oknach dialogowych"
   },
-  "chooseTheme": "Choose theme",
+  "chooseTheme": "Wybierz motyw",
   "@chooseTheme": {
-    "description": "The title for the dialog when user choosing theme mode"
+    "description": "Tytuł okna dialogowego wyboru motywu"
   },
-  "theme": "Theme",
+  "theme": "Motyw",
   "@theme": {
-    "description": "The settings entry label for theme mode"
+    "description": "Etykieta wpisu ustawienia motywu"
   },
-  "themeColor": "Theme color",
+  "themeColor": "Kolor motywu",
   "@themeColor": {
-    "description": "The settings entry label for custom theme color"
+    "description": "Etykieta wpisu niestandardowego koloru motywu"
   },
-  "routeErrorTitle": "Unable to open page",
+  "routeErrorTitle": "Nie można otworzyć strony",
   "@routeErrorTitle": {
-    "description": "The title shown when a route cannot be opened safely"
+    "description": "Tytuł wyświetlany, gdy nie można bezpiecznie otworzyć strony"
   },
-  "routeErrorMessage": "The page information is incomplete or no longer available. Go back and try again.",
+  "routeErrorMessage": "Informacje o stronie są niekompletne lub nie są już dostępne. Wróć i spróbuj ponownie.",
   "@routeErrorMessage": {
-    "description": "The message shown when route information is missing or invalid"
+    "description": "Komunikat wyświetlany, gdy informacje o trasie są brakujące lub nieprawidłowe"
   },
-  "goToHome": "Go to home",
+  "goToHome": "Przejdź do strony początkowej",
   "@goToHome": {
-    "description": "The label for returning to the dashboard from an error page"
+    "description": "Etykieta powrotu do strony początkowej ze strony błędu"
   },
-  "loadErrorMessage": "Unable to load data. Try again.",
+  "loadErrorMessage": "Nie można załadować danych. Spróbuj ponownie.",
   "@loadErrorMessage": {
-    "description": "The generic user-facing message for an initial data load failure"
+    "description": "Ogólny komunikat dla użytkownika o nieudanym wstępnym załadowaniu danych"
   },
-  "saveErrorMessage": "Unable to save changes. Try again.",
+  "saveErrorMessage": "Nie można zapisać zmian. Spróbuj ponownie.",
   "@saveErrorMessage": {
-    "description": "The generic user-facing message for a save failure"
+    "description": "Ogólny komunikat dla użytkownika o nieudanym zapisaniu zmian"
   },
-  "deleteErrorMessage": "Unable to delete. Try again.",
+  "deleteErrorMessage": "Nie można usunąć. Spróbuj ponownie.",
   "@deleteErrorMessage": {
-    "description": "The generic user-facing message for a delete failure"
+    "description": "Ogólny komunikat dla użytkownika o nieudanym usunięciu"
   },
-  "refreshErrorMessage": "Unable to refresh right now. Try again.",
+  "refreshErrorMessage": "Nie można odświeżyć teraz. Spróbuj ponownie.",
   "@refreshErrorMessage": {
-    "description": "The generic user-facing message for a refresh failure"
+    "description": "Ogólny komunikat dla użytkownika o nieudanym odświeżeniu"
   },
-  "reminderUpdateErrorMessage": "Saved, but reminder update failed.",
+  "reminderUpdateErrorMessage": "Zapisano, ale nie udało się zaktualizować przypomnień.",
   "@reminderUpdateErrorMessage": {
-    "description": "The message shown when data is saved but reminders cannot be updated"
+    "description": "Komunikat wyświetlany, gdy dane zostały zapisane, ale nie udało się zaktualizować przypomnień"
   },
-  "exportErrorMessage": "Unable to export data. Try again.",
+  "exportErrorMessage": "Nie można wyeksportować danych. Spróbuj ponownie.",
   "@exportErrorMessage": {
-    "description": "The user-facing message for a data export failure"
+    "description": "Komunikat dla użytkownika o nieudanym eksporcie danych"
   },
-  "restoreErrorMessage": "Unable to restore data. Check the backup file and try again.",
+  "restoreErrorMessage": "Nie można przywrócić danych. Sprawdź plik kopii zapasowej i spróbuj ponownie.",
   "@restoreErrorMessage": {
-    "description": "The user-facing message for a data restore failure"
+    "description": "Komunikat dla użytkownika o nieudanym przywróceniu danych"
   },
   "requiredFieldLabel": "{label}*",
   "@requiredFieldLabel": {
-    "description": "A required form field label",
+    "description": "Etykieta pola formularza wymagającego wartości",
     "placeholders": {
       "label": {
         "type": "String"
@@ -902,7 +902,7 @@
   },
   "requiredFieldWithUnit": "{label} ({unit})*",
   "@requiredFieldWithUnit": {
-    "description": "A required numeric form field label with its displayed unit",
+    "description": "Etykieta pola numerycznego formularza wymagającego wartości z wyświetloną jednostką",
     "placeholders": {
       "label": {
         "type": "String"
@@ -914,7 +914,7 @@
   },
   "optionalFieldLabel": "{label} ({optional})",
   "@optionalFieldLabel": {
-    "description": "An optional form field label",
+    "description": "Etykieta pola formularza opcjonalnego",
     "placeholders": {
       "label": {
         "type": "String"
@@ -926,7 +926,7 @@
   },
   "labeledValue": "{label}: {value}",
   "@labeledValue": {
-    "description": "A label and its displayed value",
+    "description": "Etykieta i jej wyświetlana wartość",
     "placeholders": {
       "label": {
         "type": "String"
@@ -938,7 +938,7 @@
   },
   "sectionHeading": "{label}:",
   "@sectionHeading": {
-    "description": "A form section heading followed by punctuation",
+    "description": "Nagłówek sekcji formularza zakończony znakiem interpunkcyjnym",
     "placeholders": {
       "label": {
         "type": "String"
@@ -947,7 +947,7 @@
   },
   "dateWithMileage": "{date} @ {mileage}",
   "@dateWithMileage": {
-    "description": "A maintenance date displayed with the mileage recorded on that date",
+    "description": "Data czynności serwisowej wyświetlona wraz z zapisaną wtedy wartością przebiegu",
     "placeholders": {
       "date": {
         "type": "String"
@@ -959,7 +959,7 @@
   },
   "dateWithRelative": "{date} ({relative})",
   "@dateWithRelative": {
-    "description": "A formatted date followed by a relative due description",
+    "description": "Sformatowana data wraz z okresem czasu do terminu wykonania",
     "placeholders": {
       "date": {
         "type": "String"
@@ -971,7 +971,7 @@
   },
   "combinedValues": "{first} / {second}",
   "@combinedValues": {
-    "description": "Two related values displayed together",
+    "description": "Dwa powiązane ze sobą elementy wyświetlone razem",
     "placeholders": {
       "first": {
         "type": "String"
@@ -983,7 +983,7 @@
   },
   "modelAndYear": "{model} - {year}",
   "@modelAndYear": {
-    "description": "A vehicle model displayed with its purchase year",
+    "description": "Model pojazdu wyświetlony wraz z rokiem zakupu",
     "placeholders": {
       "model": {
         "type": "String"
@@ -993,9 +993,9 @@
       }
     }
   },
-  "nextMaintenanceSummary": "Next: {item} - {due}",
+  "nextMaintenanceSummary": "Następne: {item} - {due}",
   "@nextMaintenanceSummary": {
-    "description": "A compact summary of the next maintenance item and when it is due",
+    "description": "Zwięzłe podsumowanie kolejnej czynności serwisowej i terminu jej wykonania",
     "placeholders": {
       "item": {
         "type": "String"
@@ -1005,9 +1005,9 @@
       }
     }
   },
-  "notificationTitle": "Maintenance Reminder: {vehicleName}",
+  "notificationTitle": "Przypomnienie o czynności serwisowej: {vehicleName}",
   "@notificationTitle": {
-    "description": "The maintenance reminder notification title for a vehicle",
+    "description": "Tytuł powiadomienia przypomnienia o czynności serwisowej dla pojazdu",
     "placeholders": {
       "vehicleName": {
         "type": "String"
