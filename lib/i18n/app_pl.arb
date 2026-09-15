@@ -568,7 +568,7 @@
       }
     }
   },
-  "everyNMonth": "Co {count, plural, =1{1 miesiąc} separate{2 miesiące, 3 miesiące, 4 miesiące} one{1 miesiąc} few{{count} miesiące} many{{count} miesięcy} other{{count} miesiąca}}",
+  "everyNMonth": "Co {count, plural, =1{miesiąc} one{1 miesiąc} few{{count} miesiące} many{{count} miesięcy} other{{count} miesiąca}}",
   "@everyNMonth": {
     "description": "Etykieta przedziału co N miesięcy na ekranie czynności serwisowej",
     "placeholders": {
