@@ -57,6 +57,7 @@ final appSupportedLocales = [
   {'name': 'Italiano', 'locale': Locale('it')},
   {'name': '日本語', 'locale': Locale('ja')},
   {'name': '한국어', 'locale': Locale('ko')},
+  {'name': 'Polski', 'locale': Locale('pl')}
   {'name': 'Português', 'locale': Locale('pt')},
   {'name': 'Русский', 'locale': Locale('ru')},
   {
