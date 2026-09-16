@@ -55,8 +55,7 @@
 
 ## Pomoc i wsparcie
 
-W razie problemów prosimy o zgłoszenie błędu ( [issue on GitHub](https://github.com/JeziL/carvita/issues/new).
-W razie problemów prosimy o <a href="https://github.com">zgłoszenie błędu na GitHubie</a>.
+W razie problemów prosimy o <a href="[https://github.com](https://github.com/JeziL/carvita/issues/new)">zgłoszenie błędu na GitHubie</a>.
 
 ## Licencja
 
