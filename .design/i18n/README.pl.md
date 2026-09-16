@@ -1,18 +1,38 @@
-markdown# CarVita
+<p align="center">
+  <img src="../../assets/icon/icon_rounded.png" width="100" />
+</p>
 
-### Osobisty asystent do zarządzania i przewidywania potrzeb serwisowych Twojego pojazdu.
+# CarVita
 
-English | 中文 | Polski
+### Osobisty asystent do zarządzania i przewidywania potrzeb konserwacyjnych Twojego pojazdu.
+
+<p align="center">
+    <a href="../../README.md">English</a> | 
+    <a href="README_zh.md">中文</a> | 
+    <strong>Polski</strong>
+</p>
+
+<p align="center">
+    <img src="https://shields.io" alt="Licencja" />
+    <img src="https://shields.io" alt="Najnowsza wersja" />
+    <img src="https://shields.io" alt="Ostatni commit" />
+</p>
+
+---
+
+<p align="center">
+  <img src="../screenshot/dashboard_frame.png" width="200" />
+</p>
 
 ## Co robi CarVita?
 
 ✅ **Wizualizacja stanu pojazdu:** Przejrzysty panel główny zapewnia szybki podgląd Twoich pojazdów oraz najpilniejszych nadchodzących usług serwisowych.
 
-✅ **Śledzenie wielu pojazdów:** Zarządzaj wszystkimi swoimi samochodami, motocyklami lub innymi pojazdami w jednym miejscu.
+✅ **Śledzenie wielu pojazdów:** Zarządzaj wszystкими swoimi samochodami, motocyklami lub innymi pojazdami w jednym miejscu.
 
 ✅ **Tworzenie niestandardowych planów serwisowych:** Wprowadź zalecany przez producenta harmonogram przeglądów (zarówno interwały czasowe, jak i przebiegu, w tym wymagania dotyczące pierwszego serwisu), aby stworzyć plan dostosowany specjalnie do Twojego pojazdu.
 
-✅ **Rejestrowanie każdego serwisu:** Prowadź szczegółową, cyfrową historię wszystkich przeprowadzonych czynności serwicsowych, w tym daty, przebiegu, serwisowanych elementów, kosztów i notatek.
+✅ **Rejestrowanie każdego serwisu:** Prowadź szczegółową, cyfrową historię wszystkich przeprowadzonych prac konserwacyjnych, w tym daty, przebiegu, serwisowanych elementów, kosztów i notatek.
 
 ✅ **Prognozowanie potrzeb:** Aplikacja oblicza nadchodzące zadania konserwacyjne dla każdego elementu w planie, biorąc pod uwagę zarówno cykle czasowe, jak i przebieg, a nawet przewiduje terminy wykonania na podstawie Twoich nawyków związanych z użytkowaniem pojazdu.
 
@@ -20,13 +40,16 @@ English | 中文 | Polski
 
 ## Jak zacząć
 
-Pobierz z Google Play | Pobierz z F-Droid
+<p align="center">
+  <a href="https://google.com"><img src="../store_badge/google-play-badge.png" height="50" /></a>
+  <a href="https://f-droid.org"><img src="../store_badge/fdroid-badge.png" height="50" /></a>
+</p>
 
-...lub pobierz plik instalacyjny bezpośrednio z sekcji Github Releases.
+...lub pobierz plik instalacyjny bezpośrednio z sekcji <a href="https://github.com">Github Releases</a>.
 
 ## Pomoc i wsparcie
 
-W razie problemów prosimy o zgłoszenie błędu (Issue) na GitHubie.
+W razie problemów prosimy o zgłoszenie błędu (<a href="https://github.com">Issue</a>) na GitHubie.
 
 ## Licencja
 
