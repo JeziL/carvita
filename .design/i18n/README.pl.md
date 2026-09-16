@@ -51,7 +51,7 @@
     alt="Pobierz z F-Droid"
     height="80">](https://f-droid.org/packages/com.wangjinli.carvita)
 
-...or download from [Github Releases](https://github.com/JeziL/carvita/releases/latest).
+...lub pobierz plik instalacyjny bezpośrednio z sekcji [Github Releases](https://github.com/JeziL/carvita/releases/latest).
 
 ## Pomoc i wsparcie
 
@@ -67,8 +67,5 @@ Google Play jest znakiem towarowym firmy Google LLC.
   <a href="https://google.com"><img src="../store_badge/google-play-badge.png" height="50" /></a>
   <a href="https://f-droid.org"><img src="../store_badge/fdroid-badge.png" height="50" /></a>
 </p>
-
-...lub pobierz plik instalacyjny bezpośrednio z sekcji <a href="https://github.com">Github Releases</a>.
-
 
 W razie problemów prosimy o zgłoszenie błędu (<a href="https://github.com">Issue</a>) na GitHubie.
