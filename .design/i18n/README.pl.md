@@ -19,10 +19,13 @@
 <h3 align="center">Osobisty asystent do zarządzania i przewidywania potrzeb serwisowych Twojego pojazdu.</h3>
 
 ![](../assets/feature_graphic/output/en/gh-header_image.jpg)
+
 <p align="center">
-    <a href="../../README.md">English</a> | 
-    <a href="README_zh.md">中文</a> | 
-    <strong>Polski</strong>
+  <a href="../../README.md">English</a>
+  &nbsp;|&nbsp;
+  <a href="./README_zh.md">中文</a>
+  &nbsp;|&nbsp;
+  <a href="./README_pl.md">Polski</a>
 </p>
 
 <p align="center">
