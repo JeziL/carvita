@@ -16,7 +16,7 @@
 </p>
 
 <h1 align="center">CarVita</h1>
-<h3 align="center">Osobisty asystent do zarządzania i przewidywania potrzeb konserwacyjnych Twojego pojazdu.</h3>
+<h3 align="center">Osobisty asystent do zarządzania i przewidywania potrzeb serwisowych Twojego pojazdu.</h3>
 
 ![](../assets/feature_graphic/output/en/gh-header_image.jpg)
 <p align="center">
