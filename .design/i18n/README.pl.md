@@ -36,9 +36,9 @@
 
 ✅ **Tworzenie niestandardowych planów serwisowych:** Wprowadź zalecany przez producenta harmonogram przeglądów (zarówno interwały czasowe, jak i przebiegu, w tym wymagania dotyczące pierwszego serwisu), aby stworzyć plan dostosowany specjalnie do Twojego pojazdu.
 
-✅ **Rejestrowanie każdego serwisu:** Prowadź szczegółową, cyfrową historię wszystkich przeprowadzonych prac konserwacyjnych, w tym daty, przebiegu, serwisowanych elementów, kosztów i notatek.
+✅ **Rejestrowanie każdego serwisu:** Prowadź szczegółową, cyfrową historię wszystkich przeprowadzonych czynności serwisowych, w tym daty, przebiegu, serwisowanych elementów, kosztów i notatek.
 
-✅ **Prognozowanie potrzeb:** Aplikacja oblicza nadchodzące zadania konserwacyjne dla każdego elementu w planie, biorąc pod uwagę zarówno cykle czasowe, jak i przebieg, a nawet przewiduje terminy wykonania na podstawie Twoich nawyków związanych z użytkowaniem pojazdu.
+✅ **Prognozowanie potrzeb:** Aplikacja oblicza nadchodzące czynności serwisowe dla każdego elementu w planie, biorąc pod uwagę zarówno cykle czasowe, jak i przebieg, a nawet przewiduje terminy wykonania na podstawie Twoich nawyków związanych z użytkowaniem pojazdu.
 
 ✅ **Powiadomienia i przypomnienia:** Otrzymuj na czas lokalne powiadomienia o nadchodzących serwisach, dzięki czemu możesz bezstresowo zaplanować wizytę u mechanika.
 
