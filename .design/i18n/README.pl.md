@@ -42,6 +42,27 @@
 
 ✅ **Powiadomienia i przypomnienia:** Otrzymuj na czas lokalne powiadomienia o nadchodzących serwisach, dzięki czemu możesz bezstresowo zaplanować wizytę u mechanika.
 
+## Get Started
+
+[<img src=".design/assets/store_badges/gp-en.png"
+    alt="Get it on Google Play"
+    height="80">](https://play.google.com/store/apps/details?id=com.wangjinli.carvita)
+[<img src=".design/assets/store_badges/fdroid-en.png"
+    alt="Get it on F-Droid"
+    height="80">](https://f-droid.org/packages/com.wangjinli.carvita)
+
+...or download from [Github Releases](https://github.com/JeziL/carvita/releases/latest).
+
+## Help & Support
+
+Please submit an [issue on GitHub](https://github.com/JeziL/carvita/issues/new).
+
+## License
+
+This repository is available as open-source under the terms of the [GNU AGPLv3 License](./LICENSE.txt).
+
+Google Play is a trademark of Google LLC.
+
 ## Jak zacząć
 
 <p align="center">
