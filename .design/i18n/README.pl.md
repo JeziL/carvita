@@ -30,7 +30,7 @@
 
 ## Co robi CarVita?
 
-✅ **Wizualizacja stanu pojazdu:** Przejrzysty panel główny zapewnia szybki podgląd Twoich pojazdów oraz najpilniejszych nadchodzących usług serwisowych.
+✅ **Wizualizacja stanu pojazdu:** Przejrzysty panel główny zapewnia szybki podgląd Twoich pojazdów oraz najpilniejszych nadchodzących czynności serwisowych.
 
 ✅ **Śledzenie wielu pojazdów:** Zarządzaj wszystkimi swoimi samochodami, motocyklami lub innymi pojazdami w jednym miejscu.
 
