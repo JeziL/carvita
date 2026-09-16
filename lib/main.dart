@@ -439,3 +439,5 @@ class _ShortcutLocalizationWrapperState
     return widget.child;
   }
 }
+
+głupia blokada
