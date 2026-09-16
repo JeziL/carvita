@@ -42,28 +42,26 @@
 
 ✅ **Powiadomienia i przypomnienia:** Otrzymuj na czas lokalne powiadomienia o nadchodzących serwisach, dzięki czemu możesz bezstresowo zaplanować wizytę u mechanika.
 
-## Get Started
+## Jak zacząć
 
-[<img src=".design/assets/store_badges/gp-en.png"
-    alt="Get it on Google Play"
+[<img src="../assets/store_badges/gp-en.png"
+    alt="Pobierz z Google Play"
     height="80">](https://play.google.com/store/apps/details?id=com.wangjinli.carvita)
-[<img src=".design/assets/store_badges/fdroid-en.png"
-    alt="Get it on F-Droid"
+[<img src="../assets/store_badges/fdroid-en.png"
+    alt="Pobierz z F-Droid"
     height="80">](https://f-droid.org/packages/com.wangjinli.carvita)
 
 ...or download from [Github Releases](https://github.com/JeziL/carvita/releases/latest).
 
-## Help & Support
+## Pomoc i wsparcie
 
-Please submit an [issue on GitHub](https://github.com/JeziL/carvita/issues/new).
+W razie problemów prosimy o zgłoszenie błędu ( [issue on GitHub](https://github.com/JeziL/carvita/issues/new).
 
-## License
+## Licencja
 
-This repository is available as open-source under the terms of the [GNU AGPLv3 License](./LICENSE.txt).
+To repozytorium jest dostępne jako open-source na warunkach licencji [GNU AGPLv3 License](./LICENSE.txt).
 
-Google Play is a trademark of Google LLC.
-
-## Jak zacząć
+Google Play jest znakiem towarowym firmy Google LLC.
 
 <p align="center">
   <a href="https://google.com"><img src="../store_badge/google-play-badge.png" height="50" /></a>
@@ -72,12 +70,5 @@ Google Play is a trademark of Google LLC.
 
 ...lub pobierz plik instalacyjny bezpośrednio z sekcji <a href="https://github.com">Github Releases</a>.
 
-## Pomoc i wsparcie
 
 W razie problemów prosimy o zgłoszenie błędu (<a href="https://github.com">Issue</a>) na GitHubie.
-
-## Licencja
-
-To repozytorium jest dostępne jako open-source na warunkach licencji GNU AGPLv3.
-
-Google Play jest znakiem towarowym firmy Google LLC.
