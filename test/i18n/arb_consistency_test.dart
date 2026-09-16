@@ -16,7 +16,7 @@ void main() {
     final template = _messages(templateFile);
     final templatePlaceholders = _templatePlaceholders(templateFile);
 
-    expect(files, hasLength(12));
+    expect(files, hasLength(13));
     expect(template, hasLength(188));
 
     for (final file in files) {
