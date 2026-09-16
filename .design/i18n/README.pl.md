@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <img src="./assets/icon/icon.png" width="120" title="CarVita">
+  <img src="../../assets/icon/icon.png" width="120" title="CarVita">
 </p>
 
 <h1 align="center">CarVita</h1>
