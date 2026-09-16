@@ -56,6 +56,7 @@
 ## Pomoc i wsparcie
 
 W razie problemów prosimy o zgłoszenie błędu ( [issue on GitHub](https://github.com/JeziL/carvita/issues/new).
+W razie problemów prosimy o <a href="https://github.com">zgłoszenie błędu na GitHubie</a>.
 
 ## Licencja
 
@@ -67,5 +68,3 @@ Google Play jest znakiem towarowym firmy Google LLC.
   <a href="https://google.com"><img src="../store_badge/google-play-badge.png" height="50" /></a>
   <a href="https://f-droid.org"><img src="../store_badge/fdroid-badge.png" height="50" /></a>
 </p>
-
-W razie problemów prosimy o<a href="https://github.com">zgłoszenie błędu na GitHubie</a>.
