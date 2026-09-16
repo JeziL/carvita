@@ -28,18 +28,6 @@
   <a href="./README_pl.md">Polski</a>
 </p>
 
-<p align="center">
-    <img src="https://shields.io" alt="GitHub license" />
-    <img src="https://shields.io" alt="GitHub release" />
-    <img src="https://shields.io" alt="GitHub last commit" />
-</p>
-
----
-
-<p align="center">
-  <img src="../screenshot/dashboard_frame.png" width="200" />
-</p>
-
 ## Co robi CarVita?
 
 ✅ **Wizualizacja stanu pojazdu:** Przejrzysty panel główny zapewnia szybki podgląd Twoich pojazdów oraz najpilniejszych nadchodzących usług serwisowych.
