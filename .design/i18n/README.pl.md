@@ -13,9 +13,9 @@
 </p>
 
 <p align="center">
-    <img src="https://shields.io" alt="Licencja" />
-    <img src="https://shields.io" alt="Najnowsza wersja" />
-    <img src="https://shields.io" alt="Ostatni commit" />
+    <img src="https://shields.io" alt="GitHub license" />
+    <img src="https://shields.io" alt="GitHub release" />
+    <img src="https://shields.io" alt="GitHub last commit" />
 </p>
 
 ---
@@ -28,7 +28,7 @@
 
 ✅ **Wizualizacja stanu pojazdu:** Przejrzysty panel główny zapewnia szybki podgląd Twoich pojazdów oraz najpilniejszych nadchodzących usług serwisowych.
 
-✅ **Śledzenie wielu pojazdów:** Zarządzaj wszystкими swoimi samochodami, motocyklami lub innymi pojazdami w jednym miejscu.
+✅ **Śledzenie wielu pojazdów:** Zarządzaj wszystkimi swoimi samochodami, motocyklami lub innymi pojazdami w jednym miejscu.
 
 ✅ **Tworzenie niestandardowych planów serwisowych:** Wprowadź zalecany przez producenta harmonogram przeglądów (zarówno interwały czasowe, jak i przebiegu, w tym wymagania dotyczące pierwszego serwisu), aby stworzyć plan dostosowany specjalnie do Twojego pojazdu.
 
