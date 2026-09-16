@@ -62,8 +62,3 @@ W razie problemów prosimy o [zgłoszenie błędu na GitHubie](https://github.co
 To repozytorium jest dostępne jako open-source na warunkach licencji [GNU AGPLv3 License](./LICENSE.txt).
 
 Google Play jest znakiem towarowym firmy Google LLC.
-
-<p align="center">
-  <a href="https://google.com"><img src="../store_badge/google-play-badge.png" height="50" /></a>
-  <a href="https://f-droid.org"><img src="../store_badge/fdroid-badge.png" height="50" /></a>
-</p>
