@@ -24,6 +24,8 @@
   <a href="./README.md">English</a>
   &nbsp;|&nbsp;
   <a href="./.design/i18n/README_zh.md">中文</a>
+  &nbsp;|&nbsp;
+  <a href="./README_pl.md">Polski</a>
 </p>
 
 ## What CarVita do?
