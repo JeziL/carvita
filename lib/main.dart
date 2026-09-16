@@ -1,7 +1,8 @@
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl_standalone.dart';
 import 'package:provider/provider.dart';
 
@@ -57,6 +58,7 @@ final appSupportedLocales = [
   {'name': 'Italiano', 'locale': Locale('it')},
   {'name': '日本語', 'locale': Locale('ja')},
   {'name': '한국어', 'locale': Locale('ko')},
+  {'name': 'Polski', 'locale': Locale('pl')}
   {'name': 'Português', 'locale': Locale('pt')},
   {'name': 'Русский', 'locale': Locale('ru')},
   {
@@ -266,7 +268,9 @@ class CarVitaApp extends StatelessWidget {
             // i18n
             localizationsDelegates: [
               AppLocalizations.delegate,
-              ...GlobalMaterialLocalizations.delegates,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
             ],
             supportedLocales: appSupportedLocales.map(
               (lang) => lang['locale'] as Locale,
