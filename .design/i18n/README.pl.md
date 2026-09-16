@@ -68,4 +68,4 @@ Google Play jest znakiem towarowym firmy Google LLC.
   <a href="https://f-droid.org"><img src="../store_badge/fdroid-badge.png" height="50" /></a>
 </p>
 
-W razie problemów prosimy o zgłoszenie błędu (<a href="https://github.com">na GitHubie</a>).
+W razie problemów prosimy o<a href="https://github.com">zgłoszenie błędu na GitHubie</a>.
