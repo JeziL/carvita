@@ -442,7 +442,7 @@
   "@chooseDisplayItemCount": {
     "description": "Tytuł okna dialogowego wyboru liczby wyświetlanych pozycji na ekranie ustawień"
   },
-  "itemCount": "{count, plural, =1{1 pozycja} other{{count} pozycje/i}}",
+  "itemCount": "{count, plural, =1{1 pozycja} other{{count} pozycje}}",
   "@itemCount": {
     "description": "Etykieta liczby pozycji w oknie dialogowym wyboru liczby wyświetlanych pozycji",
     "placeholders": {
@@ -515,7 +515,7 @@
   "@errNotificationPermission": {
     "description": "Komunikat o błędzie, gdy uprawnienia do powiadomień nie zostały przyznane"
   },
-  "reminderDisplayItemCount": "Liczba elementów przypomnienia",
+  "reminderDisplayItemCount": "Długość listy przypomnień",
   "@reminderDisplayItemCount": {
     "description": "Etykieta ustawienia liczby wyświetlanych elementów na ekranie ustawień"
   },
