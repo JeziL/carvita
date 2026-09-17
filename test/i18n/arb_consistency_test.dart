@@ -91,9 +91,7 @@ Locale _arbLocale(File file) {
   final localeParts = (json['@@locale']! as String).split('_');
   return Locale.fromSubtags(
     languageCode: localeParts.first,
-    scriptCode: localeParts
-        .where((part) => part.length == 4)
-        .firstOrNull,
+    scriptCode: localeParts.where((part) => part.length == 4).firstOrNull,
     countryCode: localeParts
         .where((part) => part.length == 2 && part != localeParts.first)
         .firstOrNull,
