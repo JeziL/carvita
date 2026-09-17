@@ -1,0 +1,1017 @@
+{
+  "@@locale": "pl",
+  "appName": "CarVita",
+  "@appName": {
+    "description": "Nazwa aplikacji"
+  },
+  "dashboardTitle": "Pulpit",
+  "@dashboardTitle": {
+    "description": "Nazwa pulpitu nawigacyjnego"
+  },
+  "addVehicle": "Dodaj pojazd",
+  "@addVehicle": {
+    "description": "Etykieta przycisku szybkiego dodawania nowego pojazdu"
+  },
+  "logMaintenance": "Rejestr czynności serwisowych",
+  "@logMaintenance": {
+    "description": "Etykieta przycisku szybkiego dodawania czynności serwisowej"
+  },
+  "urgentReminders": "Przypomnienia",
+  "@urgentReminders": {
+    "description": "Etykieta sekcji przypomnień oczekujących na realizację w panelu"
+  },
+  "itemsDueSoon": "{count, plural, =0{brak czynności serwisowych} =1{1 czynność serwisowa} other{{count} czynności serwisowych}} wkrótce do wykonania",
+  "@itemsDueSoon": {
+    "description": "Tytuł sekcji z bieżącymi przypomnieniami na pulpicie nawigacyjnym",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "daysLater": "{count, plural, =0{Dziś} =1{Jutro} other{{count} dni później}}",
+  "@daysLater": {
+    "description": "Etykieta określająca termin wykonania czynności serwisowej",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "daysOverdue": "{count, plural, =1{1 dzień} other{{count} dni}} po terminie",
+  "@daysOverdue": {
+    "description": "Etykieta określająca termin wykonania czynności serwisowej, który już upłynął",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "disLater": "{count} {unit} później",
+  "@disLater": {
+    "description": "Etykieta określająca czas do wykonania czynności serwisowej",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "unit":{
+        "type": "String"
+      }
+    }
+  },
+  "nextMaintenanceShort": "Następne",
+  "@nextMaintenanceShort": {
+    "description": "Etykieta kolejnej czynności serwisowej na karcie podsumowania pojazdu na pulpicie"
+  },
+  "nextMaintenance": "Następne terminy",
+  "@nextMaintenance": {
+    "description": "Etykieta kolejnej sekcji czynności serwisowych na ekranie szczegółów pojazdu"
+  },
+  "noNextMaintenance": "Brak planowanych czynności serwisowych",
+  "@noNextMaintenance": {
+    "description": "Etykieta kolejnej czynności serwisowej na karcie podsumowania pojazdu na pulpicie w sytuacji, gdy nie jest zaplanowana żadna czynność serwisowa."
+  },
+  "myVehicles": "Pojazdy",
+  "@myVehicles": {
+    "description": "Etykieta sekcji pojazdów na pulpicie"
+  },
+  "navDashboard": "Pulpit",
+  "@navDashboard": {
+    "description": "Etykieta zakładki pulpitu na dolnym pasku nawigacyjnym"
+  },
+  "navVehicles": "Pojazdy",
+  "@navVehicles": {
+    "description": "Etykieta zakładki Pojazdy na dolnym pasku nawigacji"
+  },
+  "navMaintenanceList": "Czynności serwisowe",
+  "@navMaintenanceList": {
+    "description": "Etykieta zakładki listy czynności serwisowych na dolnym pasku nawigacyjnym"
+  },
+  "navSettings": "Ustawienia",
+  "@navSettings": {
+    "description": "Etykieta zakładki ustawień na dolnym pasku nawigacyjnym"
+  },
+  "reminderThresholdSetting": "Zakres przypomnień",
+  "@reminderThresholdSetting": {
+    "description": "Etykieta wyboru zakresu przypomnień w ustawieniach"
+  },
+  "thresholdWeek": "do 1 tygodnia",
+  "@thresholdWeek": {
+    "description": "Etykieta zakresu przypomnień tygodniowego w ustawieniach"
+  },
+  "thresholdMonth": "do 1 miesiąca",
+  "@thresholdMonth": {
+    "description": "Etykieta zakresu przypomnień miesięcznego w ustawieniach"
+  },
+  "thresholdHalfYear": "do 6 miesięcy",
+  "@thresholdHalfYear": {
+    "description": "Etykieta zakresu przypomnień półrocznego w ustawieniach"
+  },
+  "notificationLeadTimeLabel": "Preferencje dotyczące powiadomień",
+  "@notificationLeadTimeLabel": {
+    "description": "Etykieta wyboru czasu wyprzedzenia powiadomień w ustawieniach"
+  },
+  "notificationLeadTime": "{count, plural, =1{jeden dzień} other{{count} dni}} wcześniej",
+  "@notificationLeadTime": {
+    "description": "Opcje wyboru wyprzedzenia powiadomień w ustawieniach",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationPrefix": "Powiadomienia o czynnościach serwisowych",
+  "@notificationPrefix": {
+    "description": "Prefiks tytułu powiadomień"
+  },
+  "notificationBody": "{maintenanceItem} jest wymagane w dniu {dueDate}.",
+  "@notificationBody": {
+    "description": "Treść powiadomienia",
+    "placeholders": {
+      "maintenanceItem": {
+        "type": "String"
+      },
+      "dueDate": {
+        "type": "DateTime",
+        "format": "yMMMd"
+      }
+    }
+  },
+  "errNoVehicleToLog": "Dodaj pojazd przed zarejestrowaniem czynności serwisowej.",
+  "@errNoVehicleToLog": {
+    "description": "Komunikat o błędzie podczas próby zarejestrowania czynności serwisowej bez przypisanego pojazdu"
+  },
+  "noUpcomingMaintenance": "Brak planowanych czynności serwisowych.",
+  "@noUpcomingMaintenance": {
+    "description": "Etykieta dla stanu pustej listy pilnych przypomnień na pulpicie"
+  },
+  "viewAll": "Zobacz wszystko",
+  "@viewAll": {
+    "description": "Etykieta przycisku służącego do wyświetlania wszystkich pilnych czynności serwisowych, gdy jest ich zbyt wiele."
+  },
+  "noVehicles": "Nie dodałeś jeszcze żadnych pojazdów.",
+  "@noVehicles": {
+    "description": "Etykieta dla pustej listy pojazdów na pulpicie"
+  },
+  "regularInterval": "Odstęp powtórzeń",
+  "@regularInterval": {
+    "description": "Etykieta odstępu powtórzeń czynności serwisowych"
+  },
+  "initialInterval": "Odstęp początkowy",
+  "@initialInterval": {
+    "description": "Etykieta początkowego odstępu podczas dodawania powtórzeń czynności serwisowych"
+  },
+  "optionalEntry": "opcjonalnie",
+  "@optionalEntry": {
+    "description": "Wskaźnik pól opcjonalnych w formularzach"
+  },
+  "invalidRegularInterval": "Odstęp: Proszę wprowadzić prawidłowy odstęp czasowy lub przebiegowy (musi być większy niż 0).",
+  "@invalidRegularInterval": {
+    "description": "Komunikat o błędzie w przypadku nieprawidłowego odstępu"
+  },
+  "invalidOptionalEntry": "{optionalEntry}: Jeśli zostanie podana, musi być liczbą całkowitą dodatnią.",
+  "@invalidOptionalEntry": {
+    "description": "Komunikat o błędzie nieprawidłowego wpisu opcjonalnego",
+    "placeholders": {
+      "optionalEntry": {
+        "type": "String"
+      }
+    }
+  },
+  "hintComesFirst": "Decyduje to, co nastąpi wcześniej.",
+  "@hintComesFirst": {
+    "description": "Wskazówka dotycząca odstępu czasowego i przebiegowego w formularzu"
+  },
+  "addEditMaintenanceItem": "{opType, select, add{Dodaj} edit{Edytuj} other{}} czynność serwisową",
+  "@addEditMaintenanceItem": {
+    "description": "Tytuł ekranu dodawania/edycji czynności serwisowej",
+    "placeholders": {
+      "opType": {
+        "type": "String"
+      }
+    }
+  },
+  "addEditMaintenanceItemForVeh": "{opType, select, add{Dodaj} edit{Edytuj} other{}} pozycję planu czynności serwisowej dla {vehicle}",
+  "@addEditMaintenanceItemForVeh": {
+    "description": "Podtytuł ekranu dodawania/edycji czynności serwisowej",
+    "placeholders": {
+      "opType": {
+        "type": "String"
+      },
+      "vehicle": {
+        "type": "String"
+      }
+    }
+  },
+  "itemName": "Nazwa pozycji",
+  "@itemName": {
+    "description": "Etykieta pola nazwy pozycji na ekranie dodawania/edycji czynności serwisowej"
+  },
+  "itemNameHint": "np. wymiana filtra oleju",
+  "@itemNameHint": {
+    "description": "Podpowiedź dla pola nazwy pozycji na ekranie dodawania/edycji czynności serwisowej"
+  },
+  "invalidEmptyEntry": "{entry}: nie może być puste",
+  "@invalidEmptyEntry": {
+    "description": "Komunikat o błędzie w przypadku pustego pola obowiązkowego",
+    "placeholders": {
+      "entry": {
+        "type": "String"
+      }
+    }
+  },
+  "timeHint": "czas (miesiąc)",
+  "@timeHint": {
+    "description": "Wskazówka dotycząca pola odstępu czasowego na ekranie dodawania/edycji czynności serwisowej"
+  },
+  "mileageHint": "przebieg ({unit})",
+  "@mileageHint": {
+    "description": "Wskazówka dotycząca pola odstępu przebiegu na ekranie dodawania/edycji czynności serwisowej",
+    "placeholders": {
+      "unit":{
+        "type": "String"
+      }
+    }
+  },
+  "firstTimeHint": "początkowy odstęp czasu (miesiąc)",
+  "@firstTimeHint": {
+    "description": "Podpowiedź dla pola początkowego odstępu czasowego na ekranie dodawania/edycji czynności serwisowej"
+  },
+  "firstMileageHint": "początkowy odstęp przebiegu ({unit})",
+  "@firstMileageHint": {
+    "description": "Podpowiedź dla pola początkowego odstępu przebiegu na ekranie dodawania/edycji czynności serwisowej",
+    "placeholders": {
+      "unit":{
+        "type": "String"
+      }
+    }
+  },
+  "notes": "Uwagi",
+  "@notes": {
+    "description": "Etykieta pola na uwagi w formularzu"
+  },
+  "noteMaintenanceItemHint": "np. użyj konkretnego modelu części, lub specjalne uwagi",
+  "@noteMaintenanceItemHint": {
+    "description": "Podpowiedź dla pola uwag na ekranie dodawania/edycji czynności serwisowej"
+  },
+  "addEditButtonText": "{opType, select, add{Dodaj} edit{Zapisz zmiany} other{}}",
+  "@addEditButtonText": {
+    "description": "Tekst przycisku dla formularzy dodawania/edycji",
+    "placeholders": {
+      "opType": {
+        "type": "String"
+      }
+    }
+  },
+  "maintenanceDate": "Data czynności",
+  "@maintenanceDate": {
+    "description": "Etykieta pola daty czynności serwisowej na ekranie zapisu wykonanych czynności serwisowych"
+  },
+  "maintenanceItems": "Czynności serwisowe",
+  "@maintenanceItems": {
+    "description": "Etykieta pola listy czynności serwisowych na ekranie zapisu wykonanych czynności serwisowych"
+  },
+  "updateMileageTitle": "Zaktualizować przebieg?",
+  "@updateMileageTitle": {
+    "description": "Tekst okna dialogowego do aktualizacji przebiegu podczas zapisu wykonanych czynności serwisowych"
+  },
+  "updateMileageBody": "Wprowadzony przebieg ({newValue} {unit}) jest wyższy od ostatnio zapisanego przebiegu ({oldValue} {unit}) dla pojazdu {vehicleName}.\n\nCzy chcesz zaktualizować bieżący przebieg pojazdu do wartości {newValue} {unit}?",
+  "@updateMileageBody": {
+    "description": "Treść okna dialogowego służącego do aktualizacji przebiegu podczas zapisu wykonanych czynności serwisowych.",
+    "placeholders": {
+      "newValue": {
+        "type": "String"
+      },
+      "oldValue": {
+        "type": "String"
+      },
+      "vehicleName": {
+        "type": "String"
+      },
+      "unit":{
+        "type": "String"
+      }
+    }
+  },
+  "no": "Nie",
+  "@no": {
+    "description": "Etykieta przycisku zaprzeczenia w oknach dialogowych"
+  },
+  "yes": "Tak",
+  "@yes": {
+    "description": "Etykieta przycisku potwierdzającego w oknach dialogowych"
+  },
+  "chooseFromPlan": "Wybierz czynności serwisowe",
+  "@chooseFromPlan": {
+    "description": "Etykieta wyboru z listy zdefiniowanych czynności serwisowych podczas zapisu wykonanych czynności serwisowych."
+  },
+  "customItemAdded": "Dodatki niestandardowe",
+  "@customItemAdded": {
+    "description": "Etykieta dla elementu niestandardowego dodanego podczas zapisu wykonanych czynności serwisowych"
+  },
+  "customItemAddHint": "Wprowadź nazwę niestandardowego elementu wykonanych czynności serwisowych",
+  "@customItemAddHint": {
+    "description": "Wskazówka dotycząca pola nazwy niestandardowego elementu podczas zapisu wykonanych czynności serwisowych"
+  },
+  "addEditMaintenanceLog": "{opType, select, add{Lista wykonanych czynności serwisowych} edit{Edytuj listę wykonanych czynności serwisowych} other{}}",
+  "@addEditMaintenanceLog": {
+    "description": "Tytuł ekranu dodawania/edycji zapisu wykonanych czynności serwisowych",
+    "placeholders": {
+      "opType": {
+        "type": "String"
+      }
+    }
+  },
+  "addEditMaintenanceLogForVeh": "{opType, select, add{Lista wykonanych czynności serwisowych} edit{Edytuj listę wykonanych czynności serwisowych} other{}} dla {vehicle}",
+  "@addEditMaintenanceLogForVeh": {
+    "description": "Podtytuł ekranu dodawania/edycji zapisu wykonanych czynności serwisowych",
+    "placeholders": {
+      "opType": {
+        "type": "String"
+      },
+      "vehicle": {
+        "type": "String"
+      }
+    }
+  },
+  "mileageAtService": "Przebieg w dniu czynności serwisowych",
+  "@mileageAtService": {
+    "description": "Etykieta pola przebiegu w dniu wykonywania czynności serwisowych na ekranie zapisu wykonanych czynności serwisowych"
+  },
+  "cost": "Koszt",
+  "@cost": {
+    "description": "Etykieta pola kosztu na ekranie zapisu wykonanych czynności serwisowych"
+  },
+  "notesMLogHint": "np. Zastąpiono częściami marki XX, lokalizacja",
+  "@notesMLogHint": {
+    "description": "Wskazówka dotycząca pola uwag na ekranie zapisu wykonanych czynności serwisowych"
+  },
+  "allVehicles": "Wszystkie pojazdy",
+  "@allVehicles": {
+    "description": "Etykieta filtra wszystkich pojazdów na ekranie listy planowanych czynności serwisowych"
+  },
+  "upcomingMaintenance": "Zbliżające się czynności serwisowe",
+  "@upcomingMaintenance": {
+    "description": "Tytuł ekranu listy zbliżających się czynności serwisowych"
+  },
+  "filterByVehicle": "Filtruj według pojazdu",
+  "@filterByVehicle": {
+    "description": "Podpowiedź dla przycisku filtrowania według pojazdu na ekranie listy czynności serwisowych"
+  },
+  "nextYear": "Rok",
+  "@nextYear": {
+    "description": "Etykieta filtra dla zakresu rocznego na ekranie listy czynności serwisowych"
+  },
+  "thisWeek": "Tydzień",
+  "@thisWeek": {
+    "description": "Etykieta filtra dla zakresu tygodniowego na ekranie listy czynności serwisowych"
+  },
+  "thisMonth": "Miesiąc",
+  "@thisMonth": {
+    "description": "Etykieta filtra dla zakresu miesięcznego na ekranie listy czynności serwisowych"
+  },
+  "maintenanceListEmpty": "Brak zbliżających się czynności serwisowych.",
+  "@maintenanceListEmpty": {
+    "description": "Etykieta stanu pustego ekranu listy czynności serwisowych"
+  },
+  "maintenanceListEmptyAfterFilter": "Żadna czynność serwisowa nie spełnia wskazanych kryteriów filtrowania.",
+  "@maintenanceListEmptyAfterFilter": {
+    "description": "Etykieta stanu pustego ekranu listy czynności serwisowych po filtrowaniu"
+  },
+  "status": "Stan",
+  "@status": {
+    "description": "Etykieta pola stanu na ekranie listy czynności serwisowych"
+  },
+  "estimated": "Szacowany",
+  "@estimated": {
+    "description": "Etykieta pola szacowania na ekranie listy czynności serwisowych"
+  },
+  "loading": "Pobieram...",
+  "@loading": {
+    "description": "Etykieta stanu pobierania"
+  },
+  "privacyPolicy": "Polityka prywatności",
+  "@privacyPolicy": {
+    "description": "Tytuł ekranu polityki prywatności"
+  },
+  "privacyHeadline": "Twoje informacje są przechowywane tylko na Twoim urządzeniu",
+  "@privacyHeadline": {
+    "description": "Nagłówek ekranu polityki prywatności"
+  },
+  "privacyLocalStorage": "Żadne informacje nie są przesyłane do chmury — tak naprawdę aplikacja nie ma nawet dostępu do Internetu",
+  "@privacyLocalStorage": {
+    "description": "Opis sekcji dotyczącej pamięci lokalnej na ekranie polityki prywatności"
+  },
+  "privacyControl": "Masz pełną kontrolę nad swoimi danymi. Eksport, tworzenie kopii zapasowych i usuwanie danych zależy wyłącznie od Ciebie.",
+  "@privacyControl": {
+    "description": "Opis sekcji kontroli danych na ekranie polityki prywatności"
+  },
+  "notSet": "Nie ustawiono",
+  "@notSet": {
+    "description": "Etykieta dla nieustawionego stanu domyślnego pojazdu"
+  },
+  "defaultVehicle": "Domyślny pojazd",
+  "@defaultVehicle": {
+    "description": "Tytuł wpisu „Domyślny pojazd” na ekranie ustawień"
+  },
+  "chooseDefaultVehicle": "Wybierz domyślny pojazd",
+  "@chooseDefaultVehicle": {
+    "description": "Tytuł okna dialogowego wyboru domyślnego pojazdu na ekranie ustawień"
+  },
+  "clearDefault": "Wyczyść",
+  "@clearDefault": {
+    "description": "Etykieta przycisku „Wyczyść” przy wyborze domyślnego pojazdu"
+  },
+  "cancel": "Anuluj",
+  "@cancel": {
+    "description": "Etykieta przycisku Anuluj w oknach dialogowych"
+  },
+  "back": "Wstecz",
+  "@back": {
+    "description": "Etykieta powrotu do poprzedniego ekranu"
+  },
+  "retry": "Ponów",
+  "@retry": {
+    "description": "Etykieta ponownej próby nieudanej operacji"
+  },
+  "chooseThreshold": "Wybierz próg przypomnień",
+  "@chooseThreshold": {
+    "description": "Tytuł okna dialogowego wyboru progu przypomnienia na ekranie ustawień"
+  },
+  "chooseDisplayItemCount": "Wybierz liczbę wyświetlanych pozycji",
+  "@chooseDisplayItemCount": {
+    "description": "Tytuł okna dialogowego wyboru liczby wyświetlanych pozycji na ekranie ustawień"
+  },
+  "itemCount": "{count, plural, =1{1 pozycja} other{{count} pozycje/i}}",
+  "@itemCount": {
+    "description": "Etykieta liczby pozycji w oknie dialogowym wyboru liczby wyświetlanych pozycji",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "exportPrepare": "Przygotowywanie eksportu...",
+  "@exportPrepare": {
+    "description": "Etykieta dla przygotowywania eksportu"
+  },
+  "errDBNotFound": "Nie znaleziono bazy danych",
+  "@errDBNotFound": {
+    "description": "Komunikat o błędzie, gdy baza danych nie zostanie znaleziona"
+  },
+  "exportSuccess": "Eksport zakończony sukcesem",
+  "@exportSuccess": {
+    "description": "Etykieta dla udanego eksportu"
+  },
+  "exportCancelled": "Eksport anulowany",
+  "@exportCancelled": {
+    "description": "Etykieta dla anulowanego ekportu"
+  },
+  "restoreData": "Przywróć dane",
+  "@restoreData": {
+    "description": "Etykieta przywracania danych na ekranie ustawień"
+  },
+  "restoreWarningTitle": "Ostrzeżenie: Przywracanie danych",
+  "@restoreWarningTitle": {
+    "description": "Tytuł okna dialogowego z ostrzeżeniem o przywracaniu danych"
+  },
+  "restoreWarningBody": "Spowoduje to nadpisanie wszystkich bieżących danych aplikacji wybranym plikiem. Tej operacji nie można cofnąć.\n\nZdecydowanie zaleca się wyeksportowanie bieżących danych jako kopii zapasowej przed kontynuowaniem.\n\nCzy na pewno chcesz kontynuować?",
+  "@restoreWarningBody": {
+    "description": "Treść okna dialogowego z ostrzeżeniem o przywracaniu"
+  },
+  "chooseDBFile": "Wybierz plik bazy danych...",
+  "@chooseDBFile": {
+    "description": "Tytuł okna dialogowego wyboru pliku bazy danych"
+  },
+  "restoreSuccessTitle": "Przywracanie zakończone sukcesem",
+  "@restoreSuccessTitle": {
+    "description": "Tytuł pomyślnego przywrócenia danych"
+  },
+  "restoreSuccessBody": "Dane zostały pomyślnie przywrócone!\n\nUruchom ponownie aplikację, aby zastosować zmiany.",
+  "@restoreSuccessBody": {
+    "description": "Treść komunikatu o pomyślnym przywróceniu danych"
+  },
+  "exitButton": "Wyjście",
+  "@exitButton": {
+    "description": "Etykieta przycisku wyjścia po pomyślnym przywróceniu"
+  },
+ "importCancelled": "Import anulowany",
+  "@importCancelled": {
+    "description": "Etykieta anulowanego importu"
+  },
+  "chooseLeadTime": "Wybierz czas powiadomienia",
+  "@chooseLeadTime": {
+    "description": "Tytuł okna wyboru czasu wyprzedzenia na ekranie ustawień"
+  },
+  "notification": "Powiadomienia",
+  "@notification": {
+    "description": "Etykieta sekcji powiadomień na ekranie ustawień"
+  },
+  "notificationEnabled": "Włączone",
+  "@notificationEnabled": {
+    "description": "Etykieta przełącznika włączającego powiadomienia"
+  },
+  "errNotificationPermission": "Proszę włączyć powiadomienia w ustawieniach systemu.",
+  "@errNotificationPermission": {
+    "description": "Komunikat o błędzie, gdy uprawnienia do powiadomień nie zostały przyznane"
+  },
+  "reminderDisplayItemCount": "Liczba elementów przypomnienia",
+  "@reminderDisplayItemCount": {
+    "description": "Etykieta ustawienia liczby wyświetlanych elementów na ekranie ustawień"
+  },
+  "data": "Dane",
+  "@data": {
+    "description": "Etykieta sekcji danych na ekranie ustawień"
+  },
+  "exportData": "Eksportuj dane",
+  "@exportData": {
+    "description": "Etykieta opcji eksportu danych na ekranie ustawień"
+  },
+  "about": "O aplikacji",
+  "@about": {
+    "description": "Etykieta sekcji informacyjnej na ekranie ustawień"
+  },
+  "appVersionEntry": "Wersja aplikacji",
+  "@appVersionEntry": {
+    "description": "Etykieta wersji aplikacji w sekcji informacyjnej"
+  },
+  "confirmDelete": "Potwierdź usunięcie",
+  "@confirmDelete": {
+    "description": "Tytuł okna dialogowego potwierdzenia usunięcia"
+  },
+  "deleteConfirmMPlan": "Czy na pewno chcesz usunąć element planu czynności serwisowych \"{itemName}\"?",
+  "@deleteConfirmMPlan": {
+    "description": "Treść okna dialogowego potwierdzenia usunięcia elementów planu czynności serwisowych",
+    "placeholders": {
+      "itemName": {
+        "type": "String"
+      }
+    }
+  },
+  "delete": "Usuń",
+  "@delete": {
+   "description": "Etykieta przycisku usuwania w oknach dialogowych"
+  },
+  "edit": "Edytuj",
+  "@edit": {
+    "description": "Etykieta przycisku edycji w oknach dialogowych"
+  },
+  "everyNMileage": "Co {count} {unit}",
+  "@everyNMileage": {
+    "description": "Etykieta przedziału co N kilometrów/mil na ekranie czynności serwisowej",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "unit":{
+        "type": "String"
+      }
+    }
+  },
+  "everyNMonth": "Co {count, plural, one{miesiąc} few{{count} miesiące} many{{count} miesięcy} other{{count} miesiąca}}",
+  "@everyNMonth": {
+    "description": "Etykieta przedziału co N miesięcy na ekranie czynności serwisowej",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nMileage": "{count} {unit}",
+  "@nMileage": {
+    "description": "Etykieta pierwszego przedziału N kilometrów/mil na ekranie czynności serwisowej",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "unit":{
+        "type": "String"
+      }
+    }
+  },
+  "nMonth": "{count, plural, =1{1 month} other{{count} months}}",
+  "@nMonth": {
+    "description": "Etykieta pierwszego interwału N miesięcy na ekranie czynności serwisowej",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maintenancePlanShort": "Plan",
+  "@maintenancePlanShort": {
+    "description": "Etykieta zakładki ekranu planu czynności serwisowych"
+  },
+  "maintenancePlan": "Plan czynności serwisowych",
+  "@maintenancePlan": {
+    "description": "Tytuł ekranu planu czynności serwisowych"
+  },
+  "addMPlan": "Dodaj",
+  "@addMPlan": {
+    "description": "Etykieta przycisku dodawania planu czynności serwisowych"
+  },
+  "emptyMPlan": "Brak pozycji planu czynności serwisowych.\nNaciśnij \"{addBtnLabel}\" w prawym górnym rogu, aby rozpocząć!",
+  "@emptyMPlan": {
+    "description": "Etykieta pustego stanu ekranu planu czynności serwisowych",
+    "placeholders": {
+      "addBtnLabel": {
+        "type": "String"
+      }
+    }
+  },
+  "vehicleInfo": "Informacje o pojeździe",
+  "@vehicleInfo": {
+    "description": "Tytuł sekcji informacji o pojeździe na ekranie pojazdu"
+  },
+  "mileageLabelWithUnit": "Przebieg{unit}",
+  "@mileageLabelWithUnit": {
+    "description": "Etykieta dla przebiegu",
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "plateNumber": "Numer rejestracyjny",
+  "@plateNumber": {
+    "description": "Etykieta pola numeru rejestracyjnego na ekranie informacji o pojeździe"
+  },
+  "vin": "VIN",
+  "@vin": {
+    "description": "Etykieta pola VIN na ekranie informacji o pojeździe"
+  },
+  "engineNumber": "Numer silnika",
+  "@engineNumber": {
+    "description": "Etykieta pola numeru silnika na ekranie informacji o pojeździe"
+  },
+  "deleteConfirmMLog": "Czy na pewno chcesz usunąć wpis z historii czynności serwisowych z {logDate}?",
+  "@deleteConfirmMLog": {
+    "description": "Treść okna dialogowego potwierdzenia usunięcia wpisów w historii czynności serwisowych",
+    "placeholders": {
+      "logDate": {
+        "type": "DateTime",
+        "format": "yMMMd"
+      }
+    }
+  },
+  "maintenanceLogShort": "Historia",
+  "@maintenanceLogShort": {
+    "description": "Etykieta zakładki ekranu historii czynności serwisowych"
+  },
+  "maintenanceLog": "Historia czynności serwisowych",
+  "@maintenanceLog": {
+    "description": "Tytuł ekranu historii czynności serwisowych"
+  },
+  "addMLog": "Dodaj",
+  "@addMLog": {
+    "description": "Etykieta przycisku dodawania wpisu historii czynności serwisowych"
+  },
+  "emptyMLog": "Brak historii czynności serwisowych.\nNaciśnij \"{addBtnLabel}\" w prawym górnym rogu, aby rozpocząć!",
+  "@emptyMLog": {
+    "description": "Etykieta pustego stanu ekranu historii czynności serwisowych",
+    "placeholders": {
+      "addBtnLabel": {
+        "type": "String"
+      }
+    }
+  },
+  "serviceItemLabel": "Czynności serwisowe",
+  "@serviceItemLabel": {
+    "description": "Etykieta pola czynności serwisowych na karcie historii czynności serwisowych"
+  },
+  "seperator": ", ",
+  "@seperator": {
+    "description": "Separator czynności serwisowych na karcie historii czynności serwisowych"
+  },
+  "costWithSign": "Koszt: {cost}",
+  "@costWithSign": {
+    "description": "Etykieta dla kosztu z oznaczeniem",
+    "placeholders": {
+      "cost": {
+        "type": "double",
+        "format": "simpleCurrency",
+        "optionalParameters": {
+          "decimalDigits": 2
+        }
+      }
+    }
+  },
+  "chooseFromGallery": "Wybierz z galerii",
+  "@chooseFromGallery": {
+    "description": "Etykieta przycisku wyboru z galerii"
+  },
+  "takePhoto": "Zrób zdjęcie",
+  "@takePhoto": {
+    "description": "Etykieta przycisku zrobienia zdjęcia"
+  },
+  "removePhoto": "Usuń zdjęcie",
+  "@removePhoto": {
+    "description": "Etykieta przycisku usuwania zdjęcia"
+  },
+  "addEditVehicle": "{opType, select, add{Dodaj nowy pojazd} edit{Edytuj informacje o pojeździe} other{}}",
+  "@addEditVehicle": {
+    "description": "Tytuł ekranu dodawania/edycji pojazdu",
+    "placeholders": {
+      "opType": {
+        "type": "String"
+      }
+    }
+  },
+  "uploadVehicleImage": "Prześlij zdjęcie pojazdu",
+  "@uploadVehicleImage": {
+    "description": "Etykieta przycisku przesyłania zdjęcia pojazdu"
+  },
+  "vehicleNickname": "Przydomek pojazdu",
+  "@vehicleNickname": {
+    "description": "Etykieta pola przydomku pojazdu na ekranie informacji o pojeździe"
+  },
+  "vehicleNicknameHint": "np. Mój Tesla",
+  "@vehicleNicknameHint": {
+    "description": "Podpowiedź dla pola przydomku pojazdu na ekranie informacji o pojeździe"
+  },
+  "boughtDate": "Data zakupu",
+  "@boughtDate": {
+    "description": "Etykieta pola daty zakupu na ekranie informacji o pojeździe"
+  },
+  "vehicleModel": "Model",
+  "@vehicleModel": {
+    "description": "Etykieta pola modelu pojazdu na ekranie informacji o pojeździe"
+  },
+  "vehicleModelHint": "np. Tesla Model 3",
+  "@vehicleModelHint": {
+    "description": "Podpowiedź dla pola modelu pojazdu na ekranie informacji o pojeździe"
+  },
+  "vinHint": "Nr VIN",
+  "@vinHint": {
+    "description": "Podpowiedź dla pola VIN na ekranie informacji o pojeździe"
+  },
+  "chooseVehicle": "Wybierz pojazd",
+  "@chooseVehicle": {
+    "description": "Tytuł ekranu wyboru pojazdu podczas zapisu czynności serwisowych bez domyślnego pojazdu"
+  },
+  "unknownModel": "Nieznany model",
+  "@unknownModel": {
+    "description": "Etykieta dla nieznanego modelu w informacji o pojeździe"
+  },
+  "overview": "Przegląd",
+  "@overview": {
+    "description": "Etykieta zakładki przeglądu na ekranie informacji o pojeździe"
+  },
+  "errVehDeleted": "Ten pojazd mógł zostać usunięty.",
+  "@errVehDeleted": {
+    "description": "Komunikat o błędzie, gdy pojazd został usunięty"
+  },
+  "deleteConfirmVeh": "Czy na pewno chcesz usunąć pojazd \"{itemName}\"?",
+  "@deleteConfirmVeh": {
+    "description": "Treść okna dialogowego potwierdzenia usunięcia pojazdu",
+    "placeholders": {
+      "itemName": {
+        "type": "String"
+      }
+    }
+  },
+  "emptyVehicle": "Brak pojazdów.\nNaciśnij przycisk w prawym dolnym rogu, aby rozpocząć!",
+  "@emptyVehicle": {
+    "description": "Etykieta pustego stanu ekranu listy pojazdów"
+  },
+  "general": "Ogólne",
+  "@general": {
+    "description": "Etykieta sekcji ogólnej na ekranie ustawień"
+  },
+  "language": "Język",
+  "@language": {
+    "description": "Etykieta ustawienia języka na ekranie ustawień"
+  },
+  "languageFollowSystem": "System",
+  "@languageFollowSystem": {
+    "description": "Wartość ustawienia języka w przypadku korzystania z języka domyślnego systemowego"
+  },
+  "chooseLanguage": "Wybierz język",
+  "@chooseLanguage": {
+    "description": "Tytuł okna dialogowego wyboru języka"
+  },
+  "chooseMileageUnit": "Wybierz jednostkę przebiegu",
+  "@chooseMileageUnit": {
+    "description": "Tytuł okna dialogowego wyboru jednostki przebiegu"
+  },
+  "mileageUnitLabel": "Jednostka przebiegu",
+  "@mileageUnitLabel": {
+    "description": "Etykieta wpisu ustawienia jednostki przebiegu"
+  },
+  "mileageUnit": "{unit, select, km{Kilometry (km)} mi{Mile (mi)} other{}}",
+  "@mileageUnit": {
+    "description": "Etykieta opcji w oknie dialogowym wyboru jednostki przebiegu",
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "helpAndSupport": "Pomoc i wsparcie",
+  "@helpAndSupport": {
+    "description": "Etykieta wpisu pomocy i wsparcia na ekranie ustawień"
+  },
+  "openSourceLicenses": "Licencje open source",
+  "@openSourceLicenses": {
+    "description": "Etykieta wpisu licencji open source na ekranie ustawień"
+  },
+  "themeSystem": "System",
+  "@themeSystem": {
+    "description": "Wartość ustawienia motywu w przypadku korzystania z systemowego motywu"
+  },
+  "themeLight": "Jasny",
+  "@themeLight": {
+    "description": "Wartość ustawienia motywu dla trybu jasnego"
+  },
+  "themeDark": "Ciemny",
+  "@themeDark": {
+    "description": "Wartość ustawienia motywu dla trybu ciemnego"
+  },
+  "themeCustom": "Niestandardowy",
+  "@themeCustom": {
+    "description": "Wartość ustawienia motywu dla trybu niestandardowego"
+  },
+  "chooseColor": "Wybierz kolor",
+  "@chooseColor": {
+    "description": "Tytuł okna dialogowego wyboru niestandardowego koloru motywu"
+  },
+  "ok": "OK",
+  "@ok": {
+    "description": "Tekst przycisku OK w oknach dialogowych"
+  },
+  "chooseTheme": "Wybierz motyw",
+  "@chooseTheme": {
+    "description": "Tytuł okna dialogowego wyboru motywu"
+  },
+  "theme": "Motyw",
+  "@theme": {
+    "description": "Etykieta wpisu ustawienia motywu"
+  },
+  "themeColor": "Kolor motywu",
+  "@themeColor": {
+    "description": "Etykieta wpisu niestandardowego koloru motywu"
+  },
+  "routeErrorTitle": "Nie można otworzyć strony",
+  "@routeErrorTitle": {
+    "description": "Tytuł wyświetlany, gdy nie można bezpiecznie otworzyć strony"
+  },
+  "routeErrorMessage": "Informacje o stronie są niekompletne lub nie są już dostępne. Wróć i spróbuj ponownie.",
+  "@routeErrorMessage": {
+    "description": "Komunikat wyświetlany, gdy informacje o trasie są brakujące lub nieprawidłowe"
+  },
+  "goToHome": "Przejdź do strony początkowej",
+  "@goToHome": {
+    "description": "Etykieta powrotu do strony początkowej ze strony błędu"
+  },
+  "loadErrorMessage": "Nie można załadować danych. Spróbuj ponownie.",
+  "@loadErrorMessage": {
+    "description": "Ogólny komunikat dla użytkownika o nieudanym wstępnym załadowaniu danych"
+  },
+  "saveErrorMessage": "Nie można zapisać zmian. Spróbuj ponownie.",
+  "@saveErrorMessage": {
+    "description": "Ogólny komunikat dla użytkownika o nieudanym zapisaniu zmian"
+  },
+  "deleteErrorMessage": "Nie można usunąć. Spróbuj ponownie.",
+  "@deleteErrorMessage": {
+    "description": "Ogólny komunikat dla użytkownika o nieudanym usunięciu"
+  },
+  "refreshErrorMessage": "Nie można odświeżyć teraz. Spróbuj ponownie.",
+  "@refreshErrorMessage": {
+    "description": "Ogólny komunikat dla użytkownika o nieudanym odświeżeniu"
+  },
+  "reminderUpdateErrorMessage": "Zapisano, ale nie udało się zaktualizować przypomnień.",
+  "@reminderUpdateErrorMessage": {
+    "description": "Komunikat wyświetlany, gdy dane zostały zapisane, ale nie udało się zaktualizować przypomnień"
+  },
+  "exportErrorMessage": "Nie można wyeksportować danych. Spróbuj ponownie.",
+  "@exportErrorMessage": {
+    "description": "Komunikat dla użytkownika o nieudanym eksporcie danych"
+  },
+  "restoreErrorMessage": "Nie można przywrócić danych. Sprawdź plik kopii zapasowej i spróbuj ponownie.",
+  "@restoreErrorMessage": {
+    "description": "Komunikat dla użytkownika o nieudanym przywróceniu danych"
+  },
+  "requiredFieldLabel": "{label}*",
+  "@requiredFieldLabel": {
+    "description": "Etykieta pola formularza wymagającego wartości",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "requiredFieldWithUnit": "{label} ({unit})*",
+  "@requiredFieldWithUnit": {
+    "description": "Etykieta pola numerycznego formularza wymagającego wartości z wyświetloną jednostką",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "optionalFieldLabel": "{label} ({optional})",
+  "@optionalFieldLabel": {
+    "description": "Etykieta pola formularza opcjonalnego",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "optional": {
+        "type": "String"
+      }
+    }
+  },
+  "labeledValue": "{label}: {value}",
+  "@labeledValue": {
+    "description": "Etykieta i jej wyświetlana wartość",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "sectionHeading": "{label}:",
+  "@sectionHeading": {
+    "description": "Nagłówek sekcji formularza zakończony znakiem interpunkcyjnym",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "dateWithMileage": "{date} @ {mileage}",
+  "@dateWithMileage": {
+    "description": "Data czynności serwisowej wyświetlona wraz z zapisaną wtedy wartością przebiegu",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "mileage": {
+        "type": "String"
+      }
+    }
+  },
+  "dateWithRelative": "{date} ({relative})",
+  "@dateWithRelative": {
+    "description": "Sformatowana data wraz z okresem czasu do terminu wykonania",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "relative": {
+        "type": "String"
+      }
+    }
+  },
+  "combinedValues": "{first} / {second}",
+  "@combinedValues": {
+    "description": "Dwa powiązane ze sobą elementy wyświetlone razem",
+    "placeholders": {
+      "first": {
+        "type": "String"
+      },
+      "second": {
+        "type": "String"
+      }
+    }
+  },
+  "modelAndYear": "{model} - {year}",
+  "@modelAndYear": {
+    "description": "Model pojazdu wyświetlony wraz z rokiem zakupu",
+    "placeholders": {
+      "model": {
+        "type": "String"
+      },
+      "year": {
+        "type": "String"
+      }
+    }
+  },
+  "nextMaintenanceSummary": "Następne: {item} - {due}",
+  "@nextMaintenanceSummary": {
+    "description": "Zwięzłe podsumowanie kolejnej czynności serwisowej i terminu jej wykonania",
+    "placeholders": {
+      "item": {
+        "type": "String"
+      },
+      "due": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationTitle": "Przypomnienie o czynności serwisowej: {vehicleName}",
+  "@notificationTitle": {
+    "description": "Tytuł powiadomienia przypomnienia o czynności serwisowej dla pojazdu",
+    "placeholders": {
+      "vehicleName": {
+        "type": "String"
+      }
+    }
+  }
+}
