@@ -72,7 +72,7 @@ lib/
     navigation/                    typed 路由、持久 MainShell 和快捷导航适配器
     screens/                       页面、详情页 Tab 和局部组件；Settings 备份区独立拆分
   i18n/
-    app_*.arb                      12 个受版本控制的翻译源文件
+    app_*.arb                      受版本控制的翻译源文件，须与 appSupportedLocales 一一对应
     generated/                     flutter gen-l10n 生成，禁止提交
 android/                           唯一受支持的平台工程
 test/                              单元、数据库、Cubit、Widget 与策略回归测试
@@ -224,14 +224,10 @@ repository、Cubit 和平台异常使用 `AppFailure`/`OperationFailure` 分类�
 - 输出目录：`lib/i18n/generated`；
 - 输出入口：`app_localizations.dart`。
 
-当前 12 个 locale 分别为：
-
-`ar`、`de`、`en`、`es`、`fr`、`it`、`ja`、`ko`、`pt`、`ru`、`zh`（简体）和 `zh_Hant`（繁体）。
-
-所有 ARB 当前均有 188 个消息 key。新增用户可见文本时：
+受支持 locale 以 `lib/main.dart` 中的 `appSupportedLocales` 为准。每个 locale 必须有且仅有一个对应的 `app_*.arb`，每个 ARB 也必须对应一个受支持 locale；`app_zh.arb` 作为 `zh_Hans` 的通用语言回退。消息集合以模板 `app_en.arb` 为准，其他 ARB 必须覆盖模板中的全部消息 key，并保持 placeholder 名称和 ICU 类型一致。新增用户可见文本时：
 
 1. 先在 `app_en.arb` 添加消息和 `@message` 描述/placeholder 类型；
-2. 同步补齐另外 11 个 ARB，保持 placeholder 名称和 ICU 类型一致；
+2. 同步补齐其余所有 `app_*.arb`；
 3. 运行 `flutter gen-l10n`；
 4. 运行 `flutter analyze`；
 5. 不提交 `lib/i18n/generated/`，它已被 `.gitignore` 排除。
@@ -367,7 +363,7 @@ tag 发布会先通过 `Quality`，再运行 `Release`：
 - 已理解受影响页面、Cubit、仓储和数据库调用链。
 - Screen/Cubit 未绕过 application use case/port 直接依赖 repository 或设备插件。
 - 没有提交 generated、build、缓存、签名或秘密文件。
-- 所有用户可见文本已补齐 12 个 ARB。
+- 所有用户可见文本已补齐模板之外的全部 ARB。
 - 用户错误文案未泄露异常、SQL 或路径，内部诊断保留在开发日志。
 - 数据写入后所需的局部和全局状态均已刷新。
 - 预测变更考虑了时间、里程、首保、历史和逾期。

@@ -24,6 +24,8 @@
   <a href="./README.md">English</a>
   &nbsp;|&nbsp;
   <a href="./.design/i18n/README_zh.md">中文</a>
+  &nbsp;|&nbsp;
+  <a href="./.design/i18n/README_pl.md">Polski</a>
 </p>
 
 ## What CarVita do?
@@ -59,4 +61,4 @@ Please submit an [issue on GitHub](https://github.com/JeziL/carvita/issues/new).
 
 This repository is available as open-source under the terms of the [GNU AGPLv3 License](./LICENSE.txt).
 
-Google Play is a trademark of Google LLC.
+Google Play is a trademark of Google LLC. 
