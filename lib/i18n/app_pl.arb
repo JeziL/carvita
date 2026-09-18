@@ -442,7 +442,7 @@
   "@chooseDisplayItemCount": {
     "description": "Tytuł okna dialogowego wyboru liczby wyświetlanych pozycji na ekranie ustawień"
   },
-  "itemCount": "{count, plural, =1{1 pozycja} other{{count} pozycje}}",
+  "itemCount": "{count, plural, =1{1 pozycja} one{{count} pozycja} few{{count} pozycje} many{{count} pozycji} other{{count} pozycji}}",
   "@itemCount": {
     "description": "Etykieta liczby pozycji w oknie dialogowym wyboru liczby wyświetlanych pozycji",
     "placeholders": {
