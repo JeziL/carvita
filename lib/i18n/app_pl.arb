@@ -107,11 +107,11 @@
   "@thresholdHalfYear": {
     "description": "Etykieta zakresu przypomnień półrocznego w ustawieniach"
   },
-  "notificationLeadTimeLabel": "Preferencje dotyczące powiadomień",
+  "notificationLeadTimeLabel": "Czas powiadomień",
   "@notificationLeadTimeLabel": {
     "description": "Etykieta wyboru czasu wyprzedzenia powiadomień w ustawieniach"
   },
-  "notificationLeadTime": "{count, plural, =1{jeden dzień} other{{count} dni}} wcześniej",
+  "notificationLeadTime": "{count, plural, =1{dzień} other{{count} dni}} wcześniej",
   "@notificationLeadTime": {
     "description": "Opcje wyboru wyprzedzenia powiadomień w ustawieniach",
     "placeholders": {
@@ -434,7 +434,7 @@
   "@retry": {
     "description": "Etykieta ponownej próby nieudanej operacji"
   },
-  "chooseThreshold": "Wybierz próg przypomnień",
+  "chooseThreshold": "Wybierz zakres przypomnień",
   "@chooseThreshold": {
     "description": "Tytuł okna dialogowego wyboru progu przypomnienia na ekranie ustawień"
   },
@@ -499,7 +499,7 @@
   "@importCancelled": {
     "description": "Etykieta anulowanego importu"
   },
-  "chooseLeadTime": "Wybierz czas powiadomienia",
+  "chooseLeadTime": "Wybierz czas powiadomień",
   "@chooseLeadTime": {
     "description": "Tytuł okna wyboru czasu wyprzedzenia na ekranie ustawień"
   },
